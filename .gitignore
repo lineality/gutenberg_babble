@@ -6,6 +6,9 @@ __pycache__/
 archive/
 tests/
 generated_shakespeare_texts/
+project_files_directory/
+.ipynb_checkpoints/
+.ipynb_checkpoints/
 
 corpus.txt
 corpus1.txt
