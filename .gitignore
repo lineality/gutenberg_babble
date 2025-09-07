@@ -3,6 +3,15 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+archive/
+tests/
+generated_shakespeare_texts/
+
+corpus.txt
+corpus1.txt
+combined_corpus.txt
+training_loss.png
+
 # C extensions
 *.so
 
