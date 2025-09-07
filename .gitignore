@@ -11,6 +11,7 @@ corpus.txt
 corpus1.txt
 combined_corpus.txt
 training_loss.png
+todo.md
 
 # C extensions
 *.so
