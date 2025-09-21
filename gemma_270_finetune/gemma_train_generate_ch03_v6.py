@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[24]:
+# In[49]:
 
 
 # turn this into a .py file
-get_ipython().system('jupyter nbconvert --to script gemma_train_generate_ch03_v4.ipynb')
+get_ipython().system('jupyter nbconvert --to script gemma_train_generate_ch03_v5.ipynb')
 
 
 # # Training Gemma
+# 
+# ### see: new .py file -> train_gemma.py
 
-# ## TODO
+# # TODO List
 # 
 # ### 1. 
 # - gutenberg txt fine tuning
@@ -22,6 +24,9 @@ get_ipython().system('jupyter nbconvert --to script gemma_train_generate_ch03_v4
 # - base model trimming, pruning
 # - classification head
 # - embedding head
+# - larger gemma-type models
+# - CPU-only version
+# - quantizing model after training
 # - dynamic-embeddings
 # - IoT Data
 # - Biological Signals & Behavior
@@ -32,6 +37,12 @@ get_ipython().system('jupyter nbconvert --to script gemma_train_generate_ch03_v4
 # ### 2. 
 # - full model training vs. lora-layer addition
 # - saving an reloading weights
+# 
+# ### 3. 
+# - using the gemma 270m archetecture (or slight modification)
+#   1. adjust archetecture to compared across same synthetic data training
+# - making a public or crowd-sourced open MIT/APACHE2 weight set.
+# - STEM-Net Benchmarks: a range of synthetic training data types
 # 
 
 # # Based on rasbt, Sebastian Raschhka's (fabuloustastic) notebooks and book:
