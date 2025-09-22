@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+gemma-3-270m/
+models/
+data/
 archive/
 tests/
 generated_gutenberg_texts/
