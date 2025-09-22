@@ -1,4 +1,3 @@
-
 """
 train_perseid_documents.py
 
@@ -27,43 +26,7 @@ import matplotlib.pyplot as plt
 # Import model architecture and configuration tools
 from gemma_model import Gemma3Model
 from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
-# from generate_text_tools_perseid import generate_text_simple
 
-# def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50):
-#     """Simple generation for evaluation"""
-#     model.eval()
-#     token_ids = tokenizer.encode(prompt)
-#     input_ids = torch.tensor(token_ids).unsqueeze(0).to(model.device)
-
-#     with torch.no_grad():
-#         for _ in range(max_new_tokens):
-#             logits = model(input_ids)[:, -1, :]
-#             next_token = torch.argmax(logits, dim=-1, keepdim=True)
-#             input_ids = torch.cat([input_ids, next_token], dim=1)
-#             if input_ids.shape[1] > model.cfg["context_length"]:
-#                 input_ids = input_ids[:, -model.cfg["context_length"]:]
-
-#     model.train()
-#     return tokenizer.decode(input_ids.squeeze(0).tolist())
-def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=None):
-    """Simple generation for evaluation"""
-    if device is None:
-        device = next(model.parameters()).device  # Get device from model parameters
-
-    model.eval()
-    token_ids = tokenizer.encode(prompt)
-    input_ids = torch.tensor(token_ids).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-        for _ in range(max_new_tokens):
-            logits = model(input_ids)[:, -1, :]
-            next_token = torch.argmax(logits, dim=-1, keepdim=True)
-            input_ids = torch.cat([input_ids, next_token], dim=1)
-            if input_ids.shape[1] > model.cfg["context_length"]:
-                input_ids = input_ids[:, -model.cfg["context_length"]:]
-
-    model.train()
-    return tokenizer.decode(input_ids.squeeze(0).tolist())
 
 # ============================================================================
 # USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
@@ -867,24 +830,9 @@ def save_training_results(model, model_config, history, output_dir):
         print(f"  ✓ Configuration saved to {config_path}")
 
         # Save training history
-        # history_path = output_dir / "training_history.json"
-        # with open(history_path, 'w') as f:
-        #     json.dump(history, f, indent=2)
-        # Save training history - convert tensors to floats
         history_path = output_dir / "training_history.json"
-        history_serializable = {}
-        for key, values in history.items():
-            if isinstance(values, list) and len(values) > 0:
-                # Convert tensor values to floats
-                if hasattr(values[0], 'item'):  # It's a tensor
-                    history_serializable[key] = [v.item() if hasattr(v, 'item') else v for v in values]
-                else:
-                    history_serializable[key] = values
-            else:
-                history_serializable[key] = values
-
         with open(history_path, 'w') as f:
-            json.dump(history_serializable, f, indent=2)
+            json.dump(history, f, indent=2)
         print(f"  ✓ Training history saved to {history_path}")
 
         # Plot and save training curves
@@ -1065,19 +1013,6 @@ def main():
 
         print(f"\n{'='*60}")
         print("Training Pipeline Complete!")
-
-        # 5.5 Generate sample text with trained model
-        print(f"\n{'='*40}")
-        print("Step 5.5: Sample Generation")
-        print(f"{'='*40}")
-
-        test_prompts = ["Once upon a time", "The meaning of life is", "In the beginning"]
-        for prompt in test_prompts:
-            # output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50)
-            output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=DEVICE)
-            print(f"Prompt: '{prompt}'")
-            print(f"Output: {output}\n")
-
         print(f"{'='*60}")
         print(f"Model and results saved to: {output_dir}")
 
