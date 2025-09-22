@@ -227,7 +227,8 @@ from tokenizers import Tokenizer
 # ============================================================================
 
 # Point to your trained model
-CHECKPOINT_PATH = "./models/perseid_256m_my_document/checkpoint_best.pth"  # <- MODIFY THIS
+# CHECKPOINT_PATH = "./models/perseid_256m_alice/checkpoint_best.pth"  # <- MODIFY THIS
+CHECKPOINT_PATH = "./models/perseid_256m_alice/perseid_model_final.pth"  # <- MODIFY THIS
 # or: "./models/perseid_256m_my_document/perseid_model_final.pth"
 
 # Generation settings
