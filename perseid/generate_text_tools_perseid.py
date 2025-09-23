@@ -322,5 +322,8 @@ def main():
         print(f"Output: {output}")
         print("-"*40)
 
+import sys
 if __name__ == "__main__":
+
+    # Run
     main()

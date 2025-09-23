@@ -65,28 +65,7 @@ def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=Non
     model.train()
     return tokenizer.decode(input_ids.squeeze(0).tolist())
 
-# ============================================================================
-# USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
-# ============================================================================
 
-# Download sample text data
-file_path = "data/alice.txt"
-os.makedirs("data", exist_ok=True)
-
-if not os.path.exists(file_path):
-    url = "https://www.gutenberg.org/files/11/11-0.txt"
-    print(f"Downloading training data from {url}")
-    with urllib.request.urlopen(url) as response:
-        text_data = response.read().decode('utf-8')
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(text_data)
-else:
-    print(f"Loading existing data from {file_path}")
-    with open(file_path, "r", encoding="utf-8") as file:
-        text_data = file.read()
-
-# Document input
-DOCUMENT_PATH = file_path  # "./data/my_document.txt"  # Path to your text file
 
 # Model configuration
 MODEL_SIZE = 256  # Options: 256, 288, 320 (millions of parameters)
@@ -119,13 +98,7 @@ TRAINING_CONFIG = {
     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
 }
 
-# Output configuration
-OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{Path(DOCUMENT_PATH).stem}/"
-EXPERIMENT_NAME = f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-# Hardware settings
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-USE_BFLOAT16 = torch.cuda.is_available()  # Use bfloat16 if on GPU
 
 # ============================================================================
 # END USER CONFIGURATION
@@ -1093,5 +1066,70 @@ def main():
 
 
 if __name__ == "__main__":
+
+    # inspect
+    print("Arguments passed to the script:")
+    for i, arg in enumerate(sys.argv):
+        print(f"\tArgument {i}: {arg}")
+
+    # ============================================================================
+    # USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
+    # ============================================================================
+
+
+    # preset/reset
+    file_path = None
+
+    # get path if supplied
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <path>")
+
+        # Download sample text data
+        demo_file_path = "data/alice.txt"
+        os.makedirs("data", exist_ok=True)
+
+        if not os.path.exists(demo_file_path):
+            url = "https://www.gutenberg.org/files/11/11-0.txt"
+            print(f"Downloading training data from {url}")
+            with urllib.request.urlopen(url) as response:
+                text_data = response.read().decode('utf-8')
+            with open(demo_file_path, "w", encoding="utf-8") as file:
+                file.write(text_data)
+        else:
+            print(f"Loading existing data from {demo_file_path}")
+            with open(demo_file_path, "r", encoding="utf-8") as file:
+                text_data = file.read()
+
+        # Q&A
+        user_path_or_demo_choice = input("\nEnter a file path to a .txt file or for a demo say 'demo'\n")
+
+        # use demo if demo is selected
+        if user_path_or_demo_choice.lower().strip() == 'demo':
+            file_path = demo_file_path
+
+        # use Q&A input path if selected
+        else:
+            file_path = user_path_or_demo_choice
+
+    # use argument input path if supplied by user
+    elif len(sys.argv) == 2:
+
+        file_path = sys.argv[1]
+        print(f"path argument found... {file_path}")
+
+    else:
+        print("Edge case, defaulting to demo.")
+
+    # Document input
+    DOCUMENT_PATH = file_path  # "./data/my_document.txt"  # Path to your text file
+
+    # Output configuration
+    OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{Path(DOCUMENT_PATH).stem}/"
+    EXPERIMENT_NAME = f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    # Hardware settings
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    USE_BFLOAT16 = torch.cuda.is_available()  # Use bfloat16 if on GPU
+
     # Run the training pipeline
     model, history = main()
