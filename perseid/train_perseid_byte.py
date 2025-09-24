@@ -1,14 +1,15 @@
 
 """
-train_perseid_documents.py
+train_perseid_byte.py
 
 Training module for Perseid models on text document corpus.
 Handles single document input with configurable train/val split.
-Trains from scratch (no pretrained weights).
+Trains from scratch (no pretrained weights),
+unless existing weights are found, then it should continue training.
 
 Usage:
     1. Set configuration parameters at top of file
-    2. Run: python train_perseid_documents.py
+    2. Run: python train_perseid_byte.py
 """
 
 import os
@@ -18,7 +19,6 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 import urllib.request
-from tokenizers import Tokenizer
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -27,51 +27,11 @@ import matplotlib.pyplot as plt
 # Import model architecture and configuration tools
 from byte_tokenizer import ByteTokenizer
 from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
-# from generate_text_tools_perseid import generate_text_simple
 
+# from generate_text_tools_perseid import generate_text_simple
 from perseid_model import PerseidByteModel
 
-# def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50):
-#     """Simple generation for evaluation"""
-#     model.eval()
-#     token_ids = tokenizer.encode(prompt)
-#     input_ids = torch.tensor(token_ids).unsqueeze(0).to(model.device)
 
-#     with torch.no_grad():
-#         for _ in range(max_new_tokens):
-#             logits = model(input_ids)[:, -1, :]
-#             next_token = torch.argmax(logits, dim=-1, keepdim=True)
-#             input_ids = torch.cat([input_ids, next_token], dim=1)
-#             if input_ids.shape[1] > model.cfg["context_length"]:
-#                 input_ids = input_ids[:, -model.cfg["context_length"]:]
-
-
-# # Placeholder tokenizer class for MVP
-# class SimpleTokenizer:
-#     def encode(self, text):
-#         # Simple character-level tokenizer for MVP
-#         return [ord(c) % 256 for c in text]
-
-#     def decode(self, ids):
-#         return ''.join([chr(i) for i in ids])
-
-# tokenizer = SimpleTokenizer()
-#
-
-# class GemmaTokenizer:
-#     """Tokenizer for Gemma 3 model"""
-#     def __init__(self, tokenizer_file_path: str):
-#         tok_file = Path(tokenizer_file_path)
-#         self._tok = Tokenizer.from_file(str(tok_file))
-#         self.eos_token = "<end_of_turn>"
-#         self.pad_token = "<end_of_turn>"
-
-#     def encode(self, text: str) -> list[int]:
-#         return self._tok.encode(text).ids
-
-#     def decode(self, ids: list[int]) -> str:
-#         return self._tok.decode(ids, skip_special_tokens=False)
-# Replace the tokenizer setup section (around line 740) with:
 def setup_tokenizer():
     """Setup ByteTokenizer for training."""
     print("\nInitializing ByteTokenizer...")
@@ -83,8 +43,6 @@ def setup_tokenizer():
     return tokenizer
 
 
-#     model.train()
-#     return tokenizer.decode(input_ids.squeeze(0).tolist())
 def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=None):
     """Simple generation for evaluation"""
     if device is None:
@@ -104,7 +62,6 @@ def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=Non
 
     model.train()
     return tokenizer.decode(input_ids.squeeze(0).tolist())
-
 
 
 # Model configuration
@@ -852,15 +809,105 @@ def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag
         traceback.print_exc()
 
 
+# def save_training_results(model, model_config, history, output_dir):
+#     """
+#     Save final model and training artifacts.
+
+#     Args:
+#         model: Trained model
+#         model_config: Model configuration
+#         history: Training history
+#         output_dir: Output directory
+#     """
+#     try:
+#         output_dir = Path(output_dir)
+#         output_dir.mkdir(parents=True, exist_ok=True)
+
+#         print(f"\nSaving training results to {output_dir}")
+
+#         # Save final model weights
+#         model_path = output_dir / "perseid_model_final.pth"
+#         torch.save(model.state_dict(), model_path)
+#         print(f"  ✓ Model weights saved to {model_path}")
+
+#         # Save configuration
+#         config_path = output_dir / "model_config.json"
+#         config_save = {k: v for k, v in model_config.items() if k != "dtype"}
+#         config_save["dtype"] = str(model_config["dtype"])
+#         with open(config_path, 'w') as f:
+#             json.dump(config_save, f, indent=2)
+#         print(f"  ✓ Configuration saved to {config_path}")
+
+#         # Save training history
+#         # history_path = output_dir / "training_history.json"
+#         # with open(history_path, 'w') as f:
+#         #     json.dump(history, f, indent=2)
+#         # Save training history - convert tensors to floats
+#         history_path = output_dir / "training_history.json"
+#         history_serializable = {}
+#         for key, values in history.items():
+#             if isinstance(values, list) and len(values) > 0:
+#                 # Convert tensor values to floats
+#                 if hasattr(values[0], 'item'):  # It's a tensor
+#                     history_serializable[key] = [v.item() if hasattr(v, 'item') else v for v in values]
+#                 else:
+#                     history_serializable[key] = values
+#             else:
+#                 history_serializable[key] = values
+
+#         with open(history_path, 'w') as f:
+#             json.dump(history_serializable, f, indent=2)
+#         print(f"  ✓ Training history saved to {history_path}")
+
+#         # Plot and save training curves
+#         if len(history["train_loss"]) > 0:
+#             plt.figure(figsize=(12, 4))
+
+#             plt.subplot(1, 3, 1)
+#             plt.plot(history["step"], history["train_loss"], label="Train Loss")
+#             plt.plot(history["step"], history["val_loss"], label="Val Loss")
+#             plt.xlabel("Step")
+#             plt.ylabel("Loss")
+#             plt.title("Training Progress")
+#             plt.legend()
+#             plt.grid(True, alpha=0.3)
+
+#             plt.subplot(1, 3, 2)
+#             val_perplexity = [torch.exp(torch.tensor(loss)).item() for loss in history["val_loss"]]
+#             plt.plot(history["step"], val_perplexity)
+#             plt.xlabel("Step")
+#             plt.ylabel("Perplexity")
+#             plt.title("Validation Perplexity")
+#             plt.grid(True, alpha=0.3)
+
+#             plt.subplot(1, 3, 3)
+#             plt.plot(history["step"], history["learning_rates"])
+#             plt.xlabel("Step")
+#             plt.ylabel("Learning Rate")
+#             plt.title("Learning Rate Schedule")
+#             plt.grid(True, alpha=0.3)
+
+#             plt.tight_layout()
+#             plot_path = output_dir / "training_curves.png"
+#             plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+#             plt.close()
+#             print(f"  ✓ Training curves saved to {plot_path}")
+
+#         # Save training configuration
+#         train_config_path = output_dir / "training_config.json"
+#         with open(train_config_path, 'w') as f:
+#             json.dump(TRAINING_CONFIG, f, indent=2)
+#         print(f"  ✓ Training config saved to {train_config_path}")
+
+#         print(f"\nAll outputs saved to: {output_dir}")
+
+#     except Exception as e:
+#         print(f"Error saving results: {e}")
+#         traceback.print_exc()
+
 def save_training_results(model, model_config, history, output_dir):
     """
     Save final model and training artifacts.
-
-    Args:
-        model: Trained model
-        model_config: Model configuration
-        history: Training history
-        output_dir: Output directory
     """
     try:
         output_dir = Path(output_dir)
@@ -881,20 +928,21 @@ def save_training_results(model, model_config, history, output_dir):
             json.dump(config_save, f, indent=2)
         print(f"  ✓ Configuration saved to {config_path}")
 
-        # Save training history
-        # history_path = output_dir / "training_history.json"
-        # with open(history_path, 'w') as f:
-        #     json.dump(history, f, indent=2)
-        # Save training history - convert tensors to floats
+        # Save training history - convert tensors to CPU/floats
         history_path = output_dir / "training_history.json"
         history_serializable = {}
         for key, values in history.items():
             if isinstance(values, list) and len(values) > 0:
-                # Convert tensor values to floats
-                if hasattr(values[0], 'item'):  # It's a tensor
-                    history_serializable[key] = [v.item() if hasattr(v, 'item') else v for v in values]
-                else:
-                    history_serializable[key] = values
+                # Convert tensor values to CPU floats
+                converted_values = []
+                for v in values:
+                    if hasattr(v, 'cpu'):  # It's a tensor
+                        converted_values.append(v.cpu().item())
+                    elif hasattr(v, 'item'):  # It's a scalar tensor
+                        converted_values.append(v.item())
+                    else:  # It's already a regular number
+                        converted_values.append(v)
+                history_serializable[key] = converted_values
             else:
                 history_serializable[key] = values
 
@@ -902,13 +950,19 @@ def save_training_results(model, model_config, history, output_dir):
             json.dump(history_serializable, f, indent=2)
         print(f"  ✓ Training history saved to {history_path}")
 
-        # Plot and save training curves
+        # Plot and save training curves - ENSURE CPU CONVERSION
         if len(history["train_loss"]) > 0:
             plt.figure(figsize=(12, 4))
 
+            # Convert all data to CPU for plotting
+            steps_cpu = [s.cpu().item() if hasattr(s, 'cpu') else s for s in history["step"]]
+            train_loss_cpu = [l.cpu().item() if hasattr(l, 'cpu') else l for l in history["train_loss"]]
+            val_loss_cpu = [l.cpu().item() if hasattr(l, 'cpu') else l for l in history["val_loss"]]
+            lr_cpu = [lr.cpu().item() if hasattr(lr, 'cpu') else lr for lr in history["learning_rates"]]
+
             plt.subplot(1, 3, 1)
-            plt.plot(history["step"], history["train_loss"], label="Train Loss")
-            plt.plot(history["step"], history["val_loss"], label="Val Loss")
+            plt.plot(steps_cpu, train_loss_cpu, label="Train Loss")
+            plt.plot(steps_cpu, val_loss_cpu, label="Val Loss")
             plt.xlabel("Step")
             plt.ylabel("Loss")
             plt.title("Training Progress")
@@ -916,15 +970,15 @@ def save_training_results(model, model_config, history, output_dir):
             plt.grid(True, alpha=0.3)
 
             plt.subplot(1, 3, 2)
-            val_perplexity = [torch.exp(torch.tensor(loss)).item() for loss in history["val_loss"]]
-            plt.plot(history["step"], val_perplexity)
+            val_perplexity = [torch.exp(torch.tensor(loss)).item() for loss in val_loss_cpu]
+            plt.plot(steps_cpu, val_perplexity)
             plt.xlabel("Step")
             plt.ylabel("Perplexity")
             plt.title("Validation Perplexity")
             plt.grid(True, alpha=0.3)
 
             plt.subplot(1, 3, 3)
-            plt.plot(history["step"], history["learning_rates"])
+            plt.plot(steps_cpu, lr_cpu)
             plt.xlabel("Step")
             plt.ylabel("Learning Rate")
             plt.title("Learning Rate Schedule")
@@ -980,19 +1034,11 @@ def main():
         print("Step 2: Setting Up Model")
         print(f"{'='*40}")
 
-        # For MVP, we'll use a simple tokenizer
-        # In production, this would use the Gemma tokenizer
-        print("\nNote: Using placeholder tokenizer for MVP")
-        print("Production version would use GemmaTokenizer")
-
-
         ###############################
         # Setup ByteTokenizer
         ###############################
 
         tokenizer = setup_tokenizer()
-
-
 
         # Initialize model
         model, model_config, training_state = setup_model(
@@ -1068,6 +1114,7 @@ def main():
         print(f"Error: {e}")
         traceback.print_exc()
         raise
+
 
 def test_integration():
     """Test ByteTokenizer integration with model config."""

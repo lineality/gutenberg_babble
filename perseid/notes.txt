@@ -1,0 +1,566 @@
+ops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ hx byte_tokenizer.py
+oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ python3 byte_tokenizer.py
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/byte_tokenizer.py", line 8, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ cd ..
+oops@oops-Precision-7780:~/code/gutenberg_babble$ . env/bin/activate
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble$ cd perseid
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ python3 train_perseid_byte_v1.py
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 1101, in <module>
+    test_integration()
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 1072, in test_integration
+    tokenizer = setup_tokenizer()
+                ^^^^^^^^^^^^^^^
+NameError: name 'setup_tokenizer' is not defined
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ python3 train_perseid_byte_v1.py
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+Configuration validation issues for 256M balanced:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+Attempting automatic fixes...
+Warning: Configuration still has issues after automatic fixes:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 207.66M parameters
+  Difference: -48.34M (-18.9%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 262144
+  Expected: 259
+  Match: False
+  Model size: 207.66M parameters
+Arguments passed to the script:
+	Argument 0: train_perseid_byte_v1.py
+Usage: python script.py <path>
+Loading existing data from data/alice.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+demo
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_256m_20250923_210654
+Output directory: ./models/perseid_256m_alice/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/alice.txt
+File size: 0.14 MB
+Successfully loaded with utf-8 encoding
+Document length: 144,696 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Note: Using placeholder tokenizer for MVP
+Production version would use GemmaTokenizer
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_256m_alice/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+Error setting up model: name 'Gemma3Model' is not defined
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 485, in setup_model
+    model = Gemma3Model(model_config)
+            ^^^^^^^^^^^
+NameError: name 'Gemma3Model' is not defined
+
+============================================================
+Training Pipeline Failed
+============================================================
+Error: name 'Gemma3Model' is not defined
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 994, in main
+    model, model_config, training_state = setup_model(
+                                          ^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 485, in setup_model
+    model = Gemma3Model(model_config)
+            ^^^^^^^^^^^
+NameError: name 'Gemma3Model' is not defined
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 1171, in <module>
+    model, history = main()
+                     ^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 994, in main
+    model, model_config, training_state = setup_model(
+                                          ^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 485, in setup_model
+    model = Gemma3Model(model_config)
+            ^^^^^^^^^^^
+NameError: name 'Gemma3Model' is not defined
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ python3 train_perseid_byte_v1.py
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+Configuration validation issues for 256M balanced:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+Attempting automatic fixes...
+Warning: Configuration still has issues after automatic fixes:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 207.66M parameters
+  Difference: -48.34M (-18.9%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 262144
+  Expected: 259
+  Match: False
+  Model size: 207.66M parameters
+Arguments passed to the script:
+	Argument 0: train_perseid_byte_v1.py
+Usage: python script.py <path>
+Loading existing data from data/alice.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+demo
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_256m_20250923_213413
+Output directory: ./models/perseid_256m_alice/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/alice.txt
+File size: 0.14 MB
+Successfully loaded with utf-8 encoding
+Document length: 144,696 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Note: Using placeholder tokenizer for MVP
+Production version would use GemmaTokenizer
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_256m_alice/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 150
+  - Epoch: 0
+  - Best validation loss: 5.1384
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 358,656,576
+  Trainable parameters: 358,656,576
+  Model size (bfloat16): 0.717 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 130,226 chars
+Val text: 14,470 chars
+Tokenizing text of length 130,226 characters...
+Created 295 training windows
+Total tokens: 136,069
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 14,470 characters...
+Created 29 training windows
+Total tokens: 15,122
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 295
+Val batches: 29
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 150
+Total training steps: 219
+Warmup steps: 100
+Effective batch size: 4
+
+========================================
+Epoch 1/3
+========================================
+Step   200 | Train Loss: 7.1408 | Val Loss: 4.5406 | LR: 3.08e-05 | Tokens: 102,400
+  → Saved best model (val_loss: 4.5406)
+
+Epoch 1 Summary:
+  Average Train Loss: 6.2953
+  Validation Loss: 4.5022
+  Perplexity: 90.21
+
+========================================
+Epoch 2/3
+========================================
+Step   250 | Train Loss: 4.4659 | Val Loss: 4.1813 | LR: 7.92e-05 | Tokens: 204,800
+  → Saved best model (val_loss: 4.1813)
+
+Epoch 2 Summary:
+  Average Train Loss: 3.5445
+  Validation Loss: 2.3728
+  Perplexity: 10.73
+
+========================================
+Epoch 3/3
+========================================
+Step   300 | Train Loss: 2.3379 | Val Loss: 2.3203 | LR: 3.84e-04 | Tokens: 307,200
+  → Saved best model (val_loss: 2.3203)
+Step   350 | Train Loss: 2.1051 | Val Loss: 1.8930 | LR: 4.88e-04 | Tokens: 409,600
+  → Saved best model (val_loss: 1.8930)
+
+Epoch 3 Summary:
+  Average Train Loss: 2.0277
+  Validation Loss: 1.7691
+  Perplexity: 5.87
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.8930
+Total tokens seen: 448,512
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_256m_alice
+  ✓ Model weights saved to models/perseid_256m_alice/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_256m_alice/model_config.json
+  ✓ Training history saved to models/perseid_256m_alice/training_history.json
+Error saving results: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 927, in save_training_results
+    plt.plot(history["step"], history["learning_rates"])
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/pyplot.py", line 3838, in plot
+    return gca().plot(
+           ^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_axes.py", line 1777, in plot
+    lines = [*self._get_lines(self, *args, data=data, **kwargs)]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_base.py", line 297, in __call__
+    yield from self._plot_args(
+               ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_base.py", line 484, in _plot_args
+    y = _check_1d(xy[1])
+        ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/cbook.py", line 1368, in _check_1d
+    return np.atleast_1d(x)
+           ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/numpy/_core/shape_base.py", line 63, in atleast_1d
+    result = asanyarray(arys[0])
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/_tensor.py", line 1226, in __array__
+    return self.numpy()
+           ^^^^^^^^^^^^
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time the was the was the was the was the was the was t
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is the was the was the was the was the was the was t
+
+Prompt: 'In the beginning'
+Output: In the beginning to the was the was the was the was the was the wa
+
+============================================================
+Model and results saved to: models/perseid_256m_alice
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid$ python3 train_perseid_byte_v1.py
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+Configuration validation issues for 256M balanced:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+Attempting automatic fixes...
+Warning: Configuration still has issues after automatic fixes:
+  - vocab_size (262144) seems unreasonable (expected 256-100000 for byte tokenizer)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 207.66M parameters
+  Difference: -48.34M (-18.9%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 262144
+  Expected: 259
+  Match: False
+  Model size: 207.66M parameters
+Arguments passed to the script:
+	Argument 0: train_perseid_byte_v1.py
+Usage: python script.py <path>
+Loading existing data from data/alice.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+demo
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_256m_20250923_213618
+Output directory: ./models/perseid_256m_alice/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/alice.txt
+File size: 0.14 MB
+Successfully loaded with utf-8 encoding
+Document length: 144,696 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Note: Using placeholder tokenizer for MVP
+Production version would use GemmaTokenizer
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_256m_alice/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 350
+  - Epoch: 0
+  - Best validation loss: 1.8930
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 358,656,576
+  Trainable parameters: 358,656,576
+  Model size (bfloat16): 0.717 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 130,226 chars
+Val text: 14,470 chars
+Tokenizing text of length 130,226 characters...
+Created 295 training windows
+Total tokens: 136,069
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 14,470 characters...
+Created 29 training windows
+Total tokens: 15,122
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 295
+Val batches: 29
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 350
+Total training steps: 219
+Warmup steps: 100
+Effective batch size: 4
+
+========================================
+Epoch 1/3
+========================================
+Step   400 | Train Loss: 1.7355 | Val Loss: 1.6609 | LR: 2.34e-04 | Tokens: 102,400
+  → Saved best model (val_loss: 1.6609)
+
+Epoch 1 Summary:
+  Average Train Loss: 1.6931
+  Validation Loss: 1.6045
+  Perplexity: 4.98
+
+========================================
+Epoch 2/3
+========================================
+Step   450 | Train Loss: 1.5459 | Val Loss: 1.5906 | LR: 4.26e-06 | Tokens: 204,800
+  → Saved best model (val_loss: 1.5906)
+
+Epoch 2 Summary:
+  Average Train Loss: 1.5177
+  Validation Loss: 1.5886
+  Perplexity: 4.90
+
+========================================
+Epoch 3/3
+========================================
+Step   500 | Train Loss: 1.4683 | Val Loss: 1.5781 | LR: 1.45e-04 | Tokens: 307,200
+  → Saved best model (val_loss: 1.5781)
+Step   550 | Train Loss: 1.5097 | Val Loss: 1.5914 | LR: 4.43e-04 | Tokens: 409,600
+
+Epoch 3 Summary:
+  Average Train Loss: 1.5152
+  Validation Loss: 1.5822
+  Perplexity: 4.87
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.5781
+Total tokens seen: 448,512
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_256m_alice
+  ✓ Model weights saved to models/perseid_256m_alice/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_256m_alice/model_config.json
+  ✓ Training history saved to models/perseid_256m_alice/training_history.json
+Error saving results: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseid/train_perseid_byte_v1.py", line 927, in save_training_results
+    plt.plot(history["step"], history["learning_rates"])
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/pyplot.py", line 3838, in plot
+    return gca().plot(
+           ^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_axes.py", line 1777, in plot
+    lines = [*self._get_lines(self, *args, data=data, **kwargs)]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_base.py", line 297, in __call__
+    yield from self._plot_args(
+               ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/axes/_base.py", line 484, in _plot_args
+    y = _check_1d(xy[1])
+        ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/matplotlib/cbook.py", line 1368, in _check_1d
+    return np.atleast_1d(x)
+           ^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/numpy/_core/shape_base.py", line 63, in atleast_1d
+    result = asanyarray(arys[0])
+             ^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/_tensor.py", line 1226, in __array__
+    return self.numpy()
+           ^^^^^^^^^^^^
+TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time the cout
+the Queen of the began the cout of the w
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is
+the was a little the cout of the cout of the the
+
+Prompt: 'In the beginning'
+Output: In the beginning to the began to the began to the was a little the
+
+============================================================
+Model and results saved to: models/perseid_256m_alice

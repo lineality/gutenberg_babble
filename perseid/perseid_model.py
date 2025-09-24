@@ -1,7 +1,5 @@
-
-# train_gemma.py
-# for Gemma 3 270M model
-# Adapted from gpt_train.py for Gemma architecture
+# perseid_model.py
+# Adapted for the Perseid Architecture
 
 import torch
 import torch.nn as nn

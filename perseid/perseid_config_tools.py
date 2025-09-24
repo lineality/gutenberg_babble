@@ -1,18 +1,18 @@
 """
-perseid_config.py
+perseid_config_tools.py
 
-Configuration utilities for creating Perseid model variants from Gemma architecture.
+Configuration utilities for creating Perseid model variants based on a Gemma architecture.
 Provides functions to calculate parameter counts, validate configurations, and
 generate optimal configurations for target model sizes.
 """
 
-import math
+# import math
 import traceback
-from typing import Dict, Tuple, List, Optional
+from typing import Dict, Optional
 import torch
 
 
-def calculate_model_params(config: Dict) -> Dict[str, int]:
+def calculate_model_params(config: Dict) -> dict[str, int]:
     """
     Calculate detailed parameter counts for a given model configuration.
 
@@ -73,7 +73,7 @@ def calculate_model_params(config: Dict) -> Dict[str, int]:
         attention_params_per_layer = q_params + k_params + v_params + out_proj_params + qk_norm_params
 
         # Calculate per-layer feedforward parameters
-        # Gemma uses gated FFN with three projections
+        # For reference: Gemma uses gated FFN with three projections
         # gate_proj: emb_dim -> hidden_dim
         gate_params = emb_dim * hidden_dim
 
@@ -86,7 +86,7 @@ def calculate_model_params(config: Dict) -> Dict[str, int]:
         ffn_params_per_layer = gate_params + up_params + down_params
 
         # Calculate per-layer normalization parameters
-        # Gemma uses multiple RMSNorm layers per transformer block
+        #  For reference: Gemma uses multiple RMSNorm layers per transformer block
         # - input_layernorm
         # - post_attention_layernorm
         # - pre_feedforward_layernorm
@@ -138,7 +138,7 @@ def calculate_model_params(config: Dict) -> Dict[str, int]:
         raise
 
 
-def validate_config(config: Dict) -> Tuple[bool, List[str]]:
+def validate_config(config: Dict) -> tuple[bool, list[str]]:
     """
     Validate that a model configuration satisfies all architectural constraints.
 
