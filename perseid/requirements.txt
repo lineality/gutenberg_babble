@@ -1,0 +1,6 @@
+torch
+jupyter
+numpy
+flake8
+pylint
+matplotlib

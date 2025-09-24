@@ -25,7 +25,7 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
 # Import model architecture and configuration tools
-from byte_tokenizer import ByteTokenizer
+from gemma_model import Gemma3Model
 from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
 # from generate_text_tools_perseid import generate_text_simple
 
@@ -955,37 +955,39 @@ def main():
         # tokenizer = SimpleTokenizer()
         #
 
-        # class GemmaTokenizer:
-        #     """Tokenizer for Gemma 3 model"""
-        #     def __init__(self, tokenizer_file_path: str):
-        #         tok_file = Path(tokenizer_file_path)
-        #         self._tok = Tokenizer.from_file(str(tok_file))
-        #         self.eos_token = "<end_of_turn>"
-        #         self.pad_token = "<end_of_turn>"
+        class GemmaTokenizer:
+            """Tokenizer for Gemma 3 model"""
+            def __init__(self, tokenizer_file_path: str):
+                tok_file = Path(tokenizer_file_path)
+                self._tok = Tokenizer.from_file(str(tok_file))
+                self.eos_token = "<end_of_turn>"
+                self.pad_token = "<end_of_turn>"
 
-        #     def encode(self, text: str) -> list[int]:
-        #         return self._tok.encode(text).ids
+            def encode(self, text: str) -> list[int]:
+                return self._tok.encode(text).ids
 
-        #     def decode(self, ids: list[int]) -> str:
-        #         return self._tok.decode(ids, skip_special_tokens=False)
-        # Replace the tokenizer setup section (around line 740) with:
-        def setup_tokenizer():
-            """Setup ByteTokenizer for training."""
-            print("\nInitializing ByteTokenizer...")
-            tokenizer = ByteTokenizer()
-
-            print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
-            print(f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}")
-
-            return tokenizer
+            def decode(self, ids: list[int]) -> str:
+                return self._tok.decode(ids, skip_special_tokens=False)
 
         ###############################
-        # Setup ByteTokenizer
+        # Download and setup tokenizer
         ###############################
 
-        tokenizer = setup_tokenizer()
+        repo_id = "google/gemma-3-270m"
+        local_dir = Path(repo_id).parts[-1]
 
+        from huggingface_hub import hf_hub_download
 
+        # Download tokenizer
+        tokenizer_file_path = os.path.join(local_dir, "tokenizer.json")
+        if not os.path.exists(tokenizer_file_path):
+            tokenizer_file_path = hf_hub_download(
+                repo_id=repo_id,
+                filename="tokenizer.json",
+                local_dir=local_dir
+            )
+
+        tokenizer = GemmaTokenizer(tokenizer_file_path=tokenizer_file_path)
 
         # Initialize model
         model, model_config, training_state = setup_model(
@@ -1062,43 +1064,8 @@ def main():
         traceback.print_exc()
         raise
 
-def test_integration():
-    """Test ByteTokenizer integration with model config."""
-    print("\n" + "="*60)
-    print("Testing ByteTokenizer Integration")
-    print("="*60)
-
-    # Test tokenizer
-    tokenizer = setup_tokenizer()
-
-    # Test encoding/decoding
-    test_text = "Hello, World! 🌍"
-    tokens = tokenizer.encode(test_text, add_eos=True)
-    decoded = tokenizer.decode(tokens)
-
-    print(f"\nTokenizer test:")
-    print(f"  Original: {repr(test_text)}")
-    print(f"  Tokens: {tokens} ({len(tokens)} tokens)")
-    print(f"  Decoded: {repr(decoded)}")
-    print(f"  Match: {test_text + tokenizer.eos_token == decoded}")
-
-    # Test model config
-    model_config = create_perseid_config(256, strategy="balanced")
-    print(f"\nModel config test:")
-    print(f"  Vocab size: {model_config['vocab_size']}")
-    print(f"  Expected: 259")
-    print(f"  Match: {model_config['vocab_size'] == 259}")
-
-    # Test parameter calculation
-    params = calculate_model_params(model_config)
-    print(f"  Model size: {params['total_millions']:.2f}M parameters")
-
-    return tokenizer, model_config
-
 
 if __name__ == "__main__":
-    # Add this line before the main training pipeline
-    test_integration()
 
     # inspect
     print("Arguments passed to the script:")

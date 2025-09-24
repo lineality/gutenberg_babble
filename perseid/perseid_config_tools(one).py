@@ -245,15 +245,10 @@ def validate_config(config: Dict) -> Tuple[bool, List[str]]:
         if emb_dim < 64 or emb_dim > 8192:
             issues.append(f"emb_dim ({emb_dim}) seems unreasonable (expected 64-8192)")
 
-        # Update vocab_size validation for byte tokenizer
-        if vocab_size < 256 or vocab_size > 100_000:  # ← CHANGED: Lower bound for byte tokenizer
+        if vocab_size < 1000 or vocab_size > 1_000_000:
             issues.append(
-                f"vocab_size ({vocab_size}) seems unreasonable (expected 256-100000 for byte tokenizer)"
+                f"vocab_size ({vocab_size}) seems unreasonable (expected 1000-1000000)"
             )
-
-        # Add specific validation for byte tokenizer
-        if vocab_size == 259:
-            print("  ✓ Detected ByteTokenizer configuration (vocab_size=259)")
 
         is_valid = len(issues) == 0
         return is_valid, issues
@@ -285,9 +280,9 @@ def create_perseid_config(
     """
     try:
         if base_config is None:
-            # Use the GEMMA3_CONFIG_270M as default base
+            # Use byte tokenizer configuration as default base
             base_config = {
-                "vocab_size": 262_144,
+                "vocab_size": 259,  # ← CHANGED: ByteTokenizer vocab size (0-255 + 3 special)
                 "context_length": 32_768,
                 "emb_dim": 640,
                 "n_heads": 4,

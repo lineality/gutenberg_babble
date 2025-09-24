@@ -29,6 +29,8 @@ from byte_tokenizer import ByteTokenizer
 from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
 # from generate_text_tools_perseid import generate_text_simple
 
+from perseid_model import PerseidByteModel
+
 # def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50):
 #     """Simple generation for evaluation"""
 #     model.eval()
@@ -42,6 +44,44 @@ from perseid_config_tools import create_perseid_config, calculate_model_params, 
 #             input_ids = torch.cat([input_ids, next_token], dim=1)
 #             if input_ids.shape[1] > model.cfg["context_length"]:
 #                 input_ids = input_ids[:, -model.cfg["context_length"]:]
+
+
+# # Placeholder tokenizer class for MVP
+# class SimpleTokenizer:
+#     def encode(self, text):
+#         # Simple character-level tokenizer for MVP
+#         return [ord(c) % 256 for c in text]
+
+#     def decode(self, ids):
+#         return ''.join([chr(i) for i in ids])
+
+# tokenizer = SimpleTokenizer()
+#
+
+# class GemmaTokenizer:
+#     """Tokenizer for Gemma 3 model"""
+#     def __init__(self, tokenizer_file_path: str):
+#         tok_file = Path(tokenizer_file_path)
+#         self._tok = Tokenizer.from_file(str(tok_file))
+#         self.eos_token = "<end_of_turn>"
+#         self.pad_token = "<end_of_turn>"
+
+#     def encode(self, text: str) -> list[int]:
+#         return self._tok.encode(text).ids
+
+#     def decode(self, ids: list[int]) -> str:
+#         return self._tok.decode(ids, skip_special_tokens=False)
+# Replace the tokenizer setup section (around line 740) with:
+def setup_tokenizer():
+    """Setup ByteTokenizer for training."""
+    print("\nInitializing ByteTokenizer...")
+    tokenizer = ByteTokenizer()
+
+    print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
+    print(f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}")
+
+    return tokenizer
+
 
 #     model.train()
 #     return tokenizer.decode(input_ids.squeeze(0).tolist())
@@ -444,7 +484,7 @@ def setup_model(
                 model_config["dtype"] = torch.float32
 
             # Initialize model with configuration
-            model = Gemma3Model(model_config)
+            model = PerseidByteModel(model_config)
 
             # Load weights
             if 'model_state_dict' in checkpoint:
@@ -507,7 +547,9 @@ def setup_model(
 
             # Initialize model with random weights
             print("\nInitializing model with random weights...")
-            model = Gemma3Model(model_config)
+
+            # TODO HERE
+            model = PerseidByteModel(model_config)
 
             # Move to device
             model = model.to(device)
@@ -943,41 +985,6 @@ def main():
         print("\nNote: Using placeholder tokenizer for MVP")
         print("Production version would use GemmaTokenizer")
 
-        # # Placeholder tokenizer class for MVP
-        # class SimpleTokenizer:
-        #     def encode(self, text):
-        #         # Simple character-level tokenizer for MVP
-        #         return [ord(c) % 256 for c in text]
-
-        #     def decode(self, ids):
-        #         return ''.join([chr(i) for i in ids])
-
-        # tokenizer = SimpleTokenizer()
-        #
-
-        # class GemmaTokenizer:
-        #     """Tokenizer for Gemma 3 model"""
-        #     def __init__(self, tokenizer_file_path: str):
-        #         tok_file = Path(tokenizer_file_path)
-        #         self._tok = Tokenizer.from_file(str(tok_file))
-        #         self.eos_token = "<end_of_turn>"
-        #         self.pad_token = "<end_of_turn>"
-
-        #     def encode(self, text: str) -> list[int]:
-        #         return self._tok.encode(text).ids
-
-        #     def decode(self, ids: list[int]) -> str:
-        #         return self._tok.decode(ids, skip_special_tokens=False)
-        # Replace the tokenizer setup section (around line 740) with:
-        def setup_tokenizer():
-            """Setup ByteTokenizer for training."""
-            print("\nInitializing ByteTokenizer...")
-            tokenizer = ByteTokenizer()
-
-            print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
-            print(f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}")
-
-            return tokenizer
 
         ###############################
         # Setup ByteTokenizer
