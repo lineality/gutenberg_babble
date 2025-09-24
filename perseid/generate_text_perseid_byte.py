@@ -219,8 +219,14 @@ Point to your saved model and generate text.
 
 import torch
 from pathlib import Path
-from gemma_model import Gemma3Model
-from tokenizers import Tokenizer
+
+# Import model architecture and configuration tools
+from byte_tokenizer import ByteTokenizer
+from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
+
+# from generate_text_tools_perseid import generate_text_simple
+from perseid_model import PerseidByteModel
+
 
 # ============================================================================
 # USER CONFIGURATION
@@ -255,7 +261,7 @@ def load_perseid_model(checkpoint_path):
     # Handle different checkpoint formats
     if 'model_config' in checkpoint:
         # Full checkpoint with config
-        model = Gemma3Model(checkpoint['model_config'])
+        model = PerseidByteModel(checkpoint['model_config'])
         model.load_state_dict(checkpoint['model_state_dict'])
     else:
         # Just state dict - need to load config from same directory
@@ -263,7 +269,7 @@ def load_perseid_model(checkpoint_path):
         import json
         with open(config_path) as f:
             config = json.load(f)
-        model = Gemma3Model(config)
+        model = PerseidByteModel(config)
         model.load_state_dict(checkpoint)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -296,20 +302,24 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=1.0, 
 
     return tokenizer.decode(token_ids + generated)
 
+
+def setup_tokenizer():
+    """Setup ByteTokenizer for training."""
+    print("\nInitializing ByteTokenizer...")
+    tokenizer = ByteTokenizer()
+
+    print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
+    print(f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}")
+
+    return tokenizer
+
+
 def main():
     # Load model
     model, device = load_perseid_model(CHECKPOINT_PATH)
     print(f"Model loaded on {device}")
 
-    # Setup tokenizer (assumes tokenizer.json in same directory as checkpoint)
-    tokenizer_path = Path(CHECKPOINT_PATH).parent / "tokenizer.json"
-    if not tokenizer_path.exists():
-        # Fallback to download if needed
-        print("Downloading tokenizer...")
-        from huggingface_hub import hf_hub_download
-        tokenizer_path = hf_hub_download("google/gemma-3-270m", "tokenizer.json", local_dir=".")
-
-    tokenizer = Tokenizer.from_file(str(tokenizer_path))
+    tokenizer = setup_tokenizer()
 
     # Generate from prompts
     print("\n" + "="*60)

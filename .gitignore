@@ -3,7 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-
+embeddings_output*
 gemma-3-270m/
 models/
 data/

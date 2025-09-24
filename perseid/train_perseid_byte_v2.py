@@ -31,6 +31,8 @@ from perseid_config_tools import create_perseid_config, calculate_model_params, 
 # from generate_text_tools_perseid import generate_text_simple
 from perseid_model import PerseidByteModel
 
+from perseid_model import PERSEID_BYTE_CONFIG_BASE
+
 
 def setup_tokenizer():
     """Setup ByteTokenizer for training."""
@@ -481,7 +483,8 @@ def setup_model(
             # Generate Perseid configuration
             model_config = create_perseid_config(
                 target_size_millions=model_size,
-                strategy=strategy
+                strategy=strategy,
+                base_config=PERSEID_BYTE_CONFIG_BASE,
             )
 
             # Override context length for training
