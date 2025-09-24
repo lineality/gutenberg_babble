@@ -809,199 +809,303 @@ def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag
         traceback.print_exc()
 
 
-# def save_training_results(model, model_config, history, output_dir):
-#     """
-#     Save final model and training artifacts.
-
-#     Args:
-#         model: Trained model
-#         model_config: Model configuration
-#         history: Training history
-#         output_dir: Output directory
-#     """
-#     try:
-#         output_dir = Path(output_dir)
-#         output_dir.mkdir(parents=True, exist_ok=True)
-
-#         print(f"\nSaving training results to {output_dir}")
-
-#         # Save final model weights
-#         model_path = output_dir / "perseid_model_final.pth"
-#         torch.save(model.state_dict(), model_path)
-#         print(f"  ✓ Model weights saved to {model_path}")
-
-#         # Save configuration
-#         config_path = output_dir / "model_config.json"
-#         config_save = {k: v for k, v in model_config.items() if k != "dtype"}
-#         config_save["dtype"] = str(model_config["dtype"])
-#         with open(config_path, 'w') as f:
-#             json.dump(config_save, f, indent=2)
-#         print(f"  ✓ Configuration saved to {config_path}")
-
-#         # Save training history
-#         # history_path = output_dir / "training_history.json"
-#         # with open(history_path, 'w') as f:
-#         #     json.dump(history, f, indent=2)
-#         # Save training history - convert tensors to floats
-#         history_path = output_dir / "training_history.json"
-#         history_serializable = {}
-#         for key, values in history.items():
-#             if isinstance(values, list) and len(values) > 0:
-#                 # Convert tensor values to floats
-#                 if hasattr(values[0], 'item'):  # It's a tensor
-#                     history_serializable[key] = [v.item() if hasattr(v, 'item') else v for v in values]
-#                 else:
-#                     history_serializable[key] = values
-#             else:
-#                 history_serializable[key] = values
-
-#         with open(history_path, 'w') as f:
-#             json.dump(history_serializable, f, indent=2)
-#         print(f"  ✓ Training history saved to {history_path}")
-
-#         # Plot and save training curves
-#         if len(history["train_loss"]) > 0:
-#             plt.figure(figsize=(12, 4))
-
-#             plt.subplot(1, 3, 1)
-#             plt.plot(history["step"], history["train_loss"], label="Train Loss")
-#             plt.plot(history["step"], history["val_loss"], label="Val Loss")
-#             plt.xlabel("Step")
-#             plt.ylabel("Loss")
-#             plt.title("Training Progress")
-#             plt.legend()
-#             plt.grid(True, alpha=0.3)
-
-#             plt.subplot(1, 3, 2)
-#             val_perplexity = [torch.exp(torch.tensor(loss)).item() for loss in history["val_loss"]]
-#             plt.plot(history["step"], val_perplexity)
-#             plt.xlabel("Step")
-#             plt.ylabel("Perplexity")
-#             plt.title("Validation Perplexity")
-#             plt.grid(True, alpha=0.3)
-
-#             plt.subplot(1, 3, 3)
-#             plt.plot(history["step"], history["learning_rates"])
-#             plt.xlabel("Step")
-#             plt.ylabel("Learning Rate")
-#             plt.title("Learning Rate Schedule")
-#             plt.grid(True, alpha=0.3)
-
-#             plt.tight_layout()
-#             plot_path = output_dir / "training_curves.png"
-#             plt.savefig(plot_path, dpi=150, bbox_inches='tight')
-#             plt.close()
-#             print(f"  ✓ Training curves saved to {plot_path}")
-
-#         # Save training configuration
-#         train_config_path = output_dir / "training_config.json"
-#         with open(train_config_path, 'w') as f:
-#             json.dump(TRAINING_CONFIG, f, indent=2)
-#         print(f"  ✓ Training config saved to {train_config_path}")
-
-#         print(f"\nAll outputs saved to: {output_dir}")
-
-#     except Exception as e:
-#         print(f"Error saving results: {e}")
-#         traceback.print_exc()
-
 def save_training_results(model, model_config, history, output_dir):
     """
-    Save final model and training artifacts.
+    Save final model weights, configuration, training history, and visualization plots.
+
+    This function performs a complete export of all training artifacts including:
+    - Final model weights (PyTorch state dict)
+    - Model configuration (JSON)
+    - Training history with loss and learning rate data (JSON)
+    - Training curve visualizations (PNG)
+    - Training hyperparameters (JSON)
+
+    All tensor values are automatically converted from GPU to CPU before saving
+    or plotting to ensure compatibility with numpy/matplotlib and JSON serialization.
+
+    Args:
+        model (torch.nn.Module): The trained PyTorch model whose weights will be saved.
+                                Must have a state_dict() method.
+
+        model_config (dict): Dictionary containing model architecture configuration.
+                            Should include all parameters needed to recreate the model.
+                            The 'dtype' field will be converted to string for JSON compatibility.
+
+        history (dict): Dictionary containing training history with keys:
+                       - 'train_loss': List of training loss values per evaluation step
+                       - 'val_loss': List of validation loss values per evaluation step
+                       - 'learning_rates': List of learning rate values per evaluation step
+                       - 'step': List of global training steps at each evaluation
+                       Values can be Python floats or PyTorch tensors (CPU or CUDA).
+
+        output_dir (str or Path): Directory path where all outputs will be saved.
+                                 Will be created if it doesn't exist.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: Re-raises any exceptions after logging them with full traceback.
+                  Partial saves may occur if error happens mid-function.
+
+    Side Effects:
+        Creates the following files in output_dir:
+        - perseid_model_final.pth: PyTorch model weights
+        - model_config.json: Model architecture configuration
+        - training_history.json: Complete training history data
+        - training_curves.png: Three-panel visualization of training progress
+        - training_config.json: Training hyperparameter configuration
+
+    Example:
+        >>> model = PerseidByteModel(config)
+        >>> history = {'train_loss': [...], 'val_loss': [...], ...}
+        >>> save_training_results(model, config, history, './outputs/')
     """
     try:
+        # Convert output_dir to Path object for consistent path operations
         output_dir = Path(output_dir)
+
+        # Create output directory and all parent directories if they don't exist
         output_dir.mkdir(parents=True, exist_ok=True)
 
         print(f"\nSaving training results to {output_dir}")
 
-        # Save final model weights
-        model_path = output_dir / "perseid_model_final.pth"
-        torch.save(model.state_dict(), model_path)
-        print(f"  ✓ Model weights saved to {model_path}")
+        # =====================================================================
+        # SECTION 1: Save Final Model Weights
+        # =====================================================================
+        try:
+            model_weights_path = output_dir / "perseid_model_final.pth"
 
-        # Save configuration
-        config_path = output_dir / "model_config.json"
-        config_save = {k: v for k, v in model_config.items() if k != "dtype"}
-        config_save["dtype"] = str(model_config["dtype"])
-        with open(config_path, 'w') as f:
-            json.dump(config_save, f, indent=2)
-        print(f"  ✓ Configuration saved to {config_path}")
+            # Save model state dictionary containing all learned parameters
+            torch.save(model.state_dict(), model_weights_path)
 
-        # Save training history - convert tensors to CPU/floats
-        history_path = output_dir / "training_history.json"
-        history_serializable = {}
-        for key, values in history.items():
-            if isinstance(values, list) and len(values) > 0:
-                # Convert tensor values to CPU floats
-                converted_values = []
-                for v in values:
-                    if hasattr(v, 'cpu'):  # It's a tensor
-                        converted_values.append(v.cpu().item())
-                    elif hasattr(v, 'item'):  # It's a scalar tensor
-                        converted_values.append(v.item())
-                    else:  # It's already a regular number
-                        converted_values.append(v)
-                history_serializable[key] = converted_values
+            print(f"  ✓ Model weights saved to {model_weights_path}")
+
+        except Exception as model_save_error:
+            print(f"  ✗ Failed to save model weights: {model_save_error}")
+            traceback.print_exc()
+            # Continue with other saves even if model save fails
+
+        # =====================================================================
+        # SECTION 2: Save Model Configuration
+        # =====================================================================
+        try:
+            config_json_path = output_dir / "model_config.json"
+
+            # Create a JSON-serializable version of the configuration
+            # We must handle the dtype field specially as torch dtypes aren't JSON serializable
+            config_for_json_serialization = {}
+
+            for key, value in model_config.items():
+                if key == "dtype":
+                    # Convert PyTorch dtype to string representation
+                    config_for_json_serialization[key] = str(value)
+                else:
+                    # Copy all other fields as-is
+                    config_for_json_serialization[key] = value
+
+            # Write configuration to JSON file with readable formatting
+            with open(config_json_path, 'w', encoding='utf-8') as config_file:
+                json.dump(config_for_json_serialization, config_file, indent=2)
+
+            print(f"  ✓ Configuration saved to {config_json_path}")
+
+        except Exception as config_save_error:
+            print(f"  ✗ Failed to save model configuration: {config_save_error}")
+            traceback.print_exc()
+
+        # =====================================================================
+        # SECTION 3: Save Training History (with tensor-to-CPU conversion)
+        # =====================================================================
+        try:
+            history_json_path = output_dir / "training_history.json"
+
+            # Convert all history values to JSON-serializable format
+            # This handles PyTorch tensors that may be on GPU
+            history_for_json_serialization = {}
+
+            for history_key, history_values in history.items():
+                if isinstance(history_values, list) and len(history_values) > 0:
+                    # Process each value in the list
+                    converted_values_list = []
+
+                    for individual_value in history_values:
+                        # Check if value is a PyTorch tensor on GPU
+                        if hasattr(individual_value, 'cpu'):
+                            # Move tensor to CPU and extract Python scalar
+                            cpu_tensor = individual_value.cpu()
+                            if cpu_tensor.numel() == 1:
+                                # Single element tensor - convert to Python scalar
+                                converted_values_list.append(cpu_tensor.item())
+                            else:
+                                # Multi-element tensor - convert to Python list
+                                converted_values_list.append(cpu_tensor.tolist())
+
+                        # Check if value is a scalar tensor already on CPU
+                        elif hasattr(individual_value, 'item'):
+                            converted_values_list.append(individual_value.item())
+
+                        # Value is already a regular Python number
+                        else:
+                            converted_values_list.append(individual_value)
+
+                    history_for_json_serialization[history_key] = converted_values_list
+
+                else:
+                    # Non-list values (e.g., metadata) - copy as-is
+                    history_for_json_serialization[history_key] = history_values
+
+            # Write training history to JSON file
+            with open(history_json_path, 'w', encoding='utf-8') as history_file:
+                json.dump(history_for_json_serialization, history_file, indent=2)
+
+            print(f"  ✓ Training history saved to {history_json_path}")
+
+        except Exception as history_save_error:
+            print(f"  ✗ Failed to save training history: {history_save_error}")
+            traceback.print_exc()
+
+        # =====================================================================
+        # SECTION 4: Generate and Save Training Visualization Plots
+        # =====================================================================
+        try:
+            # Only create plots if we have training data
+            if len(history.get("train_loss", [])) > 0:
+
+                # Convert all plotting data from potential GPU tensors to CPU values
+                # This ensures matplotlib/numpy compatibility
+
+                steps_for_plotting = []
+                for step_value in history["step"]:
+                    if hasattr(step_value, 'cpu'):
+                        steps_for_plotting.append(step_value.cpu().item())
+                    elif hasattr(step_value, 'item'):
+                        steps_for_plotting.append(step_value.item())
+                    else:
+                        steps_for_plotting.append(step_value)
+
+                train_loss_for_plotting = []
+                for loss_value in history["train_loss"]:
+                    if hasattr(loss_value, 'cpu'):
+                        train_loss_for_plotting.append(loss_value.cpu().item())
+                    elif hasattr(loss_value, 'item'):
+                        train_loss_for_plotting.append(loss_value.item())
+                    else:
+                        train_loss_for_plotting.append(loss_value)
+
+                val_loss_for_plotting = []
+                for loss_value in history["val_loss"]:
+                    if hasattr(loss_value, 'cpu'):
+                        val_loss_for_plotting.append(loss_value.cpu().item())
+                    elif hasattr(loss_value, 'item'):
+                        val_loss_for_plotting.append(loss_value.item())
+                    else:
+                        val_loss_for_plotting.append(loss_value)
+
+                learning_rates_for_plotting = []
+                for lr_value in history["learning_rates"]:
+                    if hasattr(lr_value, 'cpu'):
+                        learning_rates_for_plotting.append(lr_value.cpu().item())
+                    elif hasattr(lr_value, 'item'):
+                        learning_rates_for_plotting.append(lr_value.item())
+                    else:
+                        learning_rates_for_plotting.append(lr_value)
+
+                # Create figure with three subplots
+                figure_handle = plt.figure(figsize=(12, 4))
+
+                # -------------------------
+                # Subplot 1: Loss Curves
+                # -------------------------
+                plt.subplot(1, 3, 1)
+                plt.plot(steps_for_plotting, train_loss_for_plotting,
+                        label="Train Loss", color='blue', linewidth=1.5)
+                plt.plot(steps_for_plotting, val_loss_for_plotting,
+                        label="Val Loss", color='orange', linewidth=1.5)
+                plt.xlabel("Training Step")
+                plt.ylabel("Loss")
+                plt.title("Training Progress")
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+
+                # -------------------------
+                # Subplot 2: Perplexity
+                # -------------------------
+                plt.subplot(1, 3, 2)
+
+                # Calculate perplexity from validation loss
+                # Perplexity = exp(loss) for language modeling
+                validation_perplexity_values = []
+                for loss in val_loss_for_plotting:
+                    perplexity = torch.exp(torch.tensor(loss)).item()
+                    # Cap perplexity at a reasonable value for visualization
+                    perplexity = min(perplexity, 1000.0)
+                    validation_perplexity_values.append(perplexity)
+
+                plt.plot(steps_for_plotting, validation_perplexity_values,
+                        color='green', linewidth=1.5)
+                plt.xlabel("Training Step")
+                plt.ylabel("Perplexity")
+                plt.title("Validation Perplexity")
+                plt.grid(True, alpha=0.3)
+
+                # -------------------------
+                # Subplot 3: Learning Rate Schedule
+                # -------------------------
+                plt.subplot(1, 3, 3)
+                plt.plot(steps_for_plotting, learning_rates_for_plotting,
+                        color='red', linewidth=1.5)
+                plt.xlabel("Training Step")
+                plt.ylabel("Learning Rate")
+                plt.title("Learning Rate Schedule")
+                plt.grid(True, alpha=0.3)
+
+                # Adjust layout to prevent overlap
+                plt.tight_layout()
+
+                # Save figure to file
+                plot_output_path = output_dir / "training_curves.png"
+                plt.savefig(plot_output_path, dpi=150, bbox_inches='tight')
+
+                # Close figure to free memory
+                plt.close(figure_handle)
+
+                print(f"  ✓ Training curves saved to {plot_output_path}")
+
             else:
-                history_serializable[key] = values
+                print("  ⚠ No training data available for plotting")
 
-        with open(history_path, 'w') as f:
-            json.dump(history_serializable, f, indent=2)
-        print(f"  ✓ Training history saved to {history_path}")
+        except Exception as plotting_error:
+            print(f"  ✗ Failed to create training plots: {plotting_error}")
+            traceback.print_exc()
+            # Ensure any open plots are closed
+            plt.close('all')
 
-        # Plot and save training curves - ENSURE CPU CONVERSION
-        if len(history["train_loss"]) > 0:
-            plt.figure(figsize=(12, 4))
+        # =====================================================================
+        # SECTION 5: Save Training Hyperparameters Configuration
+        # =====================================================================
+        try:
+            training_config_path = output_dir / "training_config.json"
 
-            # Convert all data to CPU for plotting
-            steps_cpu = [s.cpu().item() if hasattr(s, 'cpu') else s for s in history["step"]]
-            train_loss_cpu = [l.cpu().item() if hasattr(l, 'cpu') else l for l in history["train_loss"]]
-            val_loss_cpu = [l.cpu().item() if hasattr(l, 'cpu') else l for l in history["val_loss"]]
-            lr_cpu = [lr.cpu().item() if hasattr(lr, 'cpu') else lr for lr in history["learning_rates"]]
+            # Save the global training configuration
+            with open(training_config_path, 'w', encoding='utf-8') as config_file:
+                json.dump(TRAINING_CONFIG, config_file, indent=2)
 
-            plt.subplot(1, 3, 1)
-            plt.plot(steps_cpu, train_loss_cpu, label="Train Loss")
-            plt.plot(steps_cpu, val_loss_cpu, label="Val Loss")
-            plt.xlabel("Step")
-            plt.ylabel("Loss")
-            plt.title("Training Progress")
-            plt.legend()
-            plt.grid(True, alpha=0.3)
+            print(f"  ✓ Training config saved to {training_config_path}")
 
-            plt.subplot(1, 3, 2)
-            val_perplexity = [torch.exp(torch.tensor(loss)).item() for loss in val_loss_cpu]
-            plt.plot(steps_cpu, val_perplexity)
-            plt.xlabel("Step")
-            plt.ylabel("Perplexity")
-            plt.title("Validation Perplexity")
-            plt.grid(True, alpha=0.3)
+        except Exception as training_config_error:
+            print(f"  ✗ Failed to save training config: {training_config_error}")
+            traceback.print_exc()
 
-            plt.subplot(1, 3, 3)
-            plt.plot(steps_cpu, lr_cpu)
-            plt.xlabel("Step")
-            plt.ylabel("Learning Rate")
-            plt.title("Learning Rate Schedule")
-            plt.grid(True, alpha=0.3)
-
-            plt.tight_layout()
-            plot_path = output_dir / "training_curves.png"
-            plt.savefig(plot_path, dpi=150, bbox_inches='tight')
-            plt.close()
-            print(f"  ✓ Training curves saved to {plot_path}")
-
-        # Save training configuration
-        train_config_path = output_dir / "training_config.json"
-        with open(train_config_path, 'w') as f:
-            json.dump(TRAINING_CONFIG, f, indent=2)
-        print(f"  ✓ Training config saved to {train_config_path}")
-
+        # Final summary message
         print(f"\nAll outputs saved to: {output_dir}")
 
-    except Exception as e:
-        print(f"Error saving results: {e}")
+    except Exception as unexpected_error:
+        # Catch any unexpected errors not handled by specific try-except blocks
+        print(f"Unexpected error in save_training_results: {unexpected_error}")
         traceback.print_exc()
-
+        # Re-raise to alert calling code
+        raise
 
 def main():
     """
