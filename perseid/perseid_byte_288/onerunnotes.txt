@@ -1,0 +1,451 @@
+oops@oops-Precision-7780:~/code/gutenberg_babble$ . env/bin/activate
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble$ cd perseid/perseid_byte_288/
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ ff
+Using directory: /home/oops/code/gutenberg_babble/perseid/perseid_byte_288
+quit back|term|dir file|name size mod|get-send file v,y,p|str>search|enter>reset
+/home/oops/code/gutenberg_babble/perseid/perseid_byte_288
+  #   Name                                                     Size    Modified
+ ------------------------------------------------------------------------------ 
+  1. byte_tokenizer.py                                        11 KB 09-24 00:34
+  2. generate_text_perseid_byte.py                            25 KB 09-24 23:38
+  3. get_vector_perseid_byte.py                               27 KB 09-24 23:22
+  4. perseid_config_tools.py                                  23 KB 09-24 23:05
+  5. perseid_model.py                                         29 KB 09-24 22:30
+  6. train_perseid_byte_v2.py                                 48 KB 09-24 23:06
+--- (Re)Size: tall+N wide-N ---
+>> q
+For Help Menu, run:  ff --help
+For Souce Code, run: ff --source
+
+To continue from this location, run:
+cd /home/oops/code/gutenberg_babble/perseid/perseid_byte_288
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ python3 train_perseid_byte_v2.py 
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 56.82M parameters
+  Difference: -199.18M (-77.8%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 259
+  Expected: 259
+  Match: True
+  Model size: 56.82M parameters
+Arguments passed to the script:
+	Argument 0: train_perseid_byte_v2.py
+Usage: python script.py <path>
+Downloading training data from https://www.gutenberg.org/files/11/11-0.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+demo
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_256m_20250924_202316
+Output directory: ./models/perseid_256m_alice/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/alice.txt
+File size: 0.14 MB
+Successfully loaded with utf-8 encoding
+Document length: 144,696 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Initializing New Model
+============================================================
+Creating Perseid-256M (balanced strategy)
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 56.82M parameters
+  Difference: -199.18M (-77.8%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Initializing model with random weights...
+  ✓ Model initialized with random weights
+
+Model Statistics:
+  Total parameters: 56,965,056
+  Trainable parameters: 56,965,056
+  Model size (bfloat16): 0.114 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 130,226 chars
+Val text: 14,470 chars
+Tokenizing text of length 130,226 characters...
+Created 295 training windows
+Total tokens: 136,069
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 14,470 characters...
+Created 29 training windows
+Total tokens: 15,122
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 295
+Val batches: 29
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+
+Starting from epoch 1, step 0
+Total training steps: 219
+Warmup steps: 100
+Effective batch size: 4
+
+========================================
+Epoch 1/3
+========================================
+Step    50 | Train Loss: 3.6235 | Val Loss: 2.4328 | LR: 2.50e-04 | Tokens: 102,400
+  → Saved best model (val_loss: 2.4328)
+
+Epoch 1 Summary:
+  Average Train Loss: 3.2247
+  Validation Loss: 2.2893
+  Perplexity: 9.87
+
+========================================
+Epoch 2/3
+========================================
+Step   100 | Train Loss: 2.1834 | Val Loss: 2.0398 | LR: 5.00e-04 | Tokens: 204,800
+  → Saved best model (val_loss: 2.0398)
+
+Epoch 2 Summary:
+  Average Train Loss: 2.0148
+  Validation Loss: 1.7794
+  Perplexity: 5.93
+
+========================================
+Epoch 3/3
+========================================
+Step   150 | Train Loss: 1.7256 | Val Loss: 1.7625 | LR: 3.12e-04 | Tokens: 307,200
+  → Saved best model (val_loss: 1.7625)
+Step   200 | Train Loss: 1.6517 | Val Loss: 1.6578 | LR: 3.08e-05 | Tokens: 409,600
+  → Saved best model (val_loss: 1.6578)
+
+Epoch 3 Summary:
+  Average Train Loss: 1.6388
+  Validation Loss: 1.6600
+  Perplexity: 5.26
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.6578
+Total tokens seen: 448,512
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_256m_alice
+  ✓ Model weights saved to models/perseid_256m_alice/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_256m_alice/model_config.json
+  ✓ Training history saved to models/perseid_256m_alice/training_history.json
+  ✓ Training curves saved to models/perseid_256m_alice/training_curves.png
+  ✓ Training config saved to models/perseid_256m_alice/training_config.json
+
+All outputs saved to: models/perseid_256m_alice
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time the said to the said to the was the said the said
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is the said the said the she said the she said to th
+
+Prompt: 'In the beginning'
+Output: In the beginning and the was the was the was the was the was the w
+
+============================================================
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ python3 generate_text_perseid_byte.py 
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_256m_alice/perseid_model_final.pth
+Checkpoint size: 108.8 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 576
+  - n_heads: 3
+  - head_dim: 192
+  - n_layers: 16
+  - hidden_dim: 1536
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 56.8M
+  - Embedding dim: 576
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 100 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time hige was che
+she dack becout of the say she was a per of to her was to see
+doon some said to sale t
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 100 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is the when one of they were of to
+for me to lear, and the sund to sid to in when it to side fir for h
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 100 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning the her have
+a sto her to simes to for lad as and they pace same the lasstable
+as dinstaing the the
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 100 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired the
+was looked for gant it the Mack of cearpear ound it of and the and they
+but with the he say che
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 100 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown foxing
+a she to much soort a she trelf of thing and the beging it a hat the been the larm abut the not 
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 100
+  - Temperature: 0.8
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_256m_alice/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ phtyon3 get_vector_perseid_byte.py 
+phtyon3: command not found
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ python3 ge
+generate_text_perseid_byte.py  get_vector_perseid_byte.py
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ python3 get_vector_perseid_byte.py 
+================================================================================
+PerseidByte Embedding Vector Extraction
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading model checkpoint from: ./models/perseid_256m_alice/perseid_model_final.pth
+Checkpoint file size: 108.8 MB
+Using GPU: NVIDIA RTX 3500 Ada Generation Laptop GPU
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred configuration from checkpoint:
+  - vocab_size: 259
+  - emb_dim: 576
+  - n_heads: 3
+  - head_dim: 192
+  - n_layers: 16
+  - hidden_dim: 1536
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Total parameters: 56.8M
+  - Embedding dimension: 576
+  - Context length: 32768
+✓ Model weights loaded from checkpoint root
+✓ Model ready for inference on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+✓ Tokenizer round-trip test passed
+
+Step 3: Extracting Embeddings
+----------------------------------------
+
+Processing text 1/6:
+Text preview: 'Once upon a time, in a land far away, there lived a wise old...'
+  Text length: 68 chars
+  Token count: 68 tokens
+  Input shape: torch.Size([1, 68])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+Processing text 2/6:
+Text preview: 'The lazy dog in the moonlit pub jumped over the slow brown f...'
+  Text length: 63 chars
+  Token count: 63 tokens
+  Input shape: torch.Size([1, 63])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+Processing text 3/6:
+Text preview: 'Knead the bread and put it in the oven.'
+  Text length: 39 chars
+  Token count: 39 tokens
+  Input shape: torch.Size([1, 39])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+Processing text 4/6:
+Text preview: 'Bake the bread, then send it to the table.'
+  Text length: 42 chars
+  Token count: 42 tokens
+  Input shape: torch.Size([1, 42])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+Processing text 5/6:
+Text preview: '1 + 1 = one and one.'
+  Text length: 20 chars
+  Token count: 20 tokens
+  Input shape: torch.Size([1, 20])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+Processing text 6/6:
+Text preview: 'The quick brown fox jumps over the lazy dog in the moonlit f...'
+  Text length: 66 chars
+  Token count: 66 tokens
+  Input shape: torch.Size([1, 66])
+  Embedding shape: torch.Size([1, 576])
+  Converting from bfloat16 to float32 for NumPy compatibility
+  ✓ Embedding extracted successfully
+
+✓ Successfully extracted 6 embeddings
+
+Step 4: Computing Similarities
+----------------------------------------
+✓ Similarity matrix computed: (6, 6)
+
+Pairwise Cosine Similarities:
+  Text 1 ↔ Text 2: 0.9911
+  Text 1 ↔ Text 3: 0.9926
+  Text 1 ↔ Text 4: 0.9884
+  Text 1 ↔ Text 5: 0.9858
+  Text 1 ↔ Text 6: 0.9896
+  Text 2 ↔ Text 3: 0.9895
+  Text 2 ↔ Text 4: 0.9889
+  Text 2 ↔ Text 5: 0.9866
+  Text 2 ↔ Text 6: 0.9906
+  Text 3 ↔ Text 4: 0.9931
+  Text 3 ↔ Text 5: 0.9890
+  Text 3 ↔ Text 6: 0.9852
+  Text 4 ↔ Text 5: 0.9864
+  Text 4 ↔ Text 6: 0.9833
+  Text 5 ↔ Text 6: 0.9755
+
+Step 5: Formatting Output (numpy)
+----------------------------------------
+✓ Embeddings formatted as numpy
+
+Step 6: Saving Results
+----------------------------------------
+✓ Embeddings saved to: embeddings_output_2025_09_25__00_25_43431875.json
+  File size: 0.07 MB
+
+================================================================================
+Embedding Extraction Complete!
+================================================================================
+✓ Processed 6 input texts
+✓ Extracted 6 embeddings
+✓ Embedding dimension: 576
+✓ Pooling method: last_token
+✓ Results saved to: ./embeddings_output_2025_09_25__00_25_43431875.json
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseid/perseid_byte_288$ 
+
