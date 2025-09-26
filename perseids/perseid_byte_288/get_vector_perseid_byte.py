@@ -27,11 +27,16 @@ import json
 from typing import List, Dict, Tuple, Optional, Union
 import argparse
 import sys
+import glob
 
 # Import model architecture and configuration tools
 try:
     from byte_tokenizer import ByteTokenizer
-    from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
+    from perseid_config_tools import (
+        create_perseid_config,
+        calculate_model_params,
+        validate_config,
+    )
     from perseid_model import PerseidByteModel, PERSEID_BYTE_CONFIG_BASE
 except ImportError as import_error:
     print(f"Error importing required modules: {import_error}")
@@ -45,8 +50,21 @@ except ImportError as import_error:
 # USER CONFIGURATION
 # ============================================================================
 
+
+# Example path with wildcard
+pattern = "./models/perseid_*/perseid_model_final.pth"
+
+# Find all matching paths
+matching_paths = glob.glob(pattern)
+
+print("Found...")
+print(matching_paths)
+print("default to using first option")
+
+CHECKPOINT_PATH = matching_paths[0]
+
 # Point to your trained model checkpoint
-CHECKPOINT_PATH = "./models/perseid_256m_alice/perseid_model_final.pth"  # <- MODIFY THIS
+# CHECKPOINT_PATH = "./models/perseid_256m_alice/perseid_model_final.pth"  # <- MODIFY THIS
 # Alternative examples:
 # CHECKPOINT_PATH = "./models/perseid_256m_alice/checkpoint_best.pth"
 # CHECKPOINT_PATH = "./models/perseid_256m_my_document/perseid_model_final.pth"
@@ -62,21 +80,23 @@ INPUT_TEXTS = [
 ]
 
 from datetime import datetime, UTC as datetime_UTC
+
 # get time
 sample_time = datetime.now(datetime_UTC)
 # make readable string
-readable_timesatamp = sample_time.strftime('%Y_%m_%d__%H_%M_%S%f')
+readable_timesatamp = sample_time.strftime("%Y_%m_%d__%H_%M_%S%f")
 
 # Embedding extraction settings
 POOLING_METHOD = "last_token"  # Options: "last_token", "mean"
-OUTPUT_FORMAT = "numpy"        # Options: "numpy", "torch", "json"
-SAVE_EMBEDDINGS = True         # Whether to save embeddings to file
+OUTPUT_FORMAT = "numpy"  # Options: "numpy", "torch", "json"
+SAVE_EMBEDDINGS = True  # Whether to save embeddings to file
 OUTPUT_FILE = f"./embeddings_output_{readable_timesatamp}.json"  # Output file path
 
 # Model configuration (will be loaded from checkpoint if available)
 MODEL_CONFIG = PERSEID_BYTE_CONFIG_BASE.copy()
 
 # ============================================================================
+
 
 def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
     """
@@ -103,7 +123,9 @@ def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
         total_kv_dim, _ = k_proj_shape
 
         # Calculate heads
-        head_dim = total_kv_dim  # For this checkpoint, looks like head_dim = total_kv_dim
+        head_dim = (
+            total_kv_dim  # For this checkpoint, looks like head_dim = total_kv_dim
+        )
         n_kv_groups = 1  # Assuming MHA for now
         n_heads = total_q_dim // head_dim
 
@@ -125,16 +147,18 @@ def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
                 layer_types.append("sliding_attention")
 
         inferred_config = PERSEID_BYTE_CONFIG_BASE.copy()
-        inferred_config.update({
-            "vocab_size": int(vocab_size),
-            "emb_dim": int(emb_dim),
-            "n_heads": int(n_heads),
-            "n_kv_groups": int(n_kv_groups),
-            "head_dim": int(head_dim),
-            "n_layers": int(n_layers),
-            "hidden_dim": int(hidden_dim),
-            "layer_types": layer_types,
-        })
+        inferred_config.update(
+            {
+                "vocab_size": int(vocab_size),
+                "emb_dim": int(emb_dim),
+                "n_heads": int(n_heads),
+                "n_kv_groups": int(n_kv_groups),
+                "head_dim": int(head_dim),
+                "n_layers": int(n_layers),
+                "hidden_dim": int(hidden_dim),
+                "layer_types": layer_types,
+            }
+        )
 
         print(f"✓ Inferred configuration from checkpoint:")
         print(f"  - vocab_size: {vocab_size}")
@@ -147,9 +171,14 @@ def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
         return inferred_config
 
     except Exception as inference_error:
-        raise RuntimeError(f"Failed to infer config from checkpoint: {str(inference_error)}") from inference_error
+        raise RuntimeError(
+            f"Failed to infer config from checkpoint: {str(inference_error)}"
+        ) from inference_error
 
-def load_perseid_model_for_embeddings(checkpoint_path: str) -> Tuple[PerseidByteModel, torch.device, Dict]:
+
+def load_perseid_model_for_embeddings(
+    checkpoint_path: str,
+) -> Tuple[PerseidByteModel, torch.device, Dict]:
     """
     Load a trained PerseidByte model from checkpoint for embedding extraction.
 
@@ -177,7 +206,9 @@ def load_perseid_model_for_embeddings(checkpoint_path: str) -> Tuple[PerseidByte
             )
 
         print(f"Loading model checkpoint from: {checkpoint_path}")
-        print(f"Checkpoint file size: {checkpoint_file_path.stat().st_size / (1024*1024):.1f} MB")
+        print(
+            f"Checkpoint file size: {checkpoint_file_path.stat().st_size / (1024 * 1024):.1f} MB"
+        )
 
         # Determine device for model loading
         if torch.cuda.is_available():
@@ -206,7 +237,9 @@ def load_perseid_model_for_embeddings(checkpoint_path: str) -> Tuple[PerseidByte
         #     print("⚠ Using default configuration (config not found in checkpoint)")
 
         if "config" in checkpoint_data or "model_config" in checkpoint_data:
-            model_configuration = checkpoint_data.get("config", checkpoint_data.get("model_config"))
+            model_configuration = checkpoint_data.get(
+                "config", checkpoint_data.get("model_config")
+            )
             print("✓ Using model configuration from checkpoint")
         else:
             print("⚠ Config not found in checkpoint, inferring from weights...")
@@ -316,7 +349,7 @@ def extract_text_embedding(
     tokenizer: ByteTokenizer,
     input_text: str,
     pooling_method: str = "last_token",
-    device: torch.device = None
+    device: torch.device = None,
 ) -> np.ndarray:
     """
     Extract a dense embedding vector from input text using the trained model.
@@ -345,7 +378,9 @@ def extract_text_embedding(
             raise ValueError("input_text cannot be empty or whitespace-only")
 
         if pooling_method not in ["last_token", "mean"]:
-            raise ValueError(f"pooling_method must be 'last_token' or 'mean', got '{pooling_method}'")
+            raise ValueError(
+                f"pooling_method must be 'last_token' or 'mean', got '{pooling_method}'"
+            )
 
         # Tokenize input text to token IDs
         try:
@@ -357,7 +392,9 @@ def extract_text_embedding(
             ) from tokenization_error
 
         if len(token_ids) == 0:
-            raise ValueError(f"Tokenization resulted in empty token sequence for text: '{input_text[:50]}...'")
+            raise ValueError(
+                f"Tokenization resulted in empty token sequence for text: '{input_text[:50]}...'"
+            )
 
         # Convert to tensor and add batch dimension
         input_tensor = torch.tensor([token_ids], dtype=torch.long)
@@ -372,7 +409,9 @@ def extract_text_embedding(
         # Extract embedding using model's get_embeddings method
         with torch.no_grad():  # Disable gradient computation for inference
             try:
-                embedding_tensor = model.get_embeddings(input_tensor, pooling_method=pooling_method)
+                embedding_tensor = model.get_embeddings(
+                    input_tensor, pooling_method=pooling_method
+                )
                 print(f"  Embedding shape: {embedding_tensor.shape}")
 
             except Exception as embedding_error:
@@ -434,10 +473,14 @@ def compute_similarity_matrix(embeddings_list: List[np.ndarray]) -> np.ndarray:
             raise ValueError("embeddings_list cannot be empty")
 
         # Stack embeddings into matrix
-        embeddings_matrix = np.stack(embeddings_list, axis=0)  # Shape: (n_embeddings, embedding_dim)
+        embeddings_matrix = np.stack(
+            embeddings_list, axis=0
+        )  # Shape: (n_embeddings, embedding_dim)
 
         # Normalize embeddings for cosine similarity
-        embeddings_normalized = embeddings_matrix / np.linalg.norm(embeddings_matrix, axis=1, keepdims=True)
+        embeddings_normalized = embeddings_matrix / np.linalg.norm(
+            embeddings_matrix, axis=1, keepdims=True
+        )
 
         # Compute similarity matrix
         similarity_matrix = embeddings_normalized @ embeddings_normalized.T
@@ -446,10 +489,14 @@ def compute_similarity_matrix(embeddings_list: List[np.ndarray]) -> np.ndarray:
         return similarity_matrix
 
     except Exception as similarity_error:
-        raise RuntimeError(f"Failed to compute similarity matrix: {str(similarity_error)}") from similarity_error
+        raise RuntimeError(
+            f"Failed to compute similarity matrix: {str(similarity_error)}"
+        ) from similarity_error
 
 
-def format_embeddings_for_output(embeddings_list: List[np.ndarray], format_type: str) -> Union[List, np.ndarray, str]:
+def format_embeddings_for_output(
+    embeddings_list: List[np.ndarray], format_type: str
+) -> Union[List, np.ndarray, str]:
     """
     Convert embeddings to specified output format.
 
@@ -471,24 +518,26 @@ def format_embeddings_for_output(embeddings_list: List[np.ndarray], format_type:
             # Convert to JSON-serializable format
             embeddings_json = []
             for i, embedding in enumerate(embeddings_list):
-                embeddings_json.append({
-                    "index": i,
-                    "vector": embedding.tolist(),
-                    "dimension": len(embedding)
-                })
+                embeddings_json.append(
+                    {
+                        "index": i,
+                        "vector": embedding.tolist(),
+                        "dimension": len(embedding),
+                    }
+                )
             return json.dumps(embeddings_json, indent=2)
 
         else:
             raise ValueError(f"Unsupported format_type: {format_type}")
 
     except Exception as format_error:
-        raise RuntimeError(f"Failed to format embeddings: {str(format_error)}") from format_error
+        raise RuntimeError(
+            f"Failed to format embeddings: {str(format_error)}"
+        ) from format_error
 
 
 def save_embeddings_to_file(
-    embeddings_data: Dict,
-    output_file_path: str,
-    include_similarity_matrix: bool = True
+    embeddings_data: Dict, output_file_path: str, include_similarity_matrix: bool = True
 ) -> None:
     """
     Save embeddings and metadata to JSON file.
@@ -502,7 +551,7 @@ def save_embeddings_to_file(
         output_path = Path(output_file_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w', encoding='utf-8') as output_file:
+        with open(output_path, "w", encoding="utf-8") as output_file:
             json.dump(embeddings_data, output_file, indent=2, ensure_ascii=False)
 
         file_size_mb = output_path.stat().st_size / (1024 * 1024)
@@ -510,7 +559,9 @@ def save_embeddings_to_file(
         print(f"  File size: {file_size_mb:.2f} MB")
 
     except Exception as save_error:
-        raise RuntimeError(f"Failed to save embeddings to {output_file_path}: {str(save_error)}") from save_error
+        raise RuntimeError(
+            f"Failed to save embeddings to {output_file_path}: {str(save_error)}"
+        ) from save_error
 
 
 def main():
@@ -521,9 +572,9 @@ def main():
     computes similarities, and optionally saves results to file.
     """
     try:
-        print("="*80)
+        print("=" * 80)
         print("PerseidByte Embedding Vector Extraction")
-        print("="*80)
+        print("=" * 80)
 
         # Load trained model
         print("\nStep 1: Loading Model")
@@ -543,7 +594,9 @@ def main():
 
         for text_index, input_text in enumerate(INPUT_TEXTS):
             print(f"\nProcessing text {text_index + 1}/{len(INPUT_TEXTS)}:")
-            print(f"Text preview: '{input_text[:60]}{'...' if len(input_text) > 60 else ''}'")
+            print(
+                f"Text preview: '{input_text[:60]}{'...' if len(input_text) > 60 else ''}'"
+            )
 
             try:
                 embedding_vector = extract_text_embedding(
@@ -551,25 +604,31 @@ def main():
                     tokenizer=tokenizer,
                     input_text=input_text,
                     pooling_method=POOLING_METHOD,
-                    device=device
+                    device=device,
                 )
 
                 all_embeddings.append(embedding_vector)
-                embedding_metadata.append({
-                    "index": text_index,
-                    "text": input_text,
-                    "text_length": len(input_text),
-                    "embedding_dimension": len(embedding_vector),
-                    "embedding_norm": float(np.linalg.norm(embedding_vector)),
-                    "pooling_method": POOLING_METHOD
-                })
+                embedding_metadata.append(
+                    {
+                        "index": text_index,
+                        "text": input_text,
+                        "text_length": len(input_text),
+                        "embedding_dimension": len(embedding_vector),
+                        "embedding_norm": float(np.linalg.norm(embedding_vector)),
+                        "pooling_method": POOLING_METHOD,
+                    }
+                )
 
             except Exception as text_processing_error:
-                print(f"  ✗ Failed to process text {text_index + 1}: {str(text_processing_error)}")
+                print(
+                    f"  ✗ Failed to process text {text_index + 1}: {str(text_processing_error)}"
+                )
                 continue
 
         if len(all_embeddings) == 0:
-            raise RuntimeError("No embeddings were successfully extracted from input texts")
+            raise RuntimeError(
+                "No embeddings were successfully extracted from input texts"
+            )
 
         print(f"\n✓ Successfully extracted {len(all_embeddings)} embeddings")
 
@@ -583,12 +642,14 @@ def main():
         for i in range(len(all_embeddings)):
             for j in range(i + 1, len(all_embeddings)):
                 similarity_score = similarity_matrix[i, j]
-                print(f"  Text {i+1} ↔ Text {j+1}: {similarity_score:.4f}")
+                print(f"  Text {i + 1} ↔ Text {j + 1}: {similarity_score:.4f}")
 
         # Format embeddings for output
         print(f"\nStep 5: Formatting Output ({OUTPUT_FORMAT})")
         print("-" * 40)
-        formatted_embeddings = format_embeddings_for_output(all_embeddings, OUTPUT_FORMAT)
+        formatted_embeddings = format_embeddings_for_output(
+            all_embeddings, OUTPUT_FORMAT
+        )
         print(f"✓ Embeddings formatted as {OUTPUT_FORMAT}")
 
         # Save results if requested
@@ -599,7 +660,7 @@ def main():
             # Convert model_config to JSON-serializable format
             json_safe_model_config = {}
             for key, value in model_config.items():
-                if hasattr(value, '__module__') and 'torch' in str(type(value)):
+                if hasattr(value, "__module__") and "torch" in str(type(value)):
                     # Convert torch objects to string representation
                     json_safe_model_config[key] = str(value)
                 else:
@@ -618,18 +679,18 @@ def main():
                     {
                         "text": meta["text"],
                         "vector": embedding.tolist(),
-                        "metadata": meta
+                        "metadata": meta,
                     }
                     for embedding, meta in zip(all_embeddings, embedding_metadata)
                 ],
-                "similarity_matrix": similarity_matrix.tolist()
+                "similarity_matrix": similarity_matrix.tolist(),
             }
 
             save_embeddings_to_file(output_data, OUTPUT_FILE)
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("Embedding Extraction Complete!")
-        print("="*80)
+        print("=" * 80)
         print(f"✓ Processed {len(INPUT_TEXTS)} input texts")
         print(f"✓ Extracted {len(all_embeddings)} embeddings")
         print(f"✓ Embedding dimension: {len(all_embeddings[0])}")
@@ -666,14 +727,14 @@ Examples:
   python get_embedding_vector_perseidbyte.py
   python get_embedding_vector_perseidbyte.py --checkpoint ./models/my_model.pth
   python get_embedding_vector_perseidbyte.py --pooling mean --output embeddings.json
-        """
+        """,
     )
 
     parser.add_argument(
         "--checkpoint",
         type=str,
         default=CHECKPOINT_PATH,
-        help="Path to model checkpoint file"
+        help="Path to model checkpoint file",
     )
 
     parser.add_argument(
@@ -681,20 +742,18 @@ Examples:
         type=str,
         choices=["last_token", "mean"],
         default=POOLING_METHOD,
-        help="Pooling method for sequence embedding"
+        help="Pooling method for sequence embedding",
     )
 
     parser.add_argument(
         "--output",
         type=str,
         default=OUTPUT_FILE,
-        help="Output file path for saving embeddings"
+        help="Output file path for saving embeddings",
     )
 
     parser.add_argument(
-        "--no-save",
-        action="store_true",
-        help="Don't save embeddings to file"
+        "--no-save", action="store_true", help="Don't save embeddings to file"
     )
 
     return parser.parse_args()

@@ -27,11 +27,26 @@ except ImportError as import_error:
     sys.exit(1)
 
 # ============================================================================
-# USER CONFIGURATION
+# USER CONFIGURATION or Defaults
 # ============================================================================
 
+import glob
+
+# Example path with wildcard
+pattern = "./models/perseid_*/perseid_model_final.pth"
+
+# Find all matching paths
+matching_paths = glob.glob(pattern)
+
+print("Found...")
+print(matching_paths)
+print("default to using first option")
+
+CHECKPOINT_PATH = matching_paths[0]
+
 # Point to your trained PerseidByte model
-CHECKPOINT_PATH = "./models/perseid_256m_alice/perseid_model_final.pth"  # <- MODIFY THIS
+# CHECKPOINT_PATH = "./models/perseid_*/perseid_model_final.pth"  # <- MODIFY THIS
+# CHECKPOINT_PATH = "./models/perseid_256m_alice/perseid_model_final.pth"  # <- MODIFY THIS
 # Alternative examples:
 # CHECKPOINT_PATH = "./models/perseid_256m_alice/checkpoint_best.pth"
 # CHECKPOINT_PATH = "./models/perseid_256m_my_document/perseid_model_final.pth"
@@ -46,12 +61,13 @@ PROMPTS = [
 ]
 
 # Generation parameters
-MAX_NEW_TOKENS = 100        # Maximum tokens to generate
-TEMPERATURE = 0.8           # Sampling temperature (0.0 = greedy, higher = more random)
-TOP_K = 50                 # Top-k sampling (0 = disabled)
-TOP_P = 0.9                # Nucleus sampling (0.0 = disabled)
+MAX_NEW_TOKENS = 100  # Maximum tokens to generate
+TEMPERATURE = 0.8  # Sampling temperature (0.0 = greedy, higher = more random)
+TOP_K = 50  # Top-k sampling (0 = disabled)
+TOP_P = 0.9  # Nucleus sampling (0.0 = disabled)
 
 # ============================================================================
+
 
 def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
     """
@@ -110,16 +126,18 @@ def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
 
         # Build configuration from inferred values
         inferred_config = PERSEID_BYTE_CONFIG_BASE.copy()
-        inferred_config.update({
-            "vocab_size": int(vocab_size),
-            "emb_dim": int(emb_dim),
-            "n_heads": int(n_heads),
-            "n_kv_groups": int(n_kv_groups),
-            "head_dim": int(head_dim),
-            "n_layers": int(n_layers),
-            "hidden_dim": int(hidden_dim),
-            "layer_types": layer_types,
-        })
+        inferred_config.update(
+            {
+                "vocab_size": int(vocab_size),
+                "emb_dim": int(emb_dim),
+                "n_heads": int(n_heads),
+                "n_kv_groups": int(n_kv_groups),
+                "head_dim": int(head_dim),
+                "n_layers": int(n_layers),
+                "hidden_dim": int(hidden_dim),
+                "layer_types": layer_types,
+            }
+        )
 
         print(f"✓ Inferred model configuration:")
         print(f"  - vocab_size: {vocab_size}")
@@ -132,10 +150,14 @@ def infer_config_from_checkpoint(checkpoint_data: dict) -> dict:
         return inferred_config
 
     except Exception as inference_error:
-        raise RuntimeError(f"Failed to infer config from checkpoint: {str(inference_error)}") from inference_error
+        raise RuntimeError(
+            f"Failed to infer config from checkpoint: {str(inference_error)}"
+        ) from inference_error
 
 
-def load_perseid_byte_model(checkpoint_path: str) -> Tuple[PerseidByteModel, torch.device, dict]:
+def load_perseid_byte_model(
+    checkpoint_path: str,
+) -> Tuple[PerseidByteModel, torch.device, dict]:
     """
     Load trained PerseidByte model from checkpoint for text generation.
 
@@ -159,7 +181,9 @@ def load_perseid_byte_model(checkpoint_path: str) -> Tuple[PerseidByteModel, tor
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
         print(f"Loading PerseidByte model from: {checkpoint_path}")
-        print(f"Checkpoint size: {checkpoint_file_path.stat().st_size / (1024*1024):.1f} MB")
+        print(
+            f"Checkpoint size: {checkpoint_file_path.stat().st_size / (1024 * 1024):.1f} MB"
+        )
 
         # Determine device
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -170,11 +194,15 @@ def load_perseid_byte_model(checkpoint_path: str) -> Tuple[PerseidByteModel, tor
             checkpoint_data = torch.load(checkpoint_path, map_location=device)
             print("✓ Checkpoint loaded successfully")
         except Exception as load_error:
-            raise RuntimeError(f"Failed to load checkpoint: {str(load_error)}") from load_error
+            raise RuntimeError(
+                f"Failed to load checkpoint: {str(load_error)}"
+            ) from load_error
 
         # Extract or infer model configuration
         if "config" in checkpoint_data or "model_config" in checkpoint_data:
-            model_config = checkpoint_data.get("config", checkpoint_data.get("model_config"))
+            model_config = checkpoint_data.get(
+                "config", checkpoint_data.get("model_config")
+            )
             print("✓ Using model configuration from checkpoint")
         else:
             print("⚠ Config not found in checkpoint, inferring from weights...")
@@ -198,7 +226,9 @@ def load_perseid_byte_model(checkpoint_path: str) -> Tuple[PerseidByteModel, tor
             print(f"  - Embedding dim: {model_config['emb_dim']}")
 
         except Exception as model_error:
-            raise RuntimeError(f"Failed to create model: {str(model_error)}") from model_error
+            raise RuntimeError(
+                f"Failed to create model: {str(model_error)}"
+            ) from model_error
 
         # Load model weights
         try:
@@ -210,7 +240,9 @@ def load_perseid_byte_model(checkpoint_path: str) -> Tuple[PerseidByteModel, tor
                 model.load_state_dict(checkpoint_data)
             print("✓ Model weights loaded")
         except Exception as weight_error:
-            raise RuntimeError(f"Failed to load weights: {str(weight_error)}") from weight_error
+            raise RuntimeError(
+                f"Failed to load weights: {str(weight_error)}"
+            ) from weight_error
 
         # Move to device and set to evaluation mode
         model = model.to(device)
@@ -257,7 +289,9 @@ def setup_byte_tokenizer() -> ByteTokenizer:
         return tokenizer
 
     except Exception as tokenizer_error:
-        raise RuntimeError(f"Failed to setup ByteTokenizer: {str(tokenizer_error)}") from tokenizer_error
+        raise RuntimeError(
+            f"Failed to setup ByteTokenizer: {str(tokenizer_error)}"
+        ) from tokenizer_error
 
 
 def generate_text_perseid_byte(
@@ -268,7 +302,7 @@ def generate_text_perseid_byte(
     temperature: float = 1.0,
     top_k: int = 50,
     top_p: float = 0.9,
-    device: Optional[torch.device] = None
+    device: Optional[torch.device] = None,
 ) -> str:
     """
     Generate text from a prompt using PerseidByte model and ByteTokenizer.
@@ -320,13 +354,17 @@ def generate_text_perseid_byte(
             if len(token_ids) == 0:
                 raise ValueError(f"Prompt tokenized to empty sequence: '{prompt}'")
         except Exception as tokenize_error:
-            raise RuntimeError(f"Failed to tokenize prompt: {str(tokenize_error)}") from tokenize_error
+            raise RuntimeError(
+                f"Failed to tokenize prompt: {str(tokenize_error)}"
+            ) from tokenize_error
 
         # Convert to tensor
         input_ids = torch.tensor(token_ids, dtype=torch.long).unsqueeze(0).to(device)
         original_length = input_ids.shape[1]
 
-        print(f"  Generating from prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'")
+        print(
+            f"  Generating from prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'"
+        )
         print(f"  Prompt tokens: {len(token_ids)}")
 
         # Generation loop
@@ -336,7 +374,9 @@ def generate_text_perseid_byte(
             for step in range(max_new_tokens):
                 try:
                     # Forward pass
-                    logits = model(input_ids)[:, -1, :]  # Shape: (batch_size, vocab_size)
+                    logits = model(input_ids)[
+                        :, -1, :
+                    ]  # Shape: (batch_size, vocab_size)
 
                     # Apply temperature
                     if temperature != 1.0:
@@ -345,23 +385,33 @@ def generate_text_perseid_byte(
                     # Apply top-k filtering
                     if top_k > 0:
                         # Find top-k values and set others to -inf
-                        top_k_values, top_k_indices = torch.topk(logits, min(top_k, logits.size(-1)))
-                        logits_filtered = torch.full_like(logits, float('-inf'))
+                        top_k_values, top_k_indices = torch.topk(
+                            logits, min(top_k, logits.size(-1))
+                        )
+                        logits_filtered = torch.full_like(logits, float("-inf"))
                         logits_filtered.scatter_(1, top_k_indices, top_k_values)
                         logits = logits_filtered
 
                     # Apply top-p (nucleus) sampling
                     if 0.0 < top_p < 1.0:
-                        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
-                        cumulative_probs = torch.cumsum(torch.softmax(sorted_logits, dim=-1), dim=-1)
+                        sorted_logits, sorted_indices = torch.sort(
+                            logits, descending=True
+                        )
+                        cumulative_probs = torch.cumsum(
+                            torch.softmax(sorted_logits, dim=-1), dim=-1
+                        )
 
                         # Remove tokens with cumulative probability above threshold
                         sorted_indices_to_remove = cumulative_probs > top_p
-                        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+                        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[
+                            ..., :-1
+                        ].clone()
                         sorted_indices_to_remove[..., 0] = 0  # Keep at least one token
 
                         indices_to_remove = sorted_indices[sorted_indices_to_remove]
-                        logits.scatter_(1, indices_to_remove.unsqueeze(0), float('-inf'))
+                        logits.scatter_(
+                            1, indices_to_remove.unsqueeze(0), float("-inf")
+                        )
 
                     # Sample from the filtered distribution
                     probs = torch.softmax(logits, dim=-1)
@@ -375,7 +425,7 @@ def generate_text_perseid_byte(
                     # Handle context window overflow
                     if input_ids.shape[1] > model.cfg["context_length"]:
                         # Keep the most recent tokens within context window
-                        input_ids = input_ids[:, -model.cfg["context_length"]:]
+                        input_ids = input_ids[:, -model.cfg["context_length"] :]
 
                     # Optional: Stop on EOS token
                     if next_token_id == tokenizer.EOS_ID:
@@ -396,7 +446,9 @@ def generate_text_perseid_byte(
             return generated_text
 
         except Exception as decode_error:
-            raise RuntimeError(f"Failed to decode generated tokens: {str(decode_error)}") from decode_error
+            raise RuntimeError(
+                f"Failed to decode generated tokens: {str(decode_error)}"
+            ) from decode_error
 
     except Exception as generation_error:
         error_traceback = traceback.format_exc()
@@ -412,9 +464,9 @@ def main():
     Main function to load model and generate text from configured prompts.
     """
     try:
-        print("="*80)
+        print("=" * 80)
         print("PerseidByte Text Generation")
-        print("="*80)
+        print("=" * 80)
 
         # Step 1: Load model
         print("\nStep 1: Loading Model")
@@ -441,7 +493,7 @@ def main():
                     max_new_tokens=MAX_NEW_TOKENS,
                     temperature=TEMPERATURE,
                     top_p=TOP_P,
-                    device=device
+                    device=device,
                 )
 
                 print(f"\nPrompt: '{prompt}'")
@@ -449,12 +501,14 @@ def main():
                 print("-" * 60)
 
             except Exception as prompt_error:
-                print(f"✗ Failed to generate text for prompt '{prompt}': {str(prompt_error)}")
+                print(
+                    f"✗ Failed to generate text for prompt '{prompt}': {str(prompt_error)}"
+                )
                 continue
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("Text Generation Complete!")
-        print("="*80)
+        print("=" * 80)
 
         # Display generation settings used
         print(f"\nGeneration Settings:")
@@ -481,9 +535,9 @@ def interactive_mode():
     Interactive text generation mode - prompts user for input.
     """
     try:
-        print("="*80)
+        print("=" * 80)
         print("PerseidByte Interactive Text Generation")
-        print("="*80)
+        print("=" * 80)
         print("Type 'quit' to exit, 'settings' to change parameters")
 
         # Load model once
@@ -502,11 +556,11 @@ def interactive_mode():
                 # Get user input
                 user_prompt = input("\nEnter your prompt: ").strip()
 
-                if user_prompt.lower() == 'quit':
+                if user_prompt.lower() == "quit":
                     print("Goodbye!")
                     break
 
-                elif user_prompt.lower() == 'settings':
+                elif user_prompt.lower() == "settings":
                     print(f"\nCurrent settings:")
                     print(f"  Max tokens: {interactive_max_tokens}")
                     print(f"  Temperature: {interactive_temperature}")
@@ -514,11 +568,15 @@ def interactive_mode():
                     print(f"  Top-p: {interactive_top_p}")
 
                     try:
-                        new_max = input(f"Max tokens ({interactive_max_tokens}): ").strip()
+                        new_max = input(
+                            f"Max tokens ({interactive_max_tokens}): "
+                        ).strip()
                         if new_max:
                             interactive_max_tokens = int(new_max)
 
-                        new_temp = input(f"Temperature ({interactive_temperature}): ").strip()
+                        new_temp = input(
+                            f"Temperature ({interactive_temperature}): "
+                        ).strip()
                         if new_temp:
                             interactive_temperature = float(new_temp)
 
@@ -552,14 +610,14 @@ def interactive_mode():
                     temperature=interactive_temperature,
                     top_k=interactive_top_k,
                     top_p=interactive_top_p,
-                    device=device
+                    device=device,
                 )
 
-                print(f"\n{'='*60}")
+                print(f"\n{'=' * 60}")
                 print(f"Generated Text:")
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
                 print(generated_text)
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
 
             except KeyboardInterrupt:
                 print("\nUse 'quit' to exit properly")
@@ -597,7 +655,7 @@ def batch_generate_from_file(input_file_path: str, output_file_path: str):
         tokenizer = setup_byte_tokenizer()
 
         # Read prompts
-        with open(input_path, 'r', encoding='utf-8') as f:
+        with open(input_path, "r", encoding="utf-8") as f:
             prompts = [line.strip() for line in f if line.strip()]
 
         print(f"Found {len(prompts)} prompts to process")
@@ -617,28 +675,28 @@ def batch_generate_from_file(input_file_path: str, output_file_path: str):
                     temperature=TEMPERATURE,
                     top_k=TOP_K,
                     top_p=TOP_P,
-                    device=device
+                    device=device,
                 )
 
-                results.append({
-                    "prompt": prompt,
-                    "generated": generated_text,
-                    "success": True
-                })
+                results.append(
+                    {"prompt": prompt, "generated": generated_text, "success": True}
+                )
 
             except Exception as batch_error:
                 print(f"  ✗ Failed: {str(batch_error)}")
-                results.append({
-                    "prompt": prompt,
-                    "generated": None,
-                    "success": False,
-                    "error": str(batch_error)
-                })
+                results.append(
+                    {
+                        "prompt": prompt,
+                        "generated": None,
+                        "success": False,
+                        "error": str(batch_error),
+                    }
+                )
 
         # Save results
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write("PerseidByte Batch Generation Results\n")
             f.write("=" * 60 + "\n\n")
 
@@ -646,20 +704,22 @@ def batch_generate_from_file(input_file_path: str, output_file_path: str):
                 f.write(f"--- Generation {i} ---\n")
                 f.write(f"Prompt: {result['prompt']}\n")
 
-                if result['success']:
+                if result["success"]:
                     f.write(f"Generated: {result['generated']}\n")
                 else:
                     f.write(f"Error: {result['error']}\n")
 
                 f.write("\n" + "-" * 40 + "\n\n")
 
-        successful = sum(1 for r in results if r['success'])
+        successful = sum(1 for r in results if r["success"])
         print(f"\nBatch generation complete!")
         print(f"  Successful: {successful}/{len(prompts)}")
         print(f"  Results saved to: {output_path}")
 
     except Exception as batch_generation_error:
-        raise RuntimeError(f"Batch generation failed: {str(batch_generation_error)}") from batch_generation_error
+        raise RuntimeError(
+            f"Batch generation failed: {str(batch_generation_error)}"
+        ) from batch_generation_error
 
 
 if __name__ == "__main__":
@@ -674,9 +734,15 @@ if __name__ == "__main__":
             interactive_mode()
         else:
             print("Usage:")
-            print("  python generate_text_tool_perseid_byte.py                    # Standard mode")
-            print("  python generate_text_tool_perseid_byte.py interactive        # Interactive mode")
-            print("  python generate_text_tool_perseid_byte.py batch input.txt output.txt  # Batch mode")
+            print(
+                "  python generate_text_tool_perseid_byte.py                    # Standard mode"
+            )
+            print(
+                "  python generate_text_tool_perseid_byte.py interactive        # Interactive mode"
+            )
+            print(
+                "  python generate_text_tool_perseid_byte.py batch input.txt output.txt  # Batch mode"
+            )
 
     elif len(sys.argv) == 4 and sys.argv[1].lower() == "batch":
         # Batch mode
@@ -686,7 +752,13 @@ if __name__ == "__main__":
 
     else:
         print("Invalid arguments. Usage:")
-        print("  python generate_text_tool_perseid_byte.py                    # Standard mode")
-        print("  python generate_text_tool_perseid_byte.py interactive        # Interactive mode")
-        print("  python generate_text_tool_perseid_byte.py batch input.txt output.txt  # Batch mode")
+        print(
+            "  python generate_text_tool_perseid_byte.py                    # Standard mode"
+        )
+        print(
+            "  python generate_text_tool_perseid_byte.py interactive        # Interactive mode"
+        )
+        print(
+            "  python generate_text_tool_perseid_byte.py batch input.txt output.txt  # Batch mode"
+        )
         sys.exit(1)
