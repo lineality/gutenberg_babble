@@ -1,0 +1,127 @@
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py 
+Found...
+['./models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_alice/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time, which was sitting every nearly
+nobody so, such as he was a large eyes hearely row
+her. There was a large about her, how had civerything about he game
+very nearly and with the words down angry dear the poor little distody
+itoating it.
+
+Alice look a writtion, coasturpos; thes as last down here, and 
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is was gone,
+singing to execution into the end of the sort way in the game, carried
+on right there cat in sighed to could on her an imply for a little
+snately did so large on; and the last was a llow lock in her eyes.
+
+It was a large rabbit, so much peright in a conversation all making
+for the key, an
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning me to be twinkled a growing
+to think that, notioned the other, so certiently never it to glad the
+flast used to saying to inding on in the door, so marked away out, and
+had happen a little had cake her eyesory dry explan. “I’ve often surprised,
+mysterfully about all as!”
+
+“Diging for cat. �
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired of minute of the
+blast, as the searphice than by went on, and books over heard with hear
+her to was no purhdly as she passed has under hands any rate in mouse:
+the last rather mark about her idds happen an of little key hackance.
+his made her fookan in nothing lessong again, as well as look and way
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown fox of it haappen it
+of end the even get like up lace, with out of the earther doubtful Soup
+his time.
+
+
+
+
+CHAPTER VII.
+The Poor of Tis room a Lory See Beaut in a Lobster Queen’s getting about
+ey much, and seehog to one anyeage in a holding. So sole this they
+ear; and the check would he had last in a
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.6
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_alice/perseid_model_final.pth
+

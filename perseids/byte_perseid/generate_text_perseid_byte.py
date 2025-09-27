@@ -17,7 +17,10 @@ from typing import Optional, Tuple
 try:
     from perseid_model import PerseidByteModel, PERSEID_BYTE_CONFIG_BASE
     from byte_tokenizer import ByteTokenizer
-    from perseidbyte_256_288_320_config_tools import validate_config, calculate_model_params
+    from perseidbyte_256_288_320_config_tools import (
+        validate_config,
+        calculate_model_params,
+    )
 except ImportError as import_error:
     print(f"Error importing required modules: {import_error}")
     print("Ensure all required files are in the same directory:")
@@ -61,8 +64,8 @@ PROMPTS = [
 ]
 
 # Generation parameters
-MAX_NEW_TOKENS = 100  # Maximum tokens to generate
-TEMPERATURE = 0.8  # Sampling temperature (0.0 = greedy, higher = more random)
+MAX_NEW_TOKENS = 300  # Maximum tokens to generate
+TEMPERATURE = 0.6  # Sampling temperature (0.0 = greedy, higher = more random)
 TOP_K = 50  # Top-k sampling (0 = disabled)
 TOP_P = 0.9  # Nucleus sampling (0.0 = disabled)
 

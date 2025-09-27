@@ -1,4 +1,3 @@
-
 """
 train_perseid_byte.py
 
@@ -26,44 +25,15 @@ import matplotlib.pyplot as plt
 
 # Import model architecture and configuration tools
 from byte_tokenizer import ByteTokenizer
-from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
+from perseidbyte_256_288_320_config_tools import (
+    create_perseid_config,
+    calculate_model_params,
+    validate_config,
+)
 
 # from generate_text_tools_perseid import generate_text_simple
 from perseid_model import PerseidByteModel
-
 from perseid_model import PERSEID_BYTE_CONFIG_BASE
-
-
-def setup_tokenizer():
-    """Setup ByteTokenizer for training."""
-    print("\nInitializing ByteTokenizer...")
-    tokenizer = ByteTokenizer()
-
-    print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
-    print(f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}")
-
-    return tokenizer
-
-
-def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=None):
-    """Simple generation for evaluation"""
-    if device is None:
-        device = next(model.parameters()).device  # Get device from model parameters
-
-    model.eval()
-    token_ids = tokenizer.encode(prompt)
-    input_ids = torch.tensor(token_ids).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-        for _ in range(max_new_tokens):
-            logits = model(input_ids)[:, -1, :]
-            next_token = torch.argmax(logits, dim=-1, keepdim=True)
-            input_ids = torch.cat([input_ids, next_token], dim=1)
-            if input_ids.shape[1] > model.cfg["context_length"]:
-                input_ids = input_ids[:, -model.cfg["context_length"]:]
-
-    model.train()
-    return tokenizer.decode(input_ids.squeeze(0).tolist())
 
 
 # Model configuration
@@ -88,7 +58,7 @@ TRAINING_CONFIG = {
     "batch_size": 1,  # Batch size (increase if memory allows)
     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
     "learning_rate": 5e-4,  # Learning rate
-    "num_epochs": 3,  # Number of training epochs
+    "num_epochs": 30,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
     "eval_every": 50,  # Evaluate every N steps
@@ -97,11 +67,43 @@ TRAINING_CONFIG = {
     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
 }
 
-
-
 # ============================================================================
 # END USER CONFIGURATION
 # ============================================================================
+
+
+def setup_tokenizer():
+    """Setup ByteTokenizer for training."""
+    print("\nInitializing ByteTokenizer...")
+    tokenizer = ByteTokenizer()
+
+    print(f"  ✓ Vocabulary size: {tokenizer.vocab_size}")
+    print(
+        f"  ✓ Special tokens: PAD={tokenizer.PAD_ID}, EOS={tokenizer.EOS_ID}, MASKUNK={tokenizer.MASKUNK_ID}"
+    )
+
+    return tokenizer
+
+
+def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=None):
+    """Simple generation for evaluation"""
+    if device is None:
+        device = next(model.parameters()).device  # Get device from model parameters
+
+    model.eval()
+    token_ids = tokenizer.encode(prompt)
+    input_ids = torch.tensor(token_ids).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        for _ in range(max_new_tokens):
+            logits = model(input_ids)[:, -1, :]
+            next_token = torch.argmax(logits, dim=-1, keepdim=True)
+            input_ids = torch.cat([input_ids, next_token], dim=1)
+            if input_ids.shape[1] > model.cfg["context_length"]:
+                input_ids = input_ids[:, -model.cfg["context_length"] :]
+
+    model.train()
+    return tokenizer.decode(input_ids.squeeze(0).tolist())
 
 
 class DocumentDataset(Dataset):
@@ -136,7 +138,7 @@ class DocumentDataset(Dataset):
             # Create overlapping windows
             self.windows = []
             for i in range(0, len(self.tokens) - max_length, stride):
-                window = self.tokens[i:i + max_length + 1]  # +1 for target
+                window = self.tokens[i : i + max_length + 1]  # +1 for target
                 if len(window) == max_length + 1:
                     self.windows.append(window)
 
@@ -144,7 +146,9 @@ class DocumentDataset(Dataset):
                 print(f"Created {len(self.windows):,} training windows")
                 print(f"Total tokens: {len(self.tokens):,}")
                 print(f"Window size: {max_length}, Stride: {stride}")
-                print(f"Effective overlap: {((max_length - stride) / max_length * 100):.1f}%")
+                print(
+                    f"Effective overlap: {((max_length - stride) / max_length * 100):.1f}%"
+                )
 
         except Exception as e:
             print(f"Error during tokenization: {e}")
@@ -190,11 +194,11 @@ def load_document(file_path):
         print(f"File size: {file_size_mb:.2f} MB")
 
         # Load with encoding detection
-        encodings_to_try = ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252']
+        encodings_to_try = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
 
         for encoding in encodings_to_try:
             try:
-                with open(file_path, 'r', encoding=encoding) as f:
+                with open(file_path, "r", encoding=encoding) as f:
                     text = f.read()
                 print(f"Successfully loaded with {encoding} encoding")
                 print(f"Document length: {len(text):,} characters")
@@ -202,7 +206,9 @@ def load_document(file_path):
             except UnicodeDecodeError:
                 continue
 
-        raise ValueError(f"Could not decode file with any supported encoding: {encodings_to_try}")
+        raise ValueError(
+            f"Could not decode file with any supported encoding: {encodings_to_try}"
+        )
 
     except Exception as e:
         print(f"Error loading document: {e}")
@@ -224,7 +230,9 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
         tuple: (train_loader, val_loader)
     """
     try:
-        print(f"\nCreating data loaders with {train_ratio:.0%} train / {(1-train_ratio):.0%} validation split")
+        print(
+            f"\nCreating data loaders with {train_ratio:.0%} train / {(1 - train_ratio):.0%} validation split"
+        )
 
         # Calculate split point
         split_idx = int(train_ratio * len(text))
@@ -239,11 +247,7 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
 
         # Create datasets
         train_dataset = DocumentDataset(
-            train_text,
-            tokenizer,
-            config["context_length"],
-            stride,
-            verbose=True
+            train_text, tokenizer, config["context_length"], stride, verbose=True
         )
 
         val_dataset = DocumentDataset(
@@ -251,7 +255,7 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
             tokenizer,
             config["context_length"],
             config["context_length"],  # No overlap for validation
-            verbose=True
+            verbose=True,
         )
 
         # Create data loaders
@@ -260,7 +264,7 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
             batch_size=config["batch_size"],
             shuffle=True,
             drop_last=True,
-            num_workers=0
+            num_workers=0,
         )
 
         val_loader = DataLoader(
@@ -268,7 +272,7 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
             batch_size=config["batch_size"],
             shuffle=False,
             drop_last=False,
-            num_workers=0
+            num_workers=0,
         )
 
         print(f"\nTrain batches: {len(train_loader):,}")
@@ -348,6 +352,7 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
 #         traceback.print_exc()
 #         raise
 
+
 def setup_model(
     model_size,
     strategy,
@@ -403,34 +408,35 @@ def setup_model(
 
         elif training_mode == "force_restart":
             if checkpoint_exists:
-                print(f"WARNING: Force restart mode - existing checkpoint will be overwritten!")
+                print(
+                    f"WARNING: Force restart mode - existing checkpoint will be overwritten!"
+                )
                 print(f"Existing checkpoint: {checkpoint_path}")
                 response = input("Are you sure? Type 'yes' to continue: ")
-                if response.lower() != 'yes':
+                if response.lower() != "yes":
                     print("Aborting to preserve existing model.")
                     sys.exit(1)
             checkpoint_exists = False  # Treat as new training
 
         # Load or create model configuration
         if checkpoint_exists and training_mode == "continue":
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Resuming Training from Checkpoint")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(f"Loading from: {checkpoint_path}")
 
             # Load checkpoint
             checkpoint = torch.load(checkpoint_path, map_location=device)
 
             # Extract configuration from checkpoint
-            if 'model_config' in checkpoint:
-                model_config = checkpoint['model_config']
+            if "model_config" in checkpoint:
+                model_config = checkpoint["model_config"]
                 print("  ✓ Loaded model configuration from checkpoint")
             else:
                 # Fallback: generate config if not in checkpoint
                 print("  ! No config in checkpoint, generating from parameters")
                 model_config = create_perseid_config(
-                    target_size_millions=model_size,
-                    strategy=strategy
+                    target_size_millions=model_size, strategy=strategy
                 )
 
             # Override context length for current training
@@ -446,8 +452,8 @@ def setup_model(
             model = PerseidByteModel(model_config)
 
             # Load weights
-            if 'model_state_dict' in checkpoint:
-                model.load_state_dict(checkpoint['model_state_dict'])
+            if "model_state_dict" in checkpoint:
+                model.load_state_dict(checkpoint["model_state_dict"])
                 print("  ✓ Loaded model weights")
             else:
                 # Old-style checkpoint with just state dict
@@ -459,12 +465,12 @@ def setup_model(
 
             # Extract training state if available
             training_state = {
-                'global_step': checkpoint.get('step', 0),
-                'best_val_loss': checkpoint.get('val_loss', float('inf')),
-                'optimizer_state': checkpoint.get('optimizer_state_dict', None),
-                'scheduler_state': checkpoint.get('scheduler_state_dict', None),
-                'epoch': checkpoint.get('epoch', 0),
-                'tokens_seen': checkpoint.get('tokens_seen', 0)
+                "global_step": checkpoint.get("step", 0),
+                "best_val_loss": checkpoint.get("val_loss", float("inf")),
+                "optimizer_state": checkpoint.get("optimizer_state_dict", None),
+                "scheduler_state": checkpoint.get("scheduler_state_dict", None),
+                "epoch": checkpoint.get("epoch", 0),
+                "tokens_seen": checkpoint.get("tokens_seen", 0),
             }
 
             print(f"\nResuming from:")
@@ -475,9 +481,9 @@ def setup_model(
 
         else:
             # Starting fresh
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Initializing New Model")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(f"Creating Perseid-{model_size}M ({strategy} strategy)")
 
             # Generate Perseid configuration
@@ -516,12 +522,12 @@ def setup_model(
 
             # Fresh training state
             training_state = {
-                'global_step': 0,
-                'best_val_loss': float('inf'),
-                'optimizer_state': None,
-                'scheduler_state': None,
-                'epoch': 0,
-                'tokens_seen': 0
+                "global_step": 0,
+                "best_val_loss": float("inf"),
+                "optimizer_state": None,
+                "scheduler_state": None,
+                "epoch": 0,
+                "tokens_seen": 0,
             }
 
             print("  ✓ Model initialized with random weights")
@@ -542,6 +548,7 @@ def setup_model(
         print(f"Error setting up model: {e}")
         traceback.print_exc()
         raise
+
 
 def calculate_loss(input_batch, target_batch, model, device):
     """
@@ -564,10 +571,7 @@ def calculate_loss(input_batch, target_batch, model, device):
         logits = model(input_batch)
 
         # Calculate cross entropy loss
-        loss = nn.functional.cross_entropy(
-            logits.flatten(0, 1),
-            target_batch.flatten()
-        )
+        loss = nn.functional.cross_entropy(logits.flatten(0, 1), target_batch.flatten())
 
         return loss
 
@@ -609,7 +613,9 @@ def evaluate_model(model, data_loader, device, num_batches=None):
     return total_loss / num_batches if num_batches > 0 else float("nan")
 
 
-def train_model(model, train_loader, val_loader, config, device, output_dir, training_state):
+def train_model(
+    model, train_loader, val_loader, config, device, output_dir, training_state
+):
     """
     Main training loop for Perseid model.
 
@@ -626,21 +632,21 @@ def train_model(model, train_loader, val_loader, config, device, output_dir, tra
         dict: Training history
     """
     try:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Starting Training")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         # Setup optimizer
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=config["learning_rate"],
             weight_decay=config["weight_decay"],
-            betas=(0.9, 0.95)
+            betas=(0.9, 0.95),
         )
 
         # Restore optimizer state if resuming
-        if training_state['optimizer_state'] is not None:
-            optimizer.load_state_dict(training_state['optimizer_state'])
+        if training_state["optimizer_state"] is not None:
+            optimizer.load_state_dict(training_state["optimizer_state"])
             print("  ✓ Restored optimizer state")
 
         # Calculate total steps
@@ -653,44 +659,43 @@ def train_model(model, train_loader, val_loader, config, device, output_dir, tra
             if step < config["warmup_steps"]:
                 return step / config["warmup_steps"]
             else:
-                progress = (step - config["warmup_steps"]) / (total_steps - config["warmup_steps"])
+                progress = (step - config["warmup_steps"]) / (
+                    total_steps - config["warmup_steps"]
+                )
                 return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
 
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, get_lr)
 
         # Restore scheduler state if resuming
-        if training_state['scheduler_state'] is not None:
-            scheduler.load_state_dict(training_state['scheduler_state'])
+        if training_state["scheduler_state"] is not None:
+            scheduler.load_state_dict(training_state["scheduler_state"])
             print("  ✓ Restored scheduler state")
 
         # Training state
-        history = {
-            "train_loss": [],
-            "val_loss": [],
-            "learning_rates": [],
-            "step": []
-        }
+        history = {"train_loss": [], "val_loss": [], "learning_rates": [], "step": []}
 
         # global_step = 0
         # best_val_loss = float('inf')
         # tokens_seen = 0
-        global_step = training_state['global_step']
-        best_val_loss = training_state['best_val_loss']
-        tokens_seen = training_state['tokens_seen']
-        start_epoch = training_state['epoch']
+        global_step = training_state["global_step"]
+        best_val_loss = training_state["best_val_loss"]
+        tokens_seen = training_state["tokens_seen"]
+        start_epoch = training_state["epoch"]
 
         print(f"\nStarting from epoch {start_epoch + 1}, step {global_step}")
 
         print(f"Total training steps: {total_steps:,}")
         print(f"Warmup steps: {config['warmup_steps']:,}")
-        print(f"Effective batch size: {config['batch_size'] * config['gradient_accumulation_steps']}")
+        print(
+            f"Effective batch size: {config['batch_size'] * config['gradient_accumulation_steps']}"
+        )
 
         # Training loop
         # for epoch in range(config["num_epochs"]):
         for epoch in range(start_epoch, config["num_epochs"]):
-            print(f"\n{'='*40}")
+            print(f"\n{'=' * 40}")
             print(f"Epoch {epoch + 1}/{config['num_epochs']}")
-            print(f"{'='*40}")
+            print(f"{'=' * 40}")
 
             model.train()
             epoch_loss = 0
@@ -720,8 +725,10 @@ def train_model(model, train_loader, val_loader, config, device, output_dir, tra
                     # Periodic evaluation
                     if global_step % config["eval_every"] == 0:
                         val_loss = evaluate_model(
-                            model, val_loader, device,
-                            num_batches=config["eval_batches"]
+                            model,
+                            val_loader,
+                            device,
+                            num_batches=config["eval_batches"],
                         )
 
                         train_loss = epoch_loss / (batch_idx + 1)
@@ -732,28 +739,38 @@ def train_model(model, train_loader, val_loader, config, device, output_dir, tra
                         history["learning_rates"].append(current_lr)
                         history["step"].append(global_step)
 
-                        print(f"Step {global_step:5d} | "
-                              f"Train Loss: {train_loss:.4f} | "
-                              f"Val Loss: {val_loss:.4f} | "
-                              f"LR: {current_lr:.2e} | "
-                              f"Tokens: {tokens_seen:,}")
+                        print(
+                            f"Step {global_step:5d} | "
+                            f"Train Loss: {train_loss:.4f} | "
+                            f"Val Loss: {val_loss:.4f} | "
+                            f"LR: {current_lr:.2e} | "
+                            f"Tokens: {tokens_seen:,}"
+                        )
 
                         # Save best model
                         if val_loss < best_val_loss:
                             best_val_loss = val_loss
                             save_checkpoint(
-                                model, optimizer, scheduler,
-                                global_step, best_val_loss,
-                                output_dir, "best"
+                                model,
+                                optimizer,
+                                scheduler,
+                                global_step,
+                                best_val_loss,
+                                output_dir,
+                                "best",
                             )
                             print(f"  → Saved best model (val_loss: {val_loss:.4f})")
 
                     # Periodic checkpoint
                     if global_step % config["save_every"] == 0:
                         save_checkpoint(
-                            model, optimizer, scheduler,
-                            global_step, val_loss,
-                            output_dir, f"step_{global_step}"
+                            model,
+                            optimizer,
+                            scheduler,
+                            global_step,
+                            val_loss,
+                            output_dir,
+                            f"step_{global_step}",
                         )
 
             # End of epoch evaluation
@@ -765,9 +782,9 @@ def train_model(model, train_loader, val_loader, config, device, output_dir, tra
             print(f"  Validation Loss: {val_loss:.4f}")
             print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Training Complete!")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Best validation loss: {best_val_loss:.4f}")
         print(f"Total tokens seen: {tokens_seen:,}")
 
@@ -798,14 +815,17 @@ def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag
 
         checkpoint_path = output_dir / f"checkpoint_{tag}.pth"
 
-        torch.save({
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'scheduler_state_dict': scheduler.state_dict(),
-            'step': step,
-            'val_loss': val_loss,
-            'model_config': model.cfg,
-        }, checkpoint_path)
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
+                "step": step,
+                "val_loss": val_loss,
+                "model_config": model.cfg,
+            },
+            checkpoint_path,
+        )
 
     except Exception as e:
         print(f"Error saving checkpoint: {e}")
@@ -908,7 +928,7 @@ def save_training_results(model, model_config, history, output_dir):
                     config_for_json_serialization[key] = value
 
             # Write configuration to JSON file with readable formatting
-            with open(config_json_path, 'w', encoding='utf-8') as config_file:
+            with open(config_json_path, "w", encoding="utf-8") as config_file:
                 json.dump(config_for_json_serialization, config_file, indent=2)
 
             print(f"  ✓ Configuration saved to {config_json_path}")
@@ -934,7 +954,7 @@ def save_training_results(model, model_config, history, output_dir):
 
                     for individual_value in history_values:
                         # Check if value is a PyTorch tensor on GPU
-                        if hasattr(individual_value, 'cpu'):
+                        if hasattr(individual_value, "cpu"):
                             # Move tensor to CPU and extract Python scalar
                             cpu_tensor = individual_value.cpu()
                             if cpu_tensor.numel() == 1:
@@ -945,7 +965,7 @@ def save_training_results(model, model_config, history, output_dir):
                                 converted_values_list.append(cpu_tensor.tolist())
 
                         # Check if value is a scalar tensor already on CPU
-                        elif hasattr(individual_value, 'item'):
+                        elif hasattr(individual_value, "item"):
                             converted_values_list.append(individual_value.item())
 
                         # Value is already a regular Python number
@@ -959,7 +979,7 @@ def save_training_results(model, model_config, history, output_dir):
                     history_for_json_serialization[history_key] = history_values
 
             # Write training history to JSON file
-            with open(history_json_path, 'w', encoding='utf-8') as history_file:
+            with open(history_json_path, "w", encoding="utf-8") as history_file:
                 json.dump(history_for_json_serialization, history_file, indent=2)
 
             print(f"  ✓ Training history saved to {history_json_path}")
@@ -974,42 +994,41 @@ def save_training_results(model, model_config, history, output_dir):
         try:
             # Only create plots if we have training data
             if len(history.get("train_loss", [])) > 0:
-
                 # Convert all plotting data from potential GPU tensors to CPU values
                 # This ensures matplotlib/numpy compatibility
 
                 steps_for_plotting = []
                 for step_value in history["step"]:
-                    if hasattr(step_value, 'cpu'):
+                    if hasattr(step_value, "cpu"):
                         steps_for_plotting.append(step_value.cpu().item())
-                    elif hasattr(step_value, 'item'):
+                    elif hasattr(step_value, "item"):
                         steps_for_plotting.append(step_value.item())
                     else:
                         steps_for_plotting.append(step_value)
 
                 train_loss_for_plotting = []
                 for loss_value in history["train_loss"]:
-                    if hasattr(loss_value, 'cpu'):
+                    if hasattr(loss_value, "cpu"):
                         train_loss_for_plotting.append(loss_value.cpu().item())
-                    elif hasattr(loss_value, 'item'):
+                    elif hasattr(loss_value, "item"):
                         train_loss_for_plotting.append(loss_value.item())
                     else:
                         train_loss_for_plotting.append(loss_value)
 
                 val_loss_for_plotting = []
                 for loss_value in history["val_loss"]:
-                    if hasattr(loss_value, 'cpu'):
+                    if hasattr(loss_value, "cpu"):
                         val_loss_for_plotting.append(loss_value.cpu().item())
-                    elif hasattr(loss_value, 'item'):
+                    elif hasattr(loss_value, "item"):
                         val_loss_for_plotting.append(loss_value.item())
                     else:
                         val_loss_for_plotting.append(loss_value)
 
                 learning_rates_for_plotting = []
                 for lr_value in history["learning_rates"]:
-                    if hasattr(lr_value, 'cpu'):
+                    if hasattr(lr_value, "cpu"):
                         learning_rates_for_plotting.append(lr_value.cpu().item())
-                    elif hasattr(lr_value, 'item'):
+                    elif hasattr(lr_value, "item"):
                         learning_rates_for_plotting.append(lr_value.item())
                     else:
                         learning_rates_for_plotting.append(lr_value)
@@ -1021,10 +1040,20 @@ def save_training_results(model, model_config, history, output_dir):
                 # Subplot 1: Loss Curves
                 # -------------------------
                 plt.subplot(1, 3, 1)
-                plt.plot(steps_for_plotting, train_loss_for_plotting,
-                        label="Train Loss", color='blue', linewidth=1.5)
-                plt.plot(steps_for_plotting, val_loss_for_plotting,
-                        label="Val Loss", color='orange', linewidth=1.5)
+                plt.plot(
+                    steps_for_plotting,
+                    train_loss_for_plotting,
+                    label="Train Loss",
+                    color="blue",
+                    linewidth=1.5,
+                )
+                plt.plot(
+                    steps_for_plotting,
+                    val_loss_for_plotting,
+                    label="Val Loss",
+                    color="orange",
+                    linewidth=1.5,
+                )
                 plt.xlabel("Training Step")
                 plt.ylabel("Loss")
                 plt.title("Training Progress")
@@ -1045,8 +1074,12 @@ def save_training_results(model, model_config, history, output_dir):
                     perplexity = min(perplexity, 1000.0)
                     validation_perplexity_values.append(perplexity)
 
-                plt.plot(steps_for_plotting, validation_perplexity_values,
-                        color='green', linewidth=1.5)
+                plt.plot(
+                    steps_for_plotting,
+                    validation_perplexity_values,
+                    color="green",
+                    linewidth=1.5,
+                )
                 plt.xlabel("Training Step")
                 plt.ylabel("Perplexity")
                 plt.title("Validation Perplexity")
@@ -1056,8 +1089,12 @@ def save_training_results(model, model_config, history, output_dir):
                 # Subplot 3: Learning Rate Schedule
                 # -------------------------
                 plt.subplot(1, 3, 3)
-                plt.plot(steps_for_plotting, learning_rates_for_plotting,
-                        color='red', linewidth=1.5)
+                plt.plot(
+                    steps_for_plotting,
+                    learning_rates_for_plotting,
+                    color="red",
+                    linewidth=1.5,
+                )
                 plt.xlabel("Training Step")
                 plt.ylabel("Learning Rate")
                 plt.title("Learning Rate Schedule")
@@ -1068,7 +1105,7 @@ def save_training_results(model, model_config, history, output_dir):
 
                 # Save figure to file
                 plot_output_path = output_dir / "training_curves.png"
-                plt.savefig(plot_output_path, dpi=150, bbox_inches='tight')
+                plt.savefig(plot_output_path, dpi=150, bbox_inches="tight")
 
                 # Close figure to free memory
                 plt.close(figure_handle)
@@ -1082,7 +1119,7 @@ def save_training_results(model, model_config, history, output_dir):
             print(f"  ✗ Failed to create training plots: {plotting_error}")
             traceback.print_exc()
             # Ensure any open plots are closed
-            plt.close('all')
+            plt.close("all")
 
         # =====================================================================
         # SECTION 5: Save Training Hyperparameters Configuration
@@ -1091,7 +1128,7 @@ def save_training_results(model, model_config, history, output_dir):
             training_config_path = output_dir / "training_config.json"
 
             # Save the global training configuration
-            with open(training_config_path, 'w', encoding='utf-8') as config_file:
+            with open(training_config_path, "w", encoding="utf-8") as config_file:
                 json.dump(TRAINING_CONFIG, config_file, indent=2)
 
             print(f"  ✓ Training config saved to {training_config_path}")
@@ -1110,14 +1147,15 @@ def save_training_results(model, model_config, history, output_dir):
         # Re-raise to alert calling code
         raise
 
+
 def main():
     """
     Main training pipeline for Perseid document training.
     """
     try:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Perseid Document Training Pipeline")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Experiment: {EXPERIMENT_NAME}")
         print(f"Output directory: {OUTPUT_DIR}")
 
@@ -1131,15 +1169,15 @@ def main():
             torch.cuda.manual_seed(42)
 
         # 1. Load document
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 1: Loading Document")
-        print(f"{'='*40}")
+        print(f"{'=' * 40}")
         document_text = load_document(DOCUMENT_PATH)
 
         # 2. Setup model and tokenizer
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 2: Setting Up Model")
-        print(f"{'='*40}")
+        print(f"{'=' * 40}")
 
         ###############################
         # Setup ByteTokenizer
@@ -1159,20 +1197,17 @@ def main():
         )
 
         # 3. Create data loaders
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 3: Preparing Data")
-        print(f"{'='*40}")
+        print(f"{'=' * 40}")
         train_loader, val_loader = create_data_loaders(
-            document_text,
-            tokenizer,
-            TRAINING_CONFIG,
-            train_ratio=TRAIN_VAL_SPLIT
+            document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
         )
 
         # 4. Train model
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 4: Training Model")
-        print(f"{'='*40}")
+        print(f"{'=' * 40}")
         history = train_model(
             model,
             train_loader,
@@ -1184,40 +1219,41 @@ def main():
         )
 
         # 5. Save results
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 5: Saving Results")
-        print(f"{'='*40}")
-        save_training_results(
-            model,
-            model_config,
-            history,
-            output_dir
-        )
+        print(f"{'=' * 40}")
+        save_training_results(model, model_config, history, output_dir)
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Training Pipeline Complete!")
 
         # 5.5 Generate sample text with trained model
-        print(f"\n{'='*40}")
+        print(f"\n{'=' * 40}")
         print("Step 5.5: Sample Generation")
-        print(f"{'='*40}")
+        print(f"{'=' * 40}")
 
-        test_prompts = ["Once upon a time", "The meaning of life is", "In the beginning"]
+        test_prompts = [
+            "Once upon a time",
+            "The meaning of life is",
+            "In the beginning",
+        ]
         for prompt in test_prompts:
             # output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50)
-            output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=DEVICE)
+            output = generate_text_simple(
+                model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
+            )
             print(f"Prompt: '{prompt}'")
             print(f"Output: {output}\n")
 
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Model and results saved to: {output_dir}")
 
         return model, history
 
     except Exception as e:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Training Pipeline Failed")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Error: {e}")
         traceback.print_exc()
         raise
@@ -1225,9 +1261,9 @@ def main():
 
 def test_integration():
     """Test ByteTokenizer integration with model config."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing ByteTokenizer Integration")
-    print("="*60)
+    print("=" * 60)
 
     # Test tokenizer
     tokenizer = setup_tokenizer()
@@ -1270,7 +1306,6 @@ if __name__ == "__main__":
     # USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
     # ============================================================================
 
-
     # preset/reset
     file_path = None
 
@@ -1286,7 +1321,7 @@ if __name__ == "__main__":
             url = "https://www.gutenberg.org/files/11/11-0.txt"
             print(f"Downloading training data from {url}")
             with urllib.request.urlopen(url) as response:
-                text_data = response.read().decode('utf-8')
+                text_data = response.read().decode("utf-8")
             with open(demo_file_path, "w", encoding="utf-8") as file:
                 file.write(text_data)
         else:
@@ -1295,10 +1330,12 @@ if __name__ == "__main__":
                 text_data = file.read()
 
         # Q&A
-        user_path_or_demo_choice = input("\nEnter a file path to a .txt file or for a demo say 'demo'\n")
+        user_path_or_demo_choice = input(
+            "\nEnter a file path to a .txt file or for a demo say 'demo'\n"
+        )
 
         # use demo if demo is selected
-        if user_path_or_demo_choice.lower().strip() == 'demo':
+        if user_path_or_demo_choice.lower().strip() == "demo":
             file_path = demo_file_path
 
         # use Q&A input path if selected
@@ -1307,7 +1344,6 @@ if __name__ == "__main__":
 
     # use argument input path if supplied by user
     elif len(sys.argv) == 2:
-
         file_path = sys.argv[1]
         print(f"path argument found... {file_path}")
 
@@ -1319,7 +1355,9 @@ if __name__ == "__main__":
 
     # Output configuration
     OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{Path(DOCUMENT_PATH).stem}/"
-    EXPERIMENT_NAME = f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    EXPERIMENT_NAME = (
+        f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
 
     # Hardware settings
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
