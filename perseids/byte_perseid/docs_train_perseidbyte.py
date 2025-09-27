@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 # Import model architecture and configuration tools
 from byte_tokenizer import ByteTokenizer
-from perseid_config_tools import create_perseid_config, calculate_model_params, validate_config
+from perseidbyte_256_288_320_config_tools import create_perseid_config, calculate_model_params, validate_config
 
 # from generate_text_tools_perseid import generate_text_simple
 from perseid_model import PerseidByteModel
@@ -67,7 +67,7 @@ def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=Non
 
 
 # Model configuration
-MODEL_SIZE = 256  # Options: 256, 288, 320 (millions of parameters)
+MODEL_SIZE = 288  # Options: 256, 288, 320 (millions of parameters)
 MODEL_STRATEGY = "balanced"  # Options: "balanced", "deep", "wide"
 
 # Training continuation settings

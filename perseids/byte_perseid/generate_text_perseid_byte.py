@@ -17,7 +17,7 @@ from typing import Optional, Tuple
 try:
     from perseid_model import PerseidByteModel, PERSEID_BYTE_CONFIG_BASE
     from byte_tokenizer import ByteTokenizer
-    from perseid_config_tools import validate_config, calculate_model_params
+    from perseidbyte_256_288_320_config_tools import validate_config, calculate_model_params
 except ImportError as import_error:
     print(f"Error importing required modules: {import_error}")
     print("Ensure all required files are in the same directory:")
