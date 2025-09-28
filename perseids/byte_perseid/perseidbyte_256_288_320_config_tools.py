@@ -44,7 +44,9 @@ def calculate_model_params(config: Dict) -> dict[str, int]:
         emb_dim = config["emb_dim"]
         n_layers = config["n_layers"]
         n_heads = config["n_heads"]
-        n_kv_groups = config.get("n_kv_groups", n_heads)  # Default to MHA if not specified
+        n_kv_groups = config.get(
+            "n_kv_groups", n_heads
+        )  # Default to MHA if not specified
         head_dim = config.get("head_dim", emb_dim // n_heads)
         hidden_dim = config["hidden_dim"]
 
@@ -70,7 +72,9 @@ def calculate_model_params(config: Dict) -> dict[str, int]:
             # Q norm and K norm, each has head_dim parameters
             qk_norm_params = 2 * head_dim
 
-        attention_params_per_layer = q_params + k_params + v_params + out_proj_params + qk_norm_params
+        attention_params_per_layer = (
+            q_params + k_params + v_params + out_proj_params + qk_norm_params
+        )
 
         # Calculate per-layer feedforward parameters
         # For reference: Gemma uses gated FFN with three projections
@@ -95,9 +99,7 @@ def calculate_model_params(config: Dict) -> dict[str, int]:
 
         # Total parameters per layer
         total_params_per_layer = (
-            attention_params_per_layer +
-            ffn_params_per_layer +
-            norm_params_per_layer
+            attention_params_per_layer + ffn_params_per_layer + norm_params_per_layer
         )
 
         # Calculate final normalization parameters
@@ -108,10 +110,10 @@ def calculate_model_params(config: Dict) -> dict[str, int]:
 
         # Calculate total parameters
         total_params = (
-            embedding_params +
-            (n_layers * total_params_per_layer) +
-            final_norm_params +
-            output_head_params
+            embedding_params
+            + (n_layers * total_params_per_layer)
+            + final_norm_params
+            + output_head_params
         )
 
         # Account for weight tying if applicable
@@ -181,7 +183,9 @@ def validate_config(config: Dict) -> tuple[bool, list[str]]:
             computed_head_dim = emb_dim // n_heads
         else:
             computed_head_dim = head_dim
-            if n_heads * head_dim != emb_dim and not config.get("allow_dim_mismatch", False):
+            if n_heads * head_dim != emb_dim and not config.get(
+                "allow_dim_mismatch", False
+            ):
                 issues.append(
                     f"n_heads ({n_heads}) * head_dim ({head_dim}) = {n_heads * head_dim} "
                     f"doesn't match emb_dim ({emb_dim})"
@@ -246,7 +250,9 @@ def validate_config(config: Dict) -> tuple[bool, list[str]]:
             issues.append(f"emb_dim ({emb_dim}) seems unreasonable (expected 64-8192)")
 
         # Update vocab_size validation for byte tokenizer
-        if vocab_size < 256 or vocab_size > 100_000:  # ← CHANGED: Lower bound for byte tokenizer
+        if (
+            vocab_size < 256 or vocab_size > 100_000
+        ):  # ← CHANGED: Lower bound for byte tokenizer
             issues.append(
                 f"vocab_size ({vocab_size}) seems unreasonable (expected 256-100000 for byte tokenizer)"
             )
@@ -267,7 +273,7 @@ def validate_config(config: Dict) -> tuple[bool, list[str]]:
 def create_perseid_config(
     target_size_millions: int,
     base_config: Optional[Dict] = None,
-    strategy: str = "balanced"
+    strategy: str = "balanced",
 ) -> Dict:
     """
     Create a Perseid configuration targeting a specific parameter count.
@@ -287,6 +293,7 @@ def create_perseid_config(
         if base_config is None:
             # Use the PERSEID_BYTE_CONFIG_BASE as default base
             from perseid_model import PERSEID_BYTE_CONFIG_BASE
+
             base_config = PERSEID_BYTE_CONFIG_BASE.copy()
 
         # Create a copy to avoid modifying the original
@@ -295,81 +302,99 @@ def create_perseid_config(
         # Define configuration presets for different strategies
         if target_size_millions == 256:
             if strategy == "balanced":
-                new_config.update({
-                    "emb_dim": 576,
-                    "hidden_dim": 1536,
-                    "n_layers": 16,
-                    "n_heads": 3,
-                    "head_dim": 192,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 576,
+                        "hidden_dim": 1536,
+                        "n_layers": 16,
+                        "n_heads": 3,
+                        "head_dim": 192,
+                    }
+                )
             elif strategy == "deep":
-                new_config.update({
-                    "emb_dim": 512,
-                    "hidden_dim": 1536,
-                    "n_layers": 18,
-                    "n_heads": 4,
-                    "head_dim": 128,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 512,
+                        "hidden_dim": 1536,
+                        "n_layers": 18,
+                        "n_heads": 4,
+                        "head_dim": 128,
+                    }
+                )
             elif strategy == "wide":
-                new_config.update({
-                    "emb_dim": 640,
-                    "hidden_dim": 1664,
-                    "n_layers": 14,
-                    "n_heads": 4,
-                    "head_dim": 160,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 640,
+                        "hidden_dim": 1664,
+                        "n_layers": 14,
+                        "n_heads": 4,
+                        "head_dim": 160,
+                    }
+                )
 
         elif target_size_millions == 288:
             if strategy == "balanced":
-                new_config.update({
-                    "emb_dim": 640,
-                    "hidden_dim": 1792,
-                    "n_layers": 16,
-                    "n_heads": 4,
-                    "head_dim": 160,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 640,
+                        "hidden_dim": 1792,
+                        "n_layers": 16,
+                        "n_heads": 4,
+                        "head_dim": 160,
+                    }
+                )
             elif strategy == "deep":
-                new_config.update({
-                    "emb_dim": 576,
-                    "hidden_dim": 1664,
-                    "n_layers": 18,
-                    "n_heads": 3,
-                    "head_dim": 192,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 576,
+                        "hidden_dim": 1664,
+                        "n_layers": 18,
+                        "n_heads": 3,
+                        "head_dim": 192,
+                    }
+                )
             elif strategy == "wide":
-                new_config.update({
-                    "emb_dim": 704,
-                    "hidden_dim": 1920,
-                    "n_layers": 14,
-                    "n_heads": 4,
-                    "head_dim": 176,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 704,
+                        "hidden_dim": 1920,
+                        "n_layers": 14,
+                        "n_heads": 4,
+                        "head_dim": 176,
+                    }
+                )
 
         elif target_size_millions == 320:
             if strategy == "balanced":
-                new_config.update({
-                    "emb_dim": 704,
-                    "hidden_dim": 1920,
-                    "n_layers": 16,
-                    "n_heads": 4,
-                    "head_dim": 176,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 704,
+                        "hidden_dim": 1920,
+                        "n_layers": 16,
+                        "n_heads": 4,
+                        "head_dim": 176,
+                    }
+                )
             elif strategy == "deep":
-                new_config.update({
-                    "emb_dim": 640,
-                    "hidden_dim": 1792,
-                    "n_layers": 20,
-                    "n_heads": 4,
-                    "head_dim": 160,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 640,
+                        "hidden_dim": 1792,
+                        "n_layers": 20,
+                        "n_heads": 4,
+                        "head_dim": 160,
+                    }
+                )
             elif strategy == "wide":
-                new_config.update({
-                    "emb_dim": 768,
-                    "hidden_dim": 2048,
-                    "n_layers": 14,
-                    "n_heads": 4,
-                    "head_dim": 192,
-                })
+                new_config.update(
+                    {
+                        "emb_dim": 768,
+                        "hidden_dim": 2048,
+                        "n_layers": 14,
+                        "n_heads": 4,
+                        "head_dim": 192,
+                    }
+                )
         else:
             raise ValueError(
                 f"Unsupported target size: {target_size_millions}M. "
@@ -398,7 +423,9 @@ def create_perseid_config(
         is_valid, issues = validate_config(new_config)
 
         if not is_valid:
-            print(f"Configuration validation issues for {target_size_millions}M {strategy}:")
+            print(
+                f"Configuration validation issues for {target_size_millions}M {strategy}:"
+            )
             for issue in issues:
                 print(f"  - {issue}")
             print("Attempting automatic fixes...")
@@ -407,8 +434,12 @@ def create_perseid_config(
             # Fix head dimension divisibility
             if new_config["emb_dim"] % new_config["n_heads"] != 0:
                 # Adjust emb_dim to be divisible by n_heads
-                new_emb_dim = (new_config["emb_dim"] // new_config["n_heads"]) * new_config["n_heads"]
-                print(f"  Adjusting emb_dim from {new_config['emb_dim']} to {new_emb_dim}")
+                new_emb_dim = (
+                    new_config["emb_dim"] // new_config["n_heads"]
+                ) * new_config["n_heads"]
+                print(
+                    f"  Adjusting emb_dim from {new_config['emb_dim']} to {new_emb_dim}"
+                )
                 new_config["emb_dim"] = new_emb_dim
                 new_config["head_dim"] = new_emb_dim // new_config["n_heads"]
 
@@ -426,14 +457,18 @@ def create_perseid_config(
         print(f"\nPerseid-{target_size_millions}M ({strategy} strategy):")
         print(f"  Target: {target_size_millions}M parameters")
         print(f"  Actual: {actual_millions:.2f}M parameters")
-        print(f"  Difference: {actual_millions - target_size_millions:.2f}M "
-              f"({100 * (actual_millions - target_size_millions) / target_size_millions:.1f}%)")
+        print(
+            f"  Difference: {actual_millions - target_size_millions:.2f}M "
+            f"({100 * (actual_millions - target_size_millions) / target_size_millions:.1f}%)"
+        )
         print(f"  Configuration:")
         print(f"    - emb_dim: {new_config['emb_dim']}")
         print(f"    - hidden_dim: {new_config['hidden_dim']}")
         print(f"    - n_layers: {new_config['n_layers']}")
         print(f"    - n_heads: {new_config['n_heads']}")
-        print(f"    - head_dim: {new_config.get('head_dim', new_config['emb_dim'] // new_config['n_heads'])}")
+        print(
+            f"    - head_dim: {new_config.get('head_dim', new_config['emb_dim'] // new_config['n_heads'])}"
+        )
 
         return new_config
 
@@ -451,9 +486,9 @@ def compare_configurations(configs: Dict[str, Dict]) -> None:
         configs (dict): Dictionary mapping configuration names to configurations
     """
     try:
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("Configuration Comparison")
-        print("="*80)
+        print("=" * 80)
 
         # Collect parameter information for all configs
         all_params = {}
@@ -461,7 +496,9 @@ def compare_configurations(configs: Dict[str, Dict]) -> None:
             all_params[name] = calculate_model_params(config)
 
         # Display comparison table
-        print(f"\n{'Model':<20} {'Total Params':<15} {'Layers':<8} {'Emb Dim':<10} {'Hidden Dim':<12}")
+        print(
+            f"\n{'Model':<20} {'Total Params':<15} {'Layers':<8} {'Emb Dim':<10} {'Hidden Dim':<12}"
+        )
         print("-" * 65)
 
         for name, config in configs.items():
@@ -488,8 +525,10 @@ def compare_configurations(configs: Dict[str, Dict]) -> None:
             print(f"  Total/Layer:   {params['total_per_layer']:>12,} params")
             print(f"  Final Norm:    {params['final_norm']:>12,} params")
             print(f"  Output Head:   {params['output_head']:>12,} params")
-            print(f"  " + "-"*40)
-            print(f"  TOTAL:         {params['total']:>12,} params ({params['total_millions']:.2f}M)")
+            print(f"  " + "-" * 40)
+            print(
+                f"  TOTAL:         {params['total']:>12,} params ({params['total_millions']:.2f}M)"
+            )
 
     except Exception as e:
         print(f"Error comparing configurations: {e}")
@@ -497,9 +536,7 @@ def compare_configurations(configs: Dict[str, Dict]) -> None:
 
 
 def fine_tune_config_for_target(
-    base_config: Dict,
-    target_millions: float,
-    tolerance: float = 1.0
+    base_config: Dict, target_millions: float, tolerance: float = 1.0
 ) -> Dict:
     """
     Fine-tune a configuration to hit an exact parameter target.
@@ -524,7 +561,10 @@ def fine_tune_config_for_target(
         iterations = 0
         max_iterations = 20
 
-        while abs(current_millions - target_millions) > tolerance and iterations < max_iterations:
+        while (
+            abs(current_millions - target_millions) > tolerance
+            and iterations < max_iterations
+        ):
             iterations += 1
 
             # Calculate adjustment needed
@@ -533,7 +573,9 @@ def fine_tune_config_for_target(
             # Estimate impact of hidden_dim change
             # Each unit change in hidden_dim affects roughly 3 * emb_dim * n_layers parameters
             params_per_hidden_unit = 3 * config["emb_dim"] * config["n_layers"]
-            hidden_dim_adjustment = int(param_diff_millions * 1_000_000 / params_per_hidden_unit)
+            hidden_dim_adjustment = int(
+                param_diff_millions * 1_000_000 / params_per_hidden_unit
+            )
 
             # Make adjustment (but keep it reasonable)
             hidden_dim_adjustment = max(-256, min(256, hidden_dim_adjustment))
@@ -554,12 +596,16 @@ def fine_tune_config_for_target(
             current_params = calculate_model_params(config)
             current_millions = current_params["total_millions"]
 
-            print(f"  Iteration {iterations}: hidden_dim={new_hidden_dim}, params={current_millions:.2f}M")
+            print(
+                f"  Iteration {iterations}: hidden_dim={new_hidden_dim}, params={current_millions:.2f}M"
+            )
 
         if abs(current_millions - target_millions) <= tolerance:
             print(f"Successfully fine-tuned to {current_millions:.2f}M parameters")
         else:
-            print(f"Reached maximum iterations. Final: {current_millions:.2f}M parameters")
+            print(
+                f"Reached maximum iterations. Final: {current_millions:.2f}M parameters"
+            )
 
         return config
 
@@ -576,34 +622,38 @@ def main():
     """
     try:
         print("Creating Perseid Model Configurations")
-        print("="*80)
+        print("=" * 80)
 
         # Create configurations for different sizes and strategies
         configs = {}
 
         # Create 256M variants
-        configs["Perseid-256M-balanced"] = create_perseid_config(256, strategy="balanced")
+        configs["Perseid-256M-balanced"] = create_perseid_config(
+            256, strategy="balanced"
+        )
         configs["Perseid-256M-deep"] = create_perseid_config(256, strategy="deep")
         configs["Perseid-256M-wide"] = create_perseid_config(256, strategy="wide")
 
         # Create 288M variant
-        configs["Perseid-288M-balanced"] = create_perseid_config(288, strategy="balanced")
+        configs["Perseid-288M-balanced"] = create_perseid_config(
+            288, strategy="balanced"
+        )
 
         # Create 320M variant (if desired)
-        configs["Perseid-320M-balanced"] = create_perseid_config(320, strategy="balanced")
+        configs["Perseid-320M-balanced"] = create_perseid_config(
+            320, strategy="balanced"
+        )
 
         # Compare all configurations
         compare_configurations(configs)
 
         # Fine-tune a configuration for exact target
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("Fine-tuning for exact targets")
-        print("="*80)
+        print("=" * 80)
 
         fine_tuned = fine_tune_config_for_target(
-            configs["Perseid-256M-balanced"],
-            target_millions=256.0,
-            tolerance=0.5
+            configs["Perseid-256M-balanced"], target_millions=256.0, tolerance=0.5
         )
 
         # Validate final configuration

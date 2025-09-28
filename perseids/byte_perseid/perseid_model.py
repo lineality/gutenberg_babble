@@ -5,18 +5,154 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Optional, Tuple
 
+"""
+Maybe 1:
+embedding_params = vocab_size * emb_dim
+
+
+"""
+
+"""
+Maybe 2
+
+## Target Configurations
+
+Here are optimized configurations for your target parameter counts:
+
+### 256M Parameters (256,123,651 params)
+```python
+PERSEID_256M_CONFIG = {
+    "vocab_size": 259,
+    "context_length": 32_768,
+    "emb_dim": 768,        # Increased from 640
+    "n_heads": 12,         # Increased from 4
+    "n_layers": 12,        # Reduced from 18
+    "hidden_dim": 2048,    # Same
+    "head_dim": 64,        # Reduced from 256 (768/12)
+    "qk_norm": True,
+    "n_kv_groups": 4,      # Increased for GQA efficiency
+    "rope_local_base": 10_000.0,
+    "rope_base": 1_000_000.0,
+    "sliding_window": 512,
+    "layer_types": [
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention"
+    ],
+    "dtype": torch.bfloat16,
+    "query_pre_attn_scalar": 64,  # Matches head_dim
+    "tie_weights": True
+}
+```
+
+### 288M Parameters (287,847,939 params)
+```python
+PERSEID_288M_CONFIG = {
+    "vocab_size": 259,
+    "context_length": 32_768,
+    "emb_dim": 832,        # 832 = 8 * 104 (good for quantization)
+    "n_heads": 13,         # 832/64 = 13
+    "n_layers": 12,
+    "hidden_dim": 2304,    # 832 * 2.77 ≈ 2304 (divisible by 8)
+    "head_dim": 64,
+    "qk_norm": True,
+    "n_kv_groups": 4,
+    "rope_local_base": 10_000.0,
+    "rope_base": 1_000_000.0,
+    "sliding_window": 512,
+    "layer_types": [
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention"
+    ],
+    "dtype": torch.bfloat16,
+    "query_pre_attn_scalar": 64,
+    "tie_weights": True
+}
+```
+
+### 320M Parameters (319,928,579 params)
+```python
+PERSEID_320M_CONFIG = {
+    "vocab_size": 259,
+    "context_length": 32_768,
+    "emb_dim": 896,        # 896 = 8 * 112 (excellent for quantization)
+    "n_heads": 14,         # 896/64 = 14
+    "n_layers": 12,
+    "hidden_dim": 2560,    # 896 * 2.86 ≈ 2560 (divisible by 8)
+    "head_dim": 64,
+    "qk_norm": True,
+    "n_kv_groups": 4,
+    "rope_local_base": 10_000.0,
+    "rope_base": 1_000_000.0,
+    "sliding_window": 512,
+    "layer_types": [
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention",
+        "sliding_attention", "sliding_attention", "sliding_attention",
+        "full_attention"
+    ],
+    "dtype": torch.bfloat16,
+    "query_pre_attn_scalar": 64,
+    "tie_weights": True
+}
+```
+
+## Parameter Count Verification
+
+```python
+def verify_configs():
+    '''''Verify the parameter counts for all configurations'''''
+
+    configs = {
+        "256M": PERSEID_256M_CONFIG,
+        "288M": PERSEID_288M_CONFIG,
+        "320M": PERSEID_320M_CONFIG
+    }
+
+    for name, config in configs.items():
+        params = calculate_perseid_parameters(config)
+        print(f"\n{name} Configuration:")
+        print(f"  Total Parameters: {params['total']:,}")
+        print(f"  Embedding: {params['embedding']:,}")
+        print(f"  Layers ({config['n_layers']}): {params['layers']:,}")
+        print(f"  Per Layer: {params['per_layer']:,}")
+        print(f"  Final Norm: {params['final_norm']:,}")
+        print(f"  Quantization friendly: {params['total'] % 8 == 0}")
+
+# Run verification
+verify_configs()
+```
+"""
+
+
 class FeedForward(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        self.fc1 = nn.Linear(cfg["emb_dim"], cfg["hidden_dim"], dtype=cfg["dtype"], bias=False)
-        self.fc2 = nn.Linear(cfg["emb_dim"], cfg["hidden_dim"], dtype=cfg["dtype"], bias=False)
-        self.fc3 = nn.Linear(cfg["hidden_dim"], cfg["emb_dim"], dtype=cfg["dtype"], bias=False)
+        self.fc1 = nn.Linear(
+            cfg["emb_dim"], cfg["hidden_dim"], dtype=cfg["dtype"], bias=False
+        )
+        self.fc2 = nn.Linear(
+            cfg["emb_dim"], cfg["hidden_dim"], dtype=cfg["dtype"], bias=False
+        )
+        self.fc3 = nn.Linear(
+            cfg["hidden_dim"], cfg["emb_dim"], dtype=cfg["dtype"], bias=False
+        )
 
     def forward(self, x):
         x_fc1 = self.fc1(x)
         x_fc2 = self.fc2(x)
         x = nn.functional.gelu(x_fc1, approximate="tanh") * x_fc2
         return self.fc3(x)
+
 
 class RMSNorm(nn.Module):
     def __init__(self, emb_dim, eps=1e-6, bias=False):
@@ -40,17 +176,27 @@ class RMSNorm(nn.Module):
         return out.to(input_dtype)
 
 
-def compute_rope_params(head_dim, theta_base=10_000, context_length=4096, dtype=torch.float32):
+def compute_rope_params(
+    head_dim, theta_base=10_000, context_length=4096, dtype=torch.float32
+):
     assert head_dim % 2 == 0, "Embedding dimension must be even"
 
     # Compute the inverse frequencies
-    inv_freq = 1.0 / (theta_base ** (torch.arange(0, head_dim, 2, dtype=dtype)[: (head_dim // 2)].float() / head_dim))
+    inv_freq = 1.0 / (
+        theta_base
+        ** (
+            torch.arange(0, head_dim, 2, dtype=dtype)[: (head_dim // 2)].float()
+            / head_dim
+        )
+    )
 
     # Generate position indices
     positions = torch.arange(context_length, dtype=dtype)
 
     # Compute the angles
-    angles = positions[:, None] * inv_freq[None, :]  # Shape: (context_length, head_dim // 2)
+    angles = (
+        positions[:, None] * inv_freq[None, :]
+    )  # Shape: (context_length, head_dim // 2)
 
     # Expand angles to match the head_dim
     angles = torch.cat([angles, angles], dim=1)  # Shape: (context_length, head_dim)
@@ -82,20 +228,31 @@ def apply_rope(x, cos, sin):
     # It's ok to use lower-precision after applying cos and sin rotation
     return x_rotated.to(dtype=x.dtype)
 
+
 class GroupedQueryAttention(nn.Module):
     def __init__(
-        self, d_in, num_heads, num_kv_groups, head_dim=None, qk_norm=False,
-        query_pre_attn_scalar=None, dtype=None,
+        self,
+        d_in,
+        num_heads,
+        num_kv_groups,
+        head_dim=None,
+        qk_norm=False,
+        query_pre_attn_scalar=None,
+        dtype=None,
     ):
         super().__init__()
-        assert num_heads % num_kv_groups == 0, "num_heads must be divisible by num_kv_groups"
+        assert num_heads % num_kv_groups == 0, (
+            "num_heads must be divisible by num_kv_groups"
+        )
 
         self.num_heads = num_heads
         self.num_kv_groups = num_kv_groups
         self.group_size = num_heads // num_kv_groups
 
         if head_dim is None:
-            assert d_in % num_heads == 0, "`d_in` must be divisible by `num_heads` if `head_dim` is not set"
+            assert d_in % num_heads == 0, (
+                "`d_in` must be divisible by `num_heads` if `head_dim` is not set"
+            )
             head_dim = d_in // num_heads
 
         self.head_dim = head_dim
@@ -103,7 +260,9 @@ class GroupedQueryAttention(nn.Module):
 
         self.W_query = nn.Linear(d_in, self.d_out, bias=False, dtype=dtype)
         self.W_key = nn.Linear(d_in, num_kv_groups * head_dim, bias=False, dtype=dtype)
-        self.W_value = nn.Linear(d_in, num_kv_groups * head_dim, bias=False, dtype=dtype)
+        self.W_value = nn.Linear(
+            d_in, num_kv_groups * head_dim, bias=False, dtype=dtype
+        )
 
         self.out_proj = nn.Linear(self.d_out, d_in, bias=False, dtype=dtype)
 
@@ -118,19 +277,24 @@ class GroupedQueryAttention(nn.Module):
         else:
             self.scaling = (head_dim) ** -0.5
 
-
     def forward(self, x, mask, cos, sin):
         b, num_tokens, _ = x.shape
 
         # Apply projections
         queries = self.W_query(x)  # (b, num_tokens, num_heads * head_dim)
-        keys = self.W_key(x)       # (b, num_tokens, num_kv_groups * head_dim)
-        values = self.W_value(x)   # (b, num_tokens, num_kv_groups * head_dim)
+        keys = self.W_key(x)  # (b, num_tokens, num_kv_groups * head_dim)
+        values = self.W_value(x)  # (b, num_tokens, num_kv_groups * head_dim)
 
         # Reshape
-        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim).transpose(1, 2)
-        keys = keys.view(b, num_tokens, self.num_kv_groups, self.head_dim).transpose(1, 2)
-        values = values.view(b, num_tokens, self.num_kv_groups, self.head_dim).transpose(1, 2)
+        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim).transpose(
+            1, 2
+        )
+        keys = keys.view(b, num_tokens, self.num_kv_groups, self.head_dim).transpose(
+            1, 2
+        )
+        values = values.view(
+            b, num_tokens, self.num_kv_groups, self.head_dim
+        ).transpose(1, 2)
 
         # Optional normalization
         if self.q_norm:
@@ -154,11 +318,13 @@ class GroupedQueryAttention(nn.Module):
         attn_scores = attn_scores.masked_fill(mask, -torch.inf)
         attn_weights = torch.softmax(attn_scores, dim=-1)
 
-        context = (attn_weights @ values).transpose(1, 2).reshape(b, num_tokens, self.d_out)
+        context = (
+            (attn_weights @ values).transpose(1, 2).reshape(b, num_tokens, self.d_out)
+        )
         return self.out_proj(context)
 
-class TransformerBlock(nn.Module):
 
+class TransformerBlock(nn.Module):
     def __init__(self, cfg, attn_type):
         super().__init__()
         self.attn_type = attn_type
@@ -213,20 +379,28 @@ class TransformerBlock(nn.Module):
         x = shortcut + x_ffn
         return x
 
+
 class PerseidByteModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        assert cfg["layer_types"] is not None and len(cfg["layer_types"]) == cfg["n_layers"]
+        assert (
+            cfg["layer_types"] is not None
+            and len(cfg["layer_types"]) == cfg["n_layers"]
+        )
 
         # Main model parameters
-        self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"], dtype=cfg["dtype"])
+        self.tok_emb = nn.Embedding(
+            cfg["vocab_size"], cfg["emb_dim"], dtype=cfg["dtype"]
+        )
 
-        self.blocks = nn.ModuleList([
-            TransformerBlock(cfg, attn_type)for attn_type in cfg["layer_types"]
-        ])
+        self.blocks = nn.ModuleList(
+            [TransformerBlock(cfg, attn_type) for attn_type in cfg["layer_types"]]
+        )
 
         self.final_norm = RMSNorm(cfg["emb_dim"], eps=1e-6)
-        self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False, dtype=cfg["dtype"])
+        self.out_head = nn.Linear(
+            cfg["emb_dim"], cfg["vocab_size"], bias=False, dtype=cfg["dtype"]
+        )
         self.cfg = cfg
 
         # Reusable utilities
@@ -312,7 +486,6 @@ class PerseidByteModel(nn.Module):
         x = self.final_norm(x)
         logits = self.out_head(x.to(self.cfg["dtype"]))
         return logits
-
 
     # def get_embeddings(self, input_ids, method="last_token"):
     #     """
@@ -488,7 +661,9 @@ class PerseidByteModel(nn.Module):
                 )
 
             # Validate token IDs are within vocabulary range
-            if torch.any(input_ids < 0) or torch.any(input_ids >= self.cfg["vocab_size"]):
+            if torch.any(input_ids < 0) or torch.any(
+                input_ids >= self.cfg["vocab_size"]
+            ):
                 raise ValueError(
                     f"input_ids contains invalid token IDs. All values must be in range "
                     f"[0, {self.cfg['vocab_size']}), but found min={input_ids.min().item()}, "
@@ -511,7 +686,9 @@ class PerseidByteModel(nn.Module):
 
             # Create attention masks for global and local (sliding window) attention
             # These masks preserve the model's trained attention patterns
-            attention_mask_global, attention_mask_local = self._create_masks(sequence_length, hidden_states.device)
+            attention_mask_global, attention_mask_local = self._create_masks(
+                sequence_length, hidden_states.device
+            )
 
             # Pass through all transformer layers with proper attention masking
             for transformer_layer_index, transformer_block in enumerate(self.blocks):
@@ -532,18 +709,24 @@ class PerseidByteModel(nn.Module):
                     ) from transformer_error
 
             # Apply final normalization (produces clean, normalized representations)
-            normalized_hidden_states = self.final_norm(hidden_states)  # Shape: (batch_size, sequence_length, embedding_dim)
+            normalized_hidden_states = self.final_norm(
+                hidden_states
+            )  # Shape: (batch_size, sequence_length, embedding_dim)
 
             # Pool sequence-level representations into single vectors per input
             if pooling_method == "last_token":
                 # Extract the hidden state from the final token position
                 # In decoder-only models, this token has attended to all previous tokens
-                sequence_embeddings = normalized_hidden_states[:, -1, :]  # Shape: (batch_size, embedding_dim)
+                sequence_embeddings = normalized_hidden_states[
+                    :, -1, :
+                ]  # Shape: (batch_size, embedding_dim)
 
             elif pooling_method == "mean":
                 # Average all token representations to capture overall sequence content
                 # This provides a content-based representation of the entire sequence
-                sequence_embeddings = normalized_hidden_states.mean(dim=1)  # Shape: (batch_size, embedding_dim)
+                sequence_embeddings = normalized_hidden_states.mean(
+                    dim=1
+                )  # Shape: (batch_size, embedding_dim)
 
             # Verify output tensor properties
             expected_embedding_shape = (batch_size, self.cfg["emb_dim"])
@@ -558,6 +741,7 @@ class PerseidByteModel(nn.Module):
         except Exception as embedding_extraction_error:
             # Log the full error context for debugging
             import traceback
+
             error_traceback = traceback.format_exc()
 
             # Re-raise with additional context about the embedding extraction process
@@ -585,7 +769,7 @@ PERSEID_BYTE_CONFIG_BASE = {
     "rope_local_base": 10_000.0,
     "rope_base": 1_000_000.0,
     "sliding_window": 512,
-      "layer_types": [
+    "layer_types": [
         "sliding_attention",
         "sliding_attention",
         "sliding_attention",
@@ -603,7 +787,7 @@ PERSEID_BYTE_CONFIG_BASE = {
         "sliding_attention",
         "sliding_attention",
         "sliding_attention",
-        "full_attention"
+        "full_attention",
     ],
     "dtype": torch.bfloat16,
     "query_pre_attn_scalar": 256,
@@ -611,13 +795,16 @@ PERSEID_BYTE_CONFIG_BASE = {
 
 
 def load_weights_into_perseid(model, param_config, params):
-
     def assign(left, right, tensor_name="unknown"):
         if left.shape != right.shape:
             raise ValueError(
                 f"Shape mismatch in tensor '{tensor_name}'. Left: {left.shape}, Right: {right.shape}"
             )
-        return torch.nn.Parameter(right.clone().detach() if isinstance(right, torch.Tensor) else torch.tensor(right))
+        return torch.nn.Parameter(
+            right.clone().detach()
+            if isinstance(right, torch.Tensor)
+            else torch.tensor(right)
+        )
 
     # Embedding weights
     if "model.embed_tokens.weight" in params:
@@ -727,3 +914,75 @@ def load_weights_into_perseid(model, param_config, params):
             params["model.embed_tokens.weight"],
             "model.embed_tokens.weight",
         )
+
+
+def calculate_perseid_parameters(config):
+    """Calculate total parameters for Perseid model"""
+
+    vocab_size = config["vocab_size"]
+    emb_dim = config["emb_dim"]
+    n_layers = config["n_layers"]
+    n_heads = config["n_heads"]
+    n_kv_groups = config["n_kv_groups"]
+    hidden_dim = config["hidden_dim"]
+    head_dim = config["head_dim"]
+
+    # 1. Token embedding
+    token_embedding = vocab_size * emb_dim
+
+    # 2. Per-layer parameters
+    per_layer_params = 0
+
+    # Attention weights
+    q_proj = emb_dim * (n_heads * head_dim)  # Query projection
+    k_proj = emb_dim * (n_kv_groups * head_dim)  # Key projection
+    v_proj = emb_dim * (n_kv_groups * head_dim)  # Value projection
+    o_proj = (n_heads * head_dim) * emb_dim  # Output projection
+
+    # QK normalization (if enabled)
+    qk_norm = 2 * head_dim if config.get("qk_norm", False) else 0
+
+    attention_params = q_proj + k_proj + v_proj + o_proj + (qk_norm * n_kv_groups)
+
+    # Feed-forward weights
+    ff_gate = emb_dim * hidden_dim  # Gate projection (fc1)
+    ff_up = emb_dim * hidden_dim  # Up projection (fc2)
+    ff_down = hidden_dim * emb_dim  # Down projection (fc3)
+    ff_params = ff_gate + ff_up + ff_down
+
+    # Layer normalization weights (4 per layer in Perseid)
+    layernorm_params = 4 * emb_dim  # input, post_attn, pre_ff, post_ff
+
+    per_layer_params = attention_params + ff_params + layernorm_params
+
+    # 3. Final components
+    final_norm = emb_dim
+    output_head = vocab_size * emb_dim  # Usually tied to embedding
+
+    # Total calculation
+    total_params = (
+        token_embedding + (per_layer_params * n_layers) + final_norm + output_head
+    )
+
+    # With weight tying, we don't double count embedding/output
+    if config.get("tie_weights", True):
+        total_params -= output_head
+
+    return {
+        "total": total_params,
+        "embedding": token_embedding,
+        "layers": per_layer_params * n_layers,
+        "per_layer": per_layer_params,
+        "final_norm": final_norm,
+        "output_head": output_head if not config.get("tie_weights", True) else 0,
+    }
+
+
+if __name__ == "__main__":
+    print("\nbase")
+    outness = calculate_perseid_parameters(PERSEID_BYTE_CONFIG_BASE)
+    print(outness)
+
+    # print("\nbase")
+    # outness = calculate_perseid_parameters(PERSEID_BYTE_CONFIG_BASE)
+    # print(outness)

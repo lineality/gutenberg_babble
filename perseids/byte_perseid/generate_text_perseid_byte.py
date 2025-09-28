@@ -45,7 +45,20 @@ print("Found...")
 print(matching_paths)
 print("default to using first option")
 
-CHECKPOINT_PATH = matching_paths[0]
+print(f"""
+Here are optional models, which you the chosen one?
+{matching_paths}
+""")
+for indx, valu in enumerate(matching_paths):
+    print(f"index-> {indx}, model-> {valu}")
+
+print("Enter the Index...")
+try:
+    pick_this_index = int(input())
+except Exception as e:
+    raise e
+
+CHECKPOINT_PATH = matching_paths[pick_this_index]
 
 # Point to your trained PerseidByte model
 # CHECKPOINT_PATH = "./models/perseid_*/perseid_model_final.pth"  # <- MODIFY THIS

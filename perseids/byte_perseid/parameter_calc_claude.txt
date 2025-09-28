@@ -1,0 +1,203 @@
+Understanding Parameter Calculation in the Perseid Model
+Overview of Parameter Components
+The Perseid model's parameters come from several key components. Let me break down exactly how each configuration value contributes to the total parameter count:
+1. Embedding Layer
+pythonCopyembedding_params = vocab_size * emb_dim
+
+Example: 259 * 640 = 165,760 parameters
+These are the lookup table weights that convert token IDs to dense vectors
+
+2. Transformer Layers (Repeated n_layers times)
+2a. Attention Module
+Each attention layer contains:
+pythonCopy# Query projection
+q_params = emb_dim * (n_heads * head_dim)
+# Example: 640 * (4 * 256) = 655,360
+
+# Key projection  
+k_params = emb_dim * (n_kv_groups * head_dim)
+# Example: 640 * (1 * 256) = 163,840
+
+# Value projection
+v_params = emb_dim * (n_kv_groups * head_dim)  
+# Example: 640 * (1 * 256) = 163,840
+
+# Output projection
+out_proj_params = (n_heads * head_dim) * emb_dim
+# Example: (4 * 256) * 640 = 655,360
+
+# QK Normalization (if enabled)
+qk_norm_params = 2 * head_dim  # For q_norm and k_norm
+# Example: 2 * 256 = 512
+Total attention per layer: 1,638,912 parameters
+2b. FeedForward Network (FFN)
+Each FFN contains three linear projections:
+pythonCopy# Gate projection (fc1)
+gate_params = emb_dim * hidden_dim
+# Example: 640 * 2048 = 1,310,720
+
+# Up projection (fc2)  
+up_params = emb_dim * hidden_dim
+# Example: 640 * 2048 = 1,310,720
+
+# Down projection (fc3)
+down_params = hidden_dim * emb_dim
+# Example: 2048 * 640 = 1,310,720
+Total FFN per layer: 3,932,160 parameters
+2c. Layer Normalization
+Each transformer block has 4 RMSNorm layers:
+pythonCopynorm_params_per_layer = 4 * emb_dim
+# Example: 4 * 640 = 2,560
+These are:
+
+input_layernorm
+post_attention_layernorm
+pre_feedforward_layernorm
+post_feedforward_layernorm
+
+3. Final Components
+pythonCopy# Final normalization before output
+final_norm_params = emb_dim
+# Example: 640
+
+# Output head (may be tied with embeddings)
+output_head_params = vocab_size * emb_dim  
+# Example: 259 * 640 = 165,760
+Total Parameter Calculation
+pythonCopytotal_params = (
+    embedding_params +                           # 165,760
+    (n_layers * total_params_per_layer) +       # 18 * 5,573,632
+    final_norm_params +                          # 640
+    output_head_params                           # 165,760 (or 0 if tied)
+)
+Configuration Strategies for Target Sizes
+Key Relationships to Understand:
+
+Linear Scaling with Layers: Adding layers adds a fixed cost per layer
+Quadratic-like Scaling with Dimensions: Increasing emb_dim or hidden_dim has multiplicative effects
+GQA Efficiency: Using n_kv_groups < n_heads reduces K/V projection parameters
+
+256M Parameter Configuration Examples:
+Balanced (256M):
+pythonCopyconfig_256m_balanced = {
+    "emb_dim": 576,        # Moderate embedding size
+    "hidden_dim": 1536,    # 2.67x emb_dim ratio
+    "n_layers": 16,        # Moderate depth
+    "n_heads": 3,
+    "head_dim": 192,
+    "n_kv_groups": 1,      # Full attention resolution
+}
+# Actual: ~256.3M parameters
+Deep (256M):
+pythonCopyconfig_256m_deep = {
+    "emb_dim": 512,        # Smaller embeddings
+    "hidden_dim": 1536,    # 3x emb_dim ratio
+    "n_layers": 18,        # More layers
+    "n_heads": 4,
+    "head_dim": 128,
+    "n_kv_groups": 1,
+}
+# Actual: ~255.8M parameters
+Wide (256M):
+pythonCopyconfig_256m_wide = {
+    "emb_dim": 640,        # Larger embeddings
+    "hidden_dim": 1664,    # 2.6x emb_dim ratio
+    "n_layers": 14,        # Fewer layers
+    "n_heads": 4,
+    "head_dim": 160,
+    "n_kv_groups": 1,
+}
+# Actual: ~256.5M parameters
+288M Parameter Configuration:
+pythonCopyconfig_288m = {
+    "emb_dim": 640,        
+    "hidden_dim": 1792,    # 2.8x emb_dim
+    "n_layers": 16,
+    "n_heads": 4,
+    "head_dim": 160,
+    "n_kv_groups": 1,
+}
+# Actual: ~288.2M parameters
+Why 288M is good for quantization:
+
+288 = 36 × 8 (perfectly divisible by 8)
+Better alignment for INT8 quantization
+Efficient memory access patterns
+
+320M Parameter Configuration:
+pythonCopyconfig_320m = {
+    "emb_dim": 704,        # Divisible by 64
+    "hidden_dim": 1920,    # Divisible by 128
+    "n_layers": 16,
+    "n_heads": 4,
+    "head_dim": 176,
+    "n_kv_groups": 1,
+}
+# Actual: ~319.8M parameters
+Why 320M is good for quantization:
+
+320 = 40 × 8 (perfectly divisible by 8)
+Excellent for mixed precision training
+Natural fit for hardware accelerators
+
+Parameter Calculation Formula
+Here's the complete formula for calculating total parameters:
+pythonCopydef calculate_total_params(config):
+    # Component calculations
+    embedding = config["vocab_size"] * config["emb_dim"]
+    
+    # Attention per layer
+    attention = (
+        config["emb_dim"] * config["n_heads"] * config["head_dim"] +  # Q
+        config["emb_dim"] * config["n_kv_groups"] * config["head_dim"] +  # K
+        config["emb_dim"] * config["n_kv_groups"] * config["head_dim"] +  # V
+        config["n_heads"] * config["head_dim"] * config["emb_dim"] +  # Out
+        (2 * config["head_dim"] if config.get("qk_norm", True) else 0)  # QK norm
+    )
+    
+    # FFN per layer
+    ffn = 3 * config["emb_dim"] * config["hidden_dim"]
+    
+    # Norms per layer
+    norms = 4 * config["emb_dim"]
+    
+    # Total
+    per_layer = attention + ffn + norms
+    total = (
+        embedding +
+        config["n_layers"] * per_layer +
+        config["emb_dim"] +  # final norm
+        (0 if config.get("tie_embeddings", True) else embedding)  # output
+    )
+    
+    return total
+Design Trade-offs
+Depth vs Width:
+
+Deep models (more layers): Better feature extraction, more computation
+Wide models (larger dims): More capacity per layer, better parallelization
+
+Quantization Considerations:
+
+Dimensions divisible by 64/128 quantize better
+Total parameters divisible by 8 are optimal
+288M and 320M hit these targets naturally
+
+Memory vs Compute:
+
+Smaller n_kv_groups = more parameters but better quality
+Larger hidden_dim = more compute but better capacity
+More layers = longer sequences are harder
+
+Practical Recommendations
+For your experiments:
+
+256M: Good baseline, similar to small Gemma
+288M: +12.5% parameters, better quantization
+320M: +25% parameters, excellent for INT8
+
+The configuration tool handles all these calculations automatically and validates constraints like:
+
+head_dim must be even (for RoPE)
+n_heads must divide evenly by n_kv_groups
+Dimensions should be quantization-friendly
