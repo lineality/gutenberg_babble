@@ -323,64 +323,168 @@ class EarlyStopping:
         self.history = []
         self.epoch_count = 0
 
-    def __call__(self, current_score, model, epoch=None):
-        """
-        Check if training should stop based on current validation score.
+    # def __call__(self, current_score, model, epoch=None):
+    #     """
+    #     Check if training should stop based on current validation score.
 
-        Args:
-            current_score (float): Current validation metric value
-            model (torch.nn.Module): Model to potentially save weights from
-            epoch (int, optional): Current epoch number for tracking
+    #     Args:
+    #         current_score (float): Current validation metric value
+    #         model (torch.nn.Module): Model to potentially save weights from
+    #         epoch (int, optional): Current epoch number for tracking
 
-        Returns:
-            None (sets self.early_stop flag)
-        """
-        # Track history
-        self.history.append(current_score)
+    #     Returns:
+    #         None (sets self.early_stop flag)
+    #     """
+    #     # Track history
+    #     self.history.append(current_score)
 
-        # Update epoch count
-        if epoch is not None:
-            self.epoch_count = epoch + 1  # Convert 0-indexed to 1-indexed
+    #     # Update epoch count
+    #     if epoch is not None:
+    #         self.epoch_count = epoch + 1  # Convert 0-indexed to 1-indexed
 
-        # Don't allow early stopping before minimum epochs
-        if self.epoch_count < self.min_epochs:
+    #     # Don't allow early stopping before minimum epochs
+    #     if self.epoch_count < self.min_epochs:
+    #         if self.verbose:
+    #             print(
+    #                 f"  → Epoch {self.epoch_count}/{self.min_epochs} - "
+    #                 f"Early stopping disabled during warmup"
+    #             )
+    #         return
+
+    #     # Calculate improvement threshold
+    #     if (
+    #         self.min_delta < 1.0
+    #         and self.best_score != float("inf")
+    #         and self.best_score != float("-inf")
+    #     ):
+    #         # Percentage-based threshold
+    #         threshold = self.min_delta * abs(self.best_score)
+    #     else:
+    #         # Absolute threshold
+    #         threshold = self.min_delta
+
+    #     # Check for improvement based on mode
+    #     if self.mode == "min":
+    #         improved = current_score < (self.best_score - threshold)
+    #     else:
+    #         improved = current_score > (self.best_score + threshold)
+
+    #     # Optional baseline check (disabled by default)
+    #     if self.baseline is not None:
+    #         if self.mode == "min" and current_score > self.baseline:
+    #             if self.verbose:
+    #                 print(
+    #                     f"  ⚠ Score {current_score:.4f} worse than baseline {self.baseline:.4f}"
+    #                 )
+    #             self.early_stop = True
+    #             return
+
+    #     # Handle improvement or degradation
+    #     if improved:
+    #         if self.verbose and self.counter > 0:
+    #             print(
+    #                 f"  ✓ Validation improved: {self.best_score:.4f} → {current_score:.4f}"
+    #             )
+
+    #         self.best_score = current_score
+    #         self.counter = 0  # Reset patience counter
+    #         self.best_epoch = epoch if epoch is not None else len(self.history)
+
+    #         # Save best weights
+    #         if self.restore_best_weights:
+    #             import copy
+
+    #             self.best_weights = copy.deepcopy(model.state_dict())
+    #     else:
+    #         self.counter += 1
+
+    #         if self.verbose:
+    #             improvement_needed = (
+    #                 self.best_score - threshold
+    #                 if self.mode == "min"
+    #                 else self.best_score + threshold
+    #             )
+    #             print(
+    #                 f"  → No improvement for {self.counter}/{self.patience} checks "
+    #                 f"(need {improvement_needed:.4f} or better)"
+    #             )
+
+    #         # Check if patience is exhausted
+    #         if self.counter >= self.patience:
+    #             self.early_stop = True
+
+    #             if self.restore_best_weights and self.best_weights is not None:
+    #                 model.load_state_dict(self.best_weights)
+    #                 if self.verbose:
+    #                     print(f"  ✓ Early stopping triggered!")
+    #                     print(
+    #                         f"  ✓ Restored best weights from epoch {self.best_epoch} "
+    #                         f"(score: {self.best_score:.4f})"
+    #                     )
+
+
+def __call__(self, current_score, model, epoch=None):
+    """
+    Check if training should stop based on current validation score.
+
+    FIXED: Now correctly tracks whether current score is better than
+    the best score seen so far, not whether it beats itself minus threshold.
+    """
+    # Track history
+    self.history.append(current_score)
+
+    # Update epoch count
+    if epoch is not None:
+        self.epoch_count = epoch + 1  # Convert 0-indexed to 1-indexed
+
+    # Don't allow early stopping before minimum epochs
+    if self.epoch_count < self.min_epochs:
+        if self.verbose:
+            print(
+                f"  → Epoch {self.epoch_count}/{self.min_epochs} - "
+                f"Early stopping disabled during warmup"
+            )
+        return
+
+    # Check baseline if configured (disabled by default)
+    if self.baseline is not None:
+        if self.mode == "min" and current_score > self.baseline:
             if self.verbose:
                 print(
-                    f"  → Epoch {self.epoch_count}/{self.min_epochs} - "
-                    f"Early stopping disabled during warmup"
+                    f"  ⚠ Score {current_score:.4f} worse than baseline {self.baseline:.4f}"
                 )
+            self.early_stop = True
             return
 
-        # Calculate improvement threshold
+    # THE FIX: Check if current score beats the best score
+    # We compare against best_score directly, not best_score minus threshold
+    if self.mode == "min":
+        # For loss: lower is better
+        is_better = current_score < self.best_score
+    else:
+        # For accuracy: higher is better
+        is_better = current_score > self.best_score
+
+    # Now check if the improvement is significant enough (using threshold)
+    if is_better:
+        # Calculate how much we improved
+        improvement = abs(self.best_score - current_score)
+
+        # Calculate required improvement threshold
         if (
             self.min_delta < 1.0
             and self.best_score != float("inf")
             and self.best_score != float("-inf")
         ):
             # Percentage-based threshold
-            threshold = self.min_delta * abs(self.best_score)
+            required_improvement = self.min_delta * abs(self.best_score)
         else:
             # Absolute threshold
-            threshold = self.min_delta
+            required_improvement = self.min_delta
 
-        # Check for improvement based on mode
-        if self.mode == "min":
-            improved = current_score < (self.best_score - threshold)
-        else:
-            improved = current_score > (self.best_score + threshold)
-
-        # Optional baseline check (disabled by default)
-        if self.baseline is not None:
-            if self.mode == "min" and current_score > self.baseline:
-                if self.verbose:
-                    print(
-                        f"  ⚠ Score {current_score:.4f} worse than baseline {self.baseline:.4f}"
-                    )
-                self.early_stop = True
-                return
-
-        # Handle improvement or degradation
-        if improved:
+        # Check if improvement is significant enough
+        if improvement >= required_improvement:
+            # Significant improvement found!
             if self.verbose and self.counter > 0:
                 print(
                     f"  ✓ Validation improved: {self.best_score:.4f} → {current_score:.4f}"
@@ -396,31 +500,41 @@ class EarlyStopping:
 
                 self.best_weights = copy.deepcopy(model.state_dict())
         else:
+            # Improvement exists but is too small
             self.counter += 1
-
             if self.verbose:
-                improvement_needed = (
-                    self.best_score - threshold
-                    if self.mode == "min"
-                    else self.best_score + threshold
-                )
                 print(
-                    f"  → No improvement for {self.counter}/{self.patience} checks "
-                    f"(need {improvement_needed:.4f} or better)"
+                    f"  → Minor improvement ({improvement:.4f} < {required_improvement:.4f} required), "
+                    f"patience {self.counter}/{self.patience}"
                 )
+    else:
+        # No improvement at all
+        self.counter += 1
 
-            # Check if patience is exhausted
-            if self.counter >= self.patience:
-                self.early_stop = True
+        if self.verbose:
+            # Show what score would be needed for improvement
+            if self.mode == "min":
+                target_score = self.best_score
+            else:
+                target_score = self.best_score
 
-                if self.restore_best_weights and self.best_weights is not None:
-                    model.load_state_dict(self.best_weights)
-                    if self.verbose:
-                        print(f"  ✓ Early stopping triggered!")
-                        print(
-                            f"  ✓ Restored best weights from epoch {self.best_epoch} "
-                            f"(score: {self.best_score:.4f})"
-                        )
+            print(
+                f"  → No improvement for {self.counter}/{self.patience} checks "
+                f"(need {target_score:.4f} or better, got {current_score:.4f})"
+            )
+
+    # Check if patience is exhausted
+    if self.counter >= self.patience:
+        self.early_stop = True
+
+        if self.restore_best_weights and self.best_weights is not None:
+            model.load_state_dict(self.best_weights)
+            if self.verbose:
+                print(f"  ✓ Early stopping triggered!")
+                print(
+                    f"  ✓ Restored best weights from epoch {self.best_epoch} "
+                    f"(score: {self.best_score:.4f})"
+                )
 
 
 class DocumentDataset(Dataset):
