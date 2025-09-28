@@ -1,0 +1,4181 @@
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 56.82M parameters
+  Difference: -199.18M (-77.8%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 259
+  Expected: 259
+  Match: True
+  Model size: 56.82M parameters
+Arguments passed to the script:
+	Argument 0: train_on_docs_perseid_byte.py
+Usage: python script.py <path>
+Loading existing data from data/alice.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+demo
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_20250927_210050
+Output directory: ./models/perseid_288m_alice/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/alice.txt
+File size: 0.50 MB
+Successfully loaded with utf-8 encoding
+Document length: 510,837 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Initializing New Model
+============================================================
+Creating Perseid-288M (balanced strategy)
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-288M (balanced strategy):
+  Target: 288M parameters
+  Actual: 71.65M parameters
+  Difference: -216.35M (-75.1%)
+  Configuration:
+    - emb_dim: 640
+    - hidden_dim: 1792
+    - n_layers: 16
+    - n_heads: 4
+    - head_dim: 160
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Initializing model with random weights...
+  ✓ Model initialized with random weights
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 459,753 chars
+Val text: 51,084 chars
+Tokenizing text of length 459,753 characters...
+Created 999 training windows
+Total tokens: 459,881
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 51,084 characters...
+Created 100 training windows
+Total tokens: 51,363
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 499
+Val batches: 50
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+
+Starting from epoch 1, step 0
+Total training steps: 868
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+^CTraceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_docs_perseid_byte.py", line 1367, in <module>
+    model, history = main()
+                     ^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_docs_perseid_byte.py", line 1211, in main
+    history = train_model(
+              ^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_docs_perseid_byte.py", line 708, in train_model
+    loss.backward()
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/_tensor.py", line 647, in backward
+    torch.autograd.backward(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/autograd/graph.py", line 829, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ ^C
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 docs_train_perseidbyte.py 
+
+============================================================
+Testing ByteTokenizer Integration
+============================================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+Tokenizer test:
+  Original: 'Hello, World! 🌍'
+  Tokens: [72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33, 32, 240, 159, 140, 141, 257] (19 tokens)
+  Decoded: 'Hello, World! 🌍<eos>'
+  Match: True
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-256M (balanced strategy):
+  Target: 256M parameters
+  Actual: 56.82M parameters
+  Difference: -199.18M (-77.8%)
+  Configuration:
+    - emb_dim: 576
+    - hidden_dim: 1536
+    - n_layers: 16
+    - n_heads: 3
+    - head_dim: 192
+
+Model config test:
+  Vocab size: 259
+  Expected: 259
+  Match: True
+  Model size: 56.82M parameters
+Arguments passed to the script:
+	Argument 0: docs_train_perseidbyte.py
+Usage: python script.py <path>
+Loading existing data from data/alice.txt
+
+Enter a file path to a .txt file or for a demo say 'demo'
+Or say "url" to enter a gutenberg.org url, e.g.
+
+shakespeare first folio...
+https://www.gutenberg.org/cache/epub/2270/pg2270.txt
+
+chaucer in six volumes...
+https://www.gutenberg.org/cache/epub/43089/pg43089.txt
+https://www.gutenberg.org/cache/epub/44833/pg44833.txt
+https://www.gutenberg.org/cache/epub/45027/pg45027.txt
+https://www.gutenberg.org/cache/epub/22120/pg22120.txt
+https://www.gutenberg.org/cache/epub/43016/pg43016.txt
+https://www.gutenberg.org/cache/epub/43097/pg43097.txt
+
+Poetry:
+https://www.gutenberg.org/cache/epub/30235/pg30235.txt
+
+# homer & odyssey
+https://www.gutenberg.org/ebooks/3160.txt.utf-8
+https://www.gutenberg.org/ebooks/1727.txt.utf-8
+https://www.gutenberg.org/ebooks/348.txt.utf-8
+https://www.gutenberg.org/ebooks/65000.txt.utf-8
+https://www.gutenberg.org/ebooks/53004.txt.utf-8
+https://www.gutenberg.org/ebooks/49324.txt.utf-8
+https://www.gutenberg.org/ebooks/48895.txt.utf-8
+https://www.gutenberg.org/ebooks/16338.txt.utf-8
+https://www.gutenberg.org/ebooks/47356.txt.utf-8
+https://www.gutenberg.org/ebooks/26275.txt.utf-8
+https://www.gutenberg.org/ebooks/45896.txt.utf-8
+https://www.gutenberg.org/ebooks/12651.txt.utf-8
+https://www.gutenberg.org/ebooks/65461.txt.utf-8
+https://www.gutenberg.org/ebooks/49858.txt.utf-8
+https://www.gutenberg.org/ebooks/65381.txt.utf-8
+https://www.gutenberg.org/ebooks/13725.txt.utf-8
+https://www.gutenberg.org/ebooks/53646.txt.utf-8
+https://www.gutenberg.org/ebooks/24856.txt.utf-8
+
+Enter a file path to a .txt file or for a demo say 'demo'
+Or say "url" to enter a gutenberg.org url:
+
+demo
+if longtrain say: longtrain -> longtrain
+
+============================================================
+Processing book 1/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/3160.txt.utf-8
+Saved to: data/3160.txt
+Training on: data/3160.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book3160_20250927_210220
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/3160.txt
+File size: 0.71 MB
+Successfully loaded with utf-8 encoding
+Document length: 717,596 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Initializing New Model
+============================================================
+Creating Perseid-288M (balanced strategy)
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Perseid-288M (balanced strategy):
+  Target: 288M parameters
+  Actual: 71.65M parameters
+  Difference: -216.35M (-75.1%)
+  Configuration:
+    - emb_dim: 640
+    - hidden_dim: 1792
+    - n_layers: 16
+    - n_heads: 4
+    - head_dim: 160
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+
+Initializing model with random weights...
+  ✓ Model initialized with random weights
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 645,836 chars
+Val text: 71,760 chars
+Tokenizing text of length 645,836 characters...
+Created 1,427 training windows
+Total tokens: 656,487
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 71,760 characters...
+Created 142 training windows
+Total tokens: 72,865
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 713
+Val batches: 71
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+
+Starting from epoch 1, step 0
+Total training steps: 1,246
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step    50 | Train Loss: 3.6804 | Val Loss: 2.4312 | LR: 2.50e-04 | Tokens: 204,800
+  → Saved best model (val_loss: 2.4312)
+Step   100 | Train Loss: 2.9850 | Val Loss: 2.0586 | LR: 5.00e-04 | Tokens: 409,600
+  → Saved best model (val_loss: 2.0586)
+Step   150 | Train Loss: 2.6469 | Val Loss: 1.8313 | LR: 4.98e-04 | Tokens: 614,400
+  → Saved best model (val_loss: 1.8313)
+
+Epoch 1 Summary:
+  Average Train Loss: 2.5158
+  Validation Loss: 1.9957
+  Perplexity: 7.36
+
+========================================
+Epoch 2/7
+========================================
+Step   200 | Train Loss: 1.7795 | Val Loss: 1.7188 | LR: 4.91e-04 | Tokens: 819,200
+  → Saved best model (val_loss: 1.7188)
+Step   250 | Train Loss: 1.7305 | Val Loss: 1.6461 | LR: 4.79e-04 | Tokens: 1,024,000
+  → Saved best model (val_loss: 1.6461)
+Step   300 | Train Loss: 1.6951 | Val Loss: 1.5984 | LR: 4.63e-04 | Tokens: 1,228,800
+  → Saved best model (val_loss: 1.5984)
+Step   350 | Train Loss: 1.6701 | Val Loss: 1.5602 | LR: 4.44e-04 | Tokens: 1,433,600
+  → Saved best model (val_loss: 1.5602)
+
+Epoch 2 Summary:
+  Average Train Loss: 1.6671
+  Validation Loss: 1.7811
+  Perplexity: 5.94
+
+========================================
+Epoch 3/7
+========================================
+Step   400 | Train Loss: 1.5307 | Val Loss: 1.5359 | LR: 4.20e-04 | Tokens: 1,638,400
+  → Saved best model (val_loss: 1.5359)
+Step   450 | Train Loss: 1.5219 | Val Loss: 1.5023 | LR: 3.93e-04 | Tokens: 1,843,200
+  → Saved best model (val_loss: 1.5023)
+Step   500 | Train Loss: 1.5081 | Val Loss: 1.4688 | LR: 3.64e-04 | Tokens: 2,048,000
+  → Saved best model (val_loss: 1.4688)
+
+Epoch 3 Summary:
+  Average Train Loss: 1.5012
+  Validation Loss: 1.6942
+  Perplexity: 5.44
+
+========================================
+Epoch 4/7
+========================================
+Step   550 | Train Loss: 1.4301 | Val Loss: 1.4477 | LR: 3.33e-04 | Tokens: 2,252,800
+  → Saved best model (val_loss: 1.4477)
+Step   600 | Train Loss: 1.4199 | Val Loss: 1.4359 | LR: 3.00e-04 | Tokens: 2,457,600
+  → Saved best model (val_loss: 1.4359)
+Step   650 | Train Loss: 1.4056 | Val Loss: 1.4148 | LR: 2.66e-04 | Tokens: 2,662,400
+  → Saved best model (val_loss: 1.4148)
+Step   700 | Train Loss: 1.3952 | Val Loss: 1.4000 | LR: 2.32e-04 | Tokens: 2,867,200
+  → Saved best model (val_loss: 1.4000)
+
+Epoch 4 Summary:
+  Average Train Loss: 1.3926
+  Validation Loss: 1.6390
+  Perplexity: 5.15
+
+========================================
+Epoch 5/7
+========================================
+Step   750 | Train Loss: 1.3136 | Val Loss: 1.3844 | LR: 1.98e-04 | Tokens: 3,072,000
+  → Saved best model (val_loss: 1.3844)
+Step   800 | Train Loss: 1.3136 | Val Loss: 1.3656 | LR: 1.65e-04 | Tokens: 3,276,800
+  → Saved best model (val_loss: 1.3656)
+Step   850 | Train Loss: 1.3080 | Val Loss: 1.3578 | LR: 1.33e-04 | Tokens: 3,481,600
+  → Saved best model (val_loss: 1.3578)
+
+Epoch 5 Summary:
+  Average Train Loss: 1.3034
+  Validation Loss: 1.5917
+  Perplexity: 4.91
+
+========================================
+Epoch 6/7
+========================================
+Step   900 | Train Loss: 1.2338 | Val Loss: 1.3516 | LR: 1.04e-04 | Tokens: 3,686,400
+  → Saved best model (val_loss: 1.3516)
+Step   950 | Train Loss: 1.2429 | Val Loss: 1.3422 | LR: 7.79e-05 | Tokens: 3,891,200
+  → Saved best model (val_loss: 1.3422)
+Step  1000 | Train Loss: 1.2426 | Val Loss: 1.3438 | LR: 5.47e-05 | Tokens: 4,096,000
+Step  1050 | Train Loss: 1.2409 | Val Loss: 1.3391 | LR: 3.52e-05 | Tokens: 4,300,800
+  → Saved best model (val_loss: 1.3391)
+
+Epoch 6 Summary:
+  Average Train Loss: 1.2397
+  Validation Loss: 1.5798
+  Perplexity: 4.85
+
+========================================
+Epoch 7/7
+========================================
+Step  1100 | Train Loss: 1.2241 | Val Loss: 1.3398 | LR: 1.98e-05 | Tokens: 4,505,600
+Step  1150 | Train Loss: 1.2209 | Val Loss: 1.3391 | LR: 8.61e-06 | Tokens: 4,710,400
+Step  1200 | Train Loss: 1.2203 | Val Loss: 1.3391 | LR: 1.99e-06 | Tokens: 4,915,200
+
+Epoch 7 Summary:
+  Average Train Loss: 1.2210
+  Validation Loss: 1.5794
+  Perplexity: 4.85
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3391
+Total tokens seen: 5,103,616
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time and the stranger of the stands of the state.
+
+
+
+
+
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is to the stands,
+And the stranger of the stranger o
+
+Prompt: 'In the beginning'
+Output: In the beginning shores;
+The sacred shall the stranger of the skie
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 2/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/1727.txt.utf-8
+Saved to: data/1727.txt
+Training on: data/1727.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book1727_20250927_210548
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/1727.txt
+File size: 0.68 MB
+Successfully loaded with utf-8 encoding
+Document length: 698,081 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 1,050
+  - Epoch: 0
+  - Best validation loss: 1.3391
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 628,272 chars
+Val text: 69,809 chars
+Tokenizing text of length 628,272 characters...
+Created 1,378 training windows
+Total tokens: 634,179
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 69,809 characters...
+Created 139 training windows
+Total tokens: 71,405
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 689
+Val batches: 70
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 1050
+Total training steps: 1,204
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  1100 | Train Loss: 1.6031 | Val Loss: 2.4641 | LR: 1.09e-05 | Tokens: 204,800
+Step  1150 | Train Loss: 1.5908 | Val Loss: 2.4609 | LR: 2.95e-06 | Tokens: 409,600
+Step  1200 | Train Loss: 1.5849 | Val Loss: 2.4609 | LR: 1.62e-08 | Tokens: 614,400
+
+Epoch 1 Summary:
+  Average Train Loss: 1.5856
+  Validation Loss: 2.2059
+  Perplexity: 9.08
+
+========================================
+Epoch 2/7
+========================================
+Step  1250 | Train Loss: 1.5783 | Val Loss: 2.4609 | LR: 2.14e-06 | Tokens: 819,200
+Step  1300 | Train Loss: 1.5766 | Val Loss: 2.4578 | LR: 9.27e-06 | Tokens: 1,024,000
+Step  1350 | Train Loss: 1.5731 | Val Loss: 2.4484 | LR: 2.13e-05 | Tokens: 1,228,800
+
+Epoch 2 Summary:
+  Average Train Loss: 1.5636
+  Validation Loss: 2.1801
+  Perplexity: 8.85
+
+========================================
+Epoch 3/7
+========================================
+Step  1400 | Train Loss: 1.4997 | Val Loss: 2.4281 | LR: 3.79e-05 | Tokens: 1,433,600
+Step  1450 | Train Loss: 1.4879 | Val Loss: 2.4039 | LR: 5.88e-05 | Tokens: 1,638,400
+Step  1500 | Train Loss: 1.4763 | Val Loss: 2.3703 | LR: 8.36e-05 | Tokens: 1,843,200
+Step  1550 | Train Loss: 1.4580 | Val Loss: 2.3438 | LR: 1.12e-04 | Tokens: 2,048,000
+
+Epoch 3 Summary:
+  Average Train Loss: 1.4516
+  Validation Loss: 2.0950
+  Perplexity: 8.13
+
+========================================
+Epoch 4/7
+========================================
+Step  1600 | Train Loss: 1.3664 | Val Loss: 2.3273 | LR: 1.43e-04 | Tokens: 2,252,800
+Step  1650 | Train Loss: 1.3603 | Val Loss: 2.2992 | LR: 1.76e-04 | Tokens: 2,457,600
+Step  1700 | Train Loss: 1.3527 | Val Loss: 2.2766 | LR: 2.10e-04 | Tokens: 2,662,400
+
+Epoch 4 Summary:
+  Average Train Loss: 1.3502
+  Validation Loss: 2.0294
+  Perplexity: 7.61
+
+========================================
+Epoch 5/7
+========================================
+Step  1750 | Train Loss: 1.3079 | Val Loss: 2.2578 | LR: 2.46e-04 | Tokens: 2,867,200
+Step  1800 | Train Loss: 1.3059 | Val Loss: 2.2437 | LR: 2.81e-04 | Tokens: 3,072,000
+Step  1850 | Train Loss: 1.2965 | Val Loss: 2.2766 | LR: 3.16e-04 | Tokens: 3,276,800
+Step  1900 | Train Loss: 1.2923 | Val Loss: 2.2672 | LR: 3.50e-04 | Tokens: 3,481,600
+
+Epoch 5 Summary:
+  Average Train Loss: 1.2923
+  Validation Loss: 2.0129
+  Perplexity: 7.49
+
+========================================
+Epoch 6/7
+========================================
+Step  1950 | Train Loss: 1.2439 | Val Loss: 2.2727 | LR: 3.81e-04 | Tokens: 3,686,400
+Step  2000 | Train Loss: 1.2570 | Val Loss: 2.3070 | LR: 4.10e-04 | Tokens: 3,891,200
+Step  2050 | Train Loss: 1.2532 | Val Loss: 2.2938 | LR: 4.36e-04 | Tokens: 4,096,000
+
+Epoch 6 Summary:
+  Average Train Loss: 1.2507
+  Validation Loss: 2.0029
+  Perplexity: 7.41
+
+========================================
+Epoch 7/7
+========================================
+Step  2100 | Train Loss: 1.1961 | Val Loss: 2.3234 | LR: 4.57e-04 | Tokens: 4,300,800
+Step  2150 | Train Loss: 1.2021 | Val Loss: 2.2977 | LR: 4.75e-04 | Tokens: 4,505,600
+Step  2200 | Train Loss: 1.2037 | Val Loss: 2.3039 | LR: 4.88e-04 | Tokens: 4,710,400
+Step  2250 | Train Loss: 1.2068 | Val Loss: 2.2789 | LR: 4.97e-04 | Tokens: 4,915,200
+
+Epoch 7 Summary:
+  Average Train Loss: 1.2070
+  Validation Loss: 1.9742
+  Perplexity: 7.20
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3391
+Total tokens seen: 4,931,584
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time to the sea was a beautiful be a good to
+the sea w
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a ship and said to the sea was a ship with the
+su
+
+Prompt: 'In the beginning'
+Output: In the beginning of the suitors were a beautiful shall the sea was
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 3/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/348.txt.utf-8
+Saved to: data/348.txt
+Training on: data/348.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book348_20250927_210911
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/348.txt
+File size: 0.52 MB
+Successfully loaded with utf-8 encoding
+Document length: 533,600 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 1,050
+  - Epoch: 0
+  - Best validation loss: 1.3391
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 480,240 chars
+Val text: 53,360 chars
+Tokenizing text of length 480,240 characters...
+Created 1,051 training windows
+Total tokens: 483,533
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 53,360 characters...
+Created 105 training windows
+Total tokens: 54,016
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 525
+Val batches: 53
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 1050
+Total training steps: 917
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  1100 | Train Loss: 1.8584 | Val Loss: 2.4578 | LR: 5.94e-05 | Tokens: 204,800
+Step  1150 | Train Loss: 1.7898 | Val Loss: 2.2594 | LR: 9.38e-05 | Tokens: 409,600
+
+Epoch 1 Summary:
+  Average Train Loss: 1.7507
+  Validation Loss: 2.1593
+  Perplexity: 8.67
+
+========================================
+Epoch 2/7
+========================================
+Step  1200 | Train Loss: 1.5752 | Val Loss: 2.1547 | LR: 1.34e-04 | Tokens: 614,400
+Step  1250 | Train Loss: 1.5410 | Val Loss: 2.0180 | LR: 1.78e-04 | Tokens: 819,200
+Step  1300 | Train Loss: 1.5280 | Val Loss: 2.0102 | LR: 2.26e-04 | Tokens: 1,024,000
+
+Epoch 2 Summary:
+  Average Train Loss: 1.5224
+  Validation Loss: 1.9863
+  Perplexity: 7.29
+
+========================================
+Epoch 3/7
+========================================
+Step  1350 | Train Loss: 1.4095 | Val Loss: 1.9422 | LR: 2.74e-04 | Tokens: 1,228,800
+Step  1400 | Train Loss: 1.4232 | Val Loss: 1.9352 | LR: 3.21e-04 | Tokens: 1,433,600
+
+Epoch 3 Summary:
+  Average Train Loss: 1.4271
+  Validation Loss: 1.9524
+  Perplexity: 7.05
+
+========================================
+Epoch 4/7
+========================================
+Step  1450 | Train Loss: 1.3644 | Val Loss: 1.8469 | LR: 3.65e-04 | Tokens: 1,638,400
+Step  1500 | Train Loss: 1.3650 | Val Loss: 1.8570 | LR: 4.05e-04 | Tokens: 1,843,200
+Step  1550 | Train Loss: 1.3678 | Val Loss: 1.8539 | LR: 4.40e-04 | Tokens: 2,048,000
+
+Epoch 4 Summary:
+  Average Train Loss: 1.3691
+  Validation Loss: 1.8918
+  Perplexity: 6.63
+
+========================================
+Epoch 5/7
+========================================
+Step  1600 | Train Loss: 1.3212 | Val Loss: 1.8492 | LR: 4.68e-04 | Tokens: 2,252,800
+Step  1650 | Train Loss: 1.3164 | Val Loss: 1.8711 | LR: 4.87e-04 | Tokens: 2,457,600
+Step  1700 | Train Loss: 1.3167 | Val Loss: 1.7711 | LR: 4.98e-04 | Tokens: 2,662,400
+
+Epoch 5 Summary:
+  Average Train Loss: 1.3161
+  Validation Loss: 1.8393
+  Perplexity: 6.29
+
+========================================
+Epoch 6/7
+========================================
+Step  1750 | Train Loss: 1.2380 | Val Loss: 1.7539 | LR: 5.00e-04 | Tokens: 2,867,200
+Step  1800 | Train Loss: 1.2502 | Val Loss: 1.7203 | LR: 4.92e-04 | Tokens: 3,072,000
+
+Epoch 6 Summary:
+  Average Train Loss: 1.2512
+  Validation Loss: 1.8511
+  Perplexity: 6.37
+
+========================================
+Epoch 7/7
+========================================
+Step  1850 | Train Loss: 1.1806 | Val Loss: 1.7469 | LR: 4.76e-04 | Tokens: 3,276,800
+Step  1900 | Train Loss: 1.1683 | Val Loss: 1.7164 | LR: 4.51e-04 | Tokens: 3,481,600
+Step  1950 | Train Loss: 1.1727 | Val Loss: 1.6922 | LR: 4.19e-04 | Tokens: 3,686,400
+
+Epoch 7 Summary:
+  Average Train Loss: 1.1724
+  Validation Loss: 1.8101
+  Perplexity: 6.11
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3391
+Total tokens seen: 3,756,032
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time and the season of the
+_Cypria_ is a subject in th
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is and the season of the
+season of the sea, and the 
+
+Prompt: 'In the beginning'
+Output: In the beginning the season as the sea and strong. Then the season
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 4/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/65000.txt.utf-8
+Saved to: data/65000.txt
+Training on: data/65000.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book65000_20250927_211144
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/65000.txt
+File size: 0.46 MB
+Successfully loaded with utf-8 encoding
+Document length: 466,452 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 1,050
+  - Epoch: 0
+  - Best validation loss: 1.3391
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 419,806 chars
+Val text: 46,646 chars
+Tokenizing text of length 419,806 characters...
+Created 920 training windows
+Total tokens: 423,547
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 46,646 characters...
+Created 92 training windows
+Total tokens: 47,126
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 460
+Val batches: 46
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 1050
+Total training steps: 805
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  1100 | Train Loss: 1.7937 | Val Loss: 1.7102 | LR: 1.87e-04 | Tokens: 204,800
+Step  1150 | Train Loss: 1.6861 | Val Loss: 1.6313 | LR: 2.42e-04 | Tokens: 409,600
+
+Epoch 1 Summary:
+  Average Train Loss: 1.6661
+  Validation Loss: 1.7875
+  Perplexity: 5.97
+
+========================================
+Epoch 2/7
+========================================
+Step  1200 | Train Loss: 1.4741 | Val Loss: 1.5805 | LR: 2.97e-04 | Tokens: 614,400
+Step  1250 | Train Loss: 1.4759 | Val Loss: 1.5477 | LR: 3.50e-04 | Tokens: 819,200
+
+Epoch 2 Summary:
+  Average Train Loss: 1.4717
+  Validation Loss: 1.7294
+  Perplexity: 5.64
+
+========================================
+Epoch 3/7
+========================================
+Step  1300 | Train Loss: 1.4021 | Val Loss: 1.5492 | LR: 3.98e-04 | Tokens: 1,024,000
+Step  1350 | Train Loss: 1.3983 | Val Loss: 1.5148 | LR: 4.39e-04 | Tokens: 1,228,800
+
+Epoch 3 Summary:
+  Average Train Loss: 1.3979
+  Validation Loss: 1.7320
+  Perplexity: 5.65
+
+========================================
+Epoch 4/7
+========================================
+Step  1400 | Train Loss: 1.3469 | Val Loss: 1.4984 | LR: 4.71e-04 | Tokens: 1,433,600
+Step  1450 | Train Loss: 1.3330 | Val Loss: 1.5016 | LR: 4.91e-04 | Tokens: 1,638,400
+Step  1500 | Train Loss: 1.3330 | Val Loss: 1.4820 | LR: 5.00e-04 | Tokens: 1,843,200
+
+Epoch 4 Summary:
+  Average Train Loss: 1.3361
+  Validation Loss: 1.6953
+  Perplexity: 5.45
+
+========================================
+Epoch 5/7
+========================================
+Step  1550 | Train Loss: 1.2528 | Val Loss: 1.4711 | LR: 4.96e-04 | Tokens: 2,048,000
+Step  1600 | Train Loss: 1.2695 | Val Loss: 1.4734 | LR: 4.80e-04 | Tokens: 2,252,800
+
+Epoch 5 Summary:
+  Average Train Loss: 1.2698
+  Validation Loss: 1.6753
+  Perplexity: 5.34
+
+========================================
+Epoch 6/7
+========================================
+Step  1650 | Train Loss: 1.1801 | Val Loss: 1.4656 | LR: 4.53e-04 | Tokens: 2,457,600
+Step  1700 | Train Loss: 1.1896 | Val Loss: 1.4523 | LR: 4.16e-04 | Tokens: 2,662,400
+
+Epoch 6 Summary:
+  Average Train Loss: 1.1869
+  Validation Loss: 1.6690
+  Perplexity: 5.31
+
+========================================
+Epoch 7/7
+========================================
+Step  1750 | Train Loss: 1.0804 | Val Loss: 1.4656 | LR: 3.70e-04 | Tokens: 2,867,200
+Step  1800 | Train Loss: 1.0783 | Val Loss: 1.4430 | LR: 3.19e-04 | Tokens: 3,072,000
+Step  1850 | Train Loss: 1.0820 | Val Loss: 1.4367 | LR: 2.64e-04 | Tokens: 3,276,800
+
+Epoch 7 Summary:
+  Average Train Loss: 1.0815
+  Validation Loss: 1.6620
+  Perplexity: 5.27
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3391
+Total tokens seen: 3,297,280
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a timental to the stars of the stars of the star than th
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is the sea-brought of the
+poet of the stars of the s
+
+Prompt: 'In the beginning'
+Output: In the beginning of the stars of the stars of the stars of the
+poe
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 5/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/53004.txt.utf-8
+Saved to: data/53004.txt
+Training on: data/53004.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book53004_20250927_211357
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/53004.txt
+File size: 1.19 MB
+Successfully loaded with utf-8 encoding
+Document length: 1,189,704 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 1,050
+  - Epoch: 0
+  - Best validation loss: 1.3391
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 1,070,733 chars
+Val text: 118,971 chars
+Tokenizing text of length 1,070,733 characters...
+Created 2,392 training windows
+Total tokens: 1,100,751
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 118,971 characters...
+Created 236 training windows
+Total tokens: 121,329
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 1,196
+Val batches: 118
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 1050
+Total training steps: 2,093
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  1100 | Train Loss: 1.6904 | Val Loss: 1.5406 | LR: 2.49e-04 | Tokens: 204,800
+Step  1150 | Train Loss: 1.5887 | Val Loss: 1.4836 | LR: 2.29e-04 | Tokens: 409,600
+Step  1200 | Train Loss: 1.5355 | Val Loss: 1.4430 | LR: 2.09e-04 | Tokens: 614,400
+Step  1250 | Train Loss: 1.4969 | Val Loss: 1.4102 | LR: 1.90e-04 | Tokens: 819,200
+Step  1300 | Train Loss: 1.4708 | Val Loss: 1.3875 | LR: 1.71e-04 | Tokens: 1,024,000
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4488
+  Validation Loss: 1.5493
+  Perplexity: 4.71
+
+========================================
+Epoch 2/7
+========================================
+Step  1350 | Train Loss: 1.2832 | Val Loss: 1.3633 | LR: 1.53e-04 | Tokens: 1,228,800
+Step  1400 | Train Loss: 1.2873 | Val Loss: 1.3562 | LR: 1.35e-04 | Tokens: 1,433,600
+Step  1450 | Train Loss: 1.2846 | Val Loss: 1.3438 | LR: 1.18e-04 | Tokens: 1,638,400
+Step  1500 | Train Loss: 1.2848 | Val Loss: 1.3352 | LR: 1.01e-04 | Tokens: 1,843,200
+  → Saved best model (val_loss: 1.3352)
+Step  1550 | Train Loss: 1.2783 | Val Loss: 1.3328 | LR: 8.61e-05 | Tokens: 2,048,000
+  → Saved best model (val_loss: 1.3328)
+Step  1600 | Train Loss: 1.2726 | Val Loss: 1.3219 | LR: 7.18e-05 | Tokens: 2,252,800
+  → Saved best model (val_loss: 1.3219)
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2664
+  Validation Loss: 1.5085
+  Perplexity: 4.52
+
+========================================
+Epoch 3/7
+========================================
+Step  1650 | Train Loss: 1.2627 | Val Loss: 1.3172 | LR: 5.85e-05 | Tokens: 2,457,600
+  → Saved best model (val_loss: 1.3172)
+Step  1700 | Train Loss: 1.2285 | Val Loss: 1.3148 | LR: 4.65e-05 | Tokens: 2,662,400
+  → Saved best model (val_loss: 1.3148)
+Step  1750 | Train Loss: 1.2257 | Val Loss: 1.3141 | LR: 3.57e-05 | Tokens: 2,867,200
+  → Saved best model (val_loss: 1.3141)
+Step  1800 | Train Loss: 1.2238 | Val Loss: 1.3133 | LR: 2.62e-05 | Tokens: 3,072,000
+  → Saved best model (val_loss: 1.3133)
+Step  1850 | Train Loss: 1.2208 | Val Loss: 1.3117 | LR: 1.81e-05 | Tokens: 3,276,800
+  → Saved best model (val_loss: 1.3117)
+Step  1900 | Train Loss: 1.2192 | Val Loss: 1.3117 | LR: 1.15e-05 | Tokens: 3,481,600
+
+Epoch 3 Summary:
+  Average Train Loss: 1.2191
+  Validation Loss: 1.5043
+  Perplexity: 4.50
+
+========================================
+Epoch 4/7
+========================================
+Step  1950 | Train Loss: 1.2386 | Val Loss: 1.3117 | LR: 6.32e-06 | Tokens: 3,686,400
+Step  2000 | Train Loss: 1.2136 | Val Loss: 1.3102 | LR: 2.68e-06 | Tokens: 3,891,200
+  → Saved best model (val_loss: 1.3102)
+Step  2050 | Train Loss: 1.2119 | Val Loss: 1.3117 | LR: 5.74e-07 | Tokens: 4,096,000
+Step  2100 | Train Loss: 1.2146 | Val Loss: 1.3117 | LR: 1.52e-08 | Tokens: 4,300,800
+Step  2150 | Train Loss: 1.2130 | Val Loss: 1.3109 | LR: 1.01e-06 | Tokens: 4,505,600
+Step  2200 | Train Loss: 1.2103 | Val Loss: 1.3109 | LR: 3.55e-06 | Tokens: 4,710,400
+
+Epoch 4 Summary:
+  Average Train Loss: 1.2125
+  Validation Loss: 1.5042
+  Perplexity: 4.50
+
+========================================
+Epoch 5/7
+========================================
+Step  2250 | Train Loss: 1.1780 | Val Loss: 1.3109 | LR: 7.62e-06 | Tokens: 4,915,200
+Step  2300 | Train Loss: 1.2084 | Val Loss: 1.3102 | LR: 1.32e-05 | Tokens: 5,120,000
+Step  2350 | Train Loss: 1.2114 | Val Loss: 1.3109 | LR: 2.02e-05 | Tokens: 5,324,800
+Step  2400 | Train Loss: 1.2133 | Val Loss: 1.3117 | LR: 2.87e-05 | Tokens: 5,529,600
+Step  2450 | Train Loss: 1.2147 | Val Loss: 1.3109 | LR: 3.86e-05 | Tokens: 5,734,400
+Step  2500 | Train Loss: 1.2138 | Val Loss: 1.3125 | LR: 4.97e-05 | Tokens: 5,939,200
+
+Epoch 5 Summary:
+  Average Train Loss: 1.2132
+  Validation Loss: 1.5057
+  Perplexity: 4.51
+
+========================================
+Epoch 6/7
+========================================
+Step  2550 | Train Loss: 1.2049 | Val Loss: 1.3102 | LR: 6.21e-05 | Tokens: 6,144,000
+Step  2600 | Train Loss: 1.2099 | Val Loss: 1.3148 | LR: 7.57e-05 | Tokens: 6,348,800
+Step  2650 | Train Loss: 1.2149 | Val Loss: 1.3094 | LR: 9.03e-05 | Tokens: 6,553,600
+  → Saved best model (val_loss: 1.3094)
+Step  2700 | Train Loss: 1.2145 | Val Loss: 1.3078 | LR: 1.06e-04 | Tokens: 6,758,400
+  → Saved best model (val_loss: 1.3078)
+Step  2750 | Train Loss: 1.2145 | Val Loss: 1.3141 | LR: 1.23e-04 | Tokens: 6,963,200
+Step  2800 | Train Loss: 1.2179 | Val Loss: 1.3156 | LR: 1.40e-04 | Tokens: 7,168,000
+
+Epoch 6 Summary:
+  Average Train Loss: 1.2200
+  Validation Loss: 1.5140
+  Perplexity: 4.55
+
+========================================
+Epoch 7/7
+========================================
+Step  2850 | Train Loss: 1.2212 | Val Loss: 1.3219 | LR: 1.58e-04 | Tokens: 7,372,800
+Step  2900 | Train Loss: 1.2199 | Val Loss: 1.3195 | LR: 1.76e-04 | Tokens: 7,577,600
+Step  2950 | Train Loss: 1.2255 | Val Loss: 1.3289 | LR: 1.95e-04 | Tokens: 7,782,400
+Step  3000 | Train Loss: 1.2290 | Val Loss: 1.3344 | LR: 2.15e-04 | Tokens: 7,987,200
+Step  3050 | Train Loss: 1.2294 | Val Loss: 1.3320 | LR: 2.34e-04 | Tokens: 8,192,000
+Step  3100 | Train Loss: 1.2321 | Val Loss: 1.3336 | LR: 2.54e-04 | Tokens: 8,396,800
+
+Epoch 7 Summary:
+  Average Train Loss: 1.2343
+  Validation Loss: 1.5271
+  Perplexity: 4.60
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3078
+Total tokens seen: 8,572,928
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time the proposal of the poems of the poems of
+the pro
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a strong the same of the
+same contrived to the pr
+
+Prompt: 'In the beginning'
+Output: In the beginning the two the superiority of the poems of
+the propo
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 6/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/49324.txt.utf-8
+Saved to: data/49324.txt
+Training on: data/49324.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book49324_20250927_212014
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/49324.txt
+File size: 0.63 MB
+Successfully loaded with utf-8 encoding
+Document length: 635,503 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 2,700
+  - Epoch: 0
+  - Best validation loss: 1.3078
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 571,952 chars
+Val text: 63,551 chars
+Tokenizing text of length 571,952 characters...
+Created 1,262 training windows
+Total tokens: 580,627
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 63,551 characters...
+Created 124 training windows
+Total tokens: 63,824
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 631
+Val batches: 62
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 2700
+Total training steps: 1,099
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  2750 | Train Loss: 1.4882 | Val Loss: 1.4039 | LR: 1.35e-04 | Tokens: 204,800
+Step  2800 | Train Loss: 1.4469 | Val Loss: 1.3617 | LR: 1.01e-04 | Tokens: 409,600
+Step  2850 | Train Loss: 1.4220 | Val Loss: 1.3531 | LR: 7.17e-05 | Tokens: 614,400
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4183
+  Validation Loss: 1.5697
+  Perplexity: 4.81
+
+========================================
+Epoch 2/7
+========================================
+Step  2900 | Train Loss: 1.3316 | Val Loss: 1.3414 | LR: 4.65e-05 | Tokens: 819,200
+Step  2950 | Train Loss: 1.3197 | Val Loss: 1.3367 | LR: 2.62e-05 | Tokens: 1,024,000
+Step  3000 | Train Loss: 1.3173 | Val Loss: 1.3359 | LR: 1.15e-05 | Tokens: 1,228,800
+
+Epoch 2 Summary:
+  Average Train Loss: 1.3173
+  Validation Loss: 1.5596
+  Perplexity: 4.76
+
+========================================
+Epoch 3/7
+========================================
+Step  3050 | Train Loss: 1.3078 | Val Loss: 1.3359 | LR: 2.73e-06 | Tokens: 1,433,600
+Step  3100 | Train Loss: 1.3055 | Val Loss: 1.3352 | LR: 1.11e-08 | Tokens: 1,638,400
+Step  3150 | Train Loss: 1.3061 | Val Loss: 1.3359 | LR: 3.46e-06 | Tokens: 1,843,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.3076
+  Validation Loss: 1.5596
+  Perplexity: 4.76
+
+========================================
+Epoch 4/7
+========================================
+Step  3200 | Train Loss: 1.3165 | Val Loss: 1.3352 | LR: 1.30e-05 | Tokens: 2,048,000
+Step  3250 | Train Loss: 1.3152 | Val Loss: 1.3328 | LR: 2.84e-05 | Tokens: 2,252,800
+Step  3300 | Train Loss: 1.3080 | Val Loss: 1.3344 | LR: 4.92e-05 | Tokens: 2,457,600
+
+Epoch 4 Summary:
+  Average Train Loss: 1.3075
+  Validation Loss: 1.5583
+  Perplexity: 4.75
+
+========================================
+Epoch 5/7
+========================================
+Step  3350 | Train Loss: 1.3051 | Val Loss: 1.3320 | LR: 7.50e-05 | Tokens: 2,662,400
+Step  3400 | Train Loss: 1.3044 | Val Loss: 1.3367 | LR: 1.05e-04 | Tokens: 2,867,200
+Step  3450 | Train Loss: 1.3050 | Val Loss: 1.3375 | LR: 1.39e-04 | Tokens: 3,072,000
+
+Epoch 5 Summary:
+  Average Train Loss: 1.3062
+  Validation Loss: 1.5709
+  Perplexity: 4.81
+
+========================================
+Epoch 6/7
+========================================
+Step  3500 | Train Loss: 1.2875 | Val Loss: 1.3328 | LR: 1.75e-04 | Tokens: 3,276,800
+Step  3550 | Train Loss: 1.2898 | Val Loss: 1.3453 | LR: 2.14e-04 | Tokens: 3,481,600
+Step  3600 | Train Loss: 1.2916 | Val Loss: 1.3508 | LR: 2.53e-04 | Tokens: 3,686,400
+
+Epoch 6 Summary:
+  Average Train Loss: 1.2990
+  Validation Loss: 1.5990
+  Perplexity: 4.95
+
+========================================
+Epoch 7/7
+========================================
+Step  3650 | Train Loss: 1.2688 | Val Loss: 1.3336 | LR: 2.92e-04 | Tokens: 3,891,200
+Step  3700 | Train Loss: 1.2775 | Val Loss: 1.3484 | LR: 3.30e-04 | Tokens: 4,096,000
+Step  3750 | Train Loss: 1.2820 | Val Loss: 1.3555 | LR: 3.66e-04 | Tokens: 4,300,800
+
+Epoch 7 Summary:
+  Average Train Loss: 1.2837
+  Validation Loss: 1.6177
+  Perplexity: 5.04
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3078
+Total tokens seen: 4,501,504
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time that the writer of the _Iliad_ and the _Iliad_ an
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a second of the _Iliad_ and the
+_Iliad_ is not be
+
+Prompt: 'In the beginning'
+Output: In the beginning of the _Odyssey_ was a seconduct that
+the writer 
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 7/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/48895.txt.utf-8
+Saved to: data/48895.txt
+Training on: data/48895.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book48895_20250927_212319
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/48895.txt
+File size: 0.98 MB
+Successfully loaded with utf-8 encoding
+Document length: 976,982 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 2,700
+  - Epoch: 0
+  - Best validation loss: 1.3078
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 879,283 chars
+Val text: 97,699 chars
+Tokenizing text of length 879,283 characters...
+Created 1,960 training windows
+Total tokens: 902,035
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 97,699 characters...
+Created 194 training windows
+Total tokens: 99,340
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 980
+Val batches: 97
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 2700
+Total training steps: 1,715
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  2750 | Train Loss: 1.5750 | Val Loss: 1.4852 | LR: 3.57e-04 | Tokens: 204,800
+Step  2800 | Train Loss: 1.5293 | Val Loss: 1.4617 | LR: 3.78e-04 | Tokens: 409,600
+Step  2850 | Train Loss: 1.5037 | Val Loss: 1.4578 | LR: 3.99e-04 | Tokens: 614,400
+Step  2900 | Train Loss: 1.4875 | Val Loss: 1.4531 | LR: 4.18e-04 | Tokens: 819,200
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4782
+  Validation Loss: 1.6489
+  Perplexity: 5.20
+
+========================================
+Epoch 2/7
+========================================
+Step  2950 | Train Loss: 1.4195 | Val Loss: 1.4273 | LR: 4.35e-04 | Tokens: 1,024,000
+Step  3000 | Train Loss: 1.3882 | Val Loss: 1.4234 | LR: 4.50e-04 | Tokens: 1,228,800
+Step  3050 | Train Loss: 1.3887 | Val Loss: 1.4242 | LR: 4.64e-04 | Tokens: 1,433,600
+Step  3100 | Train Loss: 1.3864 | Val Loss: 1.4125 | LR: 4.75e-04 | Tokens: 1,638,400
+Step  3150 | Train Loss: 1.3863 | Val Loss: 1.4141 | LR: 4.85e-04 | Tokens: 1,843,200
+
+Epoch 2 Summary:
+  Average Train Loss: 1.3844
+  Validation Loss: 1.6186
+  Perplexity: 5.05
+
+========================================
+Epoch 3/7
+========================================
+Step  3200 | Train Loss: 1.3188 | Val Loss: 1.4078 | LR: 4.92e-04 | Tokens: 2,048,000
+Step  3250 | Train Loss: 1.3309 | Val Loss: 1.4031 | LR: 4.97e-04 | Tokens: 2,252,800
+Step  3300 | Train Loss: 1.3301 | Val Loss: 1.3992 | LR: 5.00e-04 | Tokens: 2,457,600
+Step  3350 | Train Loss: 1.3318 | Val Loss: 1.3984 | LR: 5.00e-04 | Tokens: 2,662,400
+Step  3400 | Train Loss: 1.3291 | Val Loss: 1.3898 | LR: 4.98e-04 | Tokens: 2,867,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.3281
+  Validation Loss: 1.6111
+  Perplexity: 5.01
+
+========================================
+Epoch 4/7
+========================================
+Step  3450 | Train Loss: 1.2716 | Val Loss: 1.3836 | LR: 4.93e-04 | Tokens: 3,072,000
+Step  3500 | Train Loss: 1.2737 | Val Loss: 1.3805 | LR: 4.86e-04 | Tokens: 3,276,800
+Step  3550 | Train Loss: 1.2750 | Val Loss: 1.3828 | LR: 4.77e-04 | Tokens: 3,481,600
+Step  3600 | Train Loss: 1.2752 | Val Loss: 1.3742 | LR: 4.66e-04 | Tokens: 3,686,400
+Step  3650 | Train Loss: 1.2738 | Val Loss: 1.3727 | LR: 4.53e-04 | Tokens: 3,891,200
+
+Epoch 4 Summary:
+  Average Train Loss: 1.2729
+  Validation Loss: 1.5934
+  Perplexity: 4.92
+
+========================================
+Epoch 5/7
+========================================
+Step  3700 | Train Loss: 1.2027 | Val Loss: 1.3758 | LR: 4.38e-04 | Tokens: 4,096,000
+Step  3750 | Train Loss: 1.2048 | Val Loss: 1.3656 | LR: 4.21e-04 | Tokens: 4,300,800
+Step  3800 | Train Loss: 1.2073 | Val Loss: 1.3602 | LR: 4.03e-04 | Tokens: 4,505,600
+Step  3850 | Train Loss: 1.2083 | Val Loss: 1.3500 | LR: 3.83e-04 | Tokens: 4,710,400
+Step  3900 | Train Loss: 1.2077 | Val Loss: 1.3523 | LR: 3.61e-04 | Tokens: 4,915,200
+
+Epoch 5 Summary:
+  Average Train Loss: 1.2077
+  Validation Loss: 1.5651
+  Perplexity: 4.78
+
+========================================
+Epoch 6/7
+========================================
+Step  3950 | Train Loss: 1.1248 | Val Loss: 1.3586 | LR: 3.39e-04 | Tokens: 5,120,000
+Step  4000 | Train Loss: 1.1279 | Val Loss: 1.3602 | LR: 3.16e-04 | Tokens: 5,324,800
+Step  4050 | Train Loss: 1.1302 | Val Loss: 1.3609 | LR: 2.92e-04 | Tokens: 5,529,600
+Step  4100 | Train Loss: 1.1276 | Val Loss: 1.3523 | LR: 2.68e-04 | Tokens: 5,734,400
+Step  4150 | Train Loss: 1.1263 | Val Loss: 1.3367 | LR: 2.44e-04 | Tokens: 5,939,200
+
+Epoch 6 Summary:
+  Average Train Loss: 1.1252
+  Validation Loss: 1.5782
+  Perplexity: 4.85
+
+========================================
+Epoch 7/7
+========================================
+Step  4200 | Train Loss: 1.0403 | Val Loss: 1.3664 | LR: 2.20e-04 | Tokens: 6,144,000
+Step  4250 | Train Loss: 1.0365 | Val Loss: 1.3641 | LR: 1.96e-04 | Tokens: 6,348,800
+Step  4300 | Train Loss: 1.0343 | Val Loss: 1.3633 | LR: 1.72e-04 | Tokens: 6,553,600
+Step  4350 | Train Loss: 1.0324 | Val Loss: 1.3617 | LR: 1.50e-04 | Tokens: 6,758,400
+Step  4400 | Train Loss: 1.0303 | Val Loss: 1.3594 | LR: 1.28e-04 | Tokens: 6,963,200
+
+Epoch 7 Summary:
+  Average Train Loss: 1.0296
+  Validation Loss: 1.6012
+  Perplexity: 4.96
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3078
+Total tokens seen: 7,024,640
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time the state
+Of all the Greeks of the Greeks are the
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is there,
+And therefore set the sea, and then the se
+
+Prompt: 'In the beginning'
+Output: In the beginning of the state
+Of their father sails, and the ship 
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 8/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/16338.txt.utf-8
+Saved to: data/16338.txt
+Training on: data/16338.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book16338_20250927_212816
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/16338.txt
+File size: 0.24 MB
+Successfully loaded with utf-8 encoding
+Document length: 248,888 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 2,700
+  - Epoch: 0
+  - Best validation loss: 1.3078
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 223,999 chars
+Val text: 24,889 chars
+Tokenizing text of length 223,999 characters...
+Created 486 training windows
+Total tokens: 224,001
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 24,889 characters...
+Created 48 training windows
+Total tokens: 25,073
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 243
+Val batches: 24
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 2700
+Total training steps: 420
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  2750 | Train Loss: 1.5924 | Val Loss: 1.9828 | LR: 4.09e-04 | Tokens: 204,800
+
+Epoch 1 Summary:
+  Average Train Loss: 1.5742
+  Validation Loss: 2.0602
+  Perplexity: 7.85
+
+========================================
+Epoch 2/7
+========================================
+Step  2800 | Train Loss: 1.3759 | Val Loss: 1.9078 | LR: 2.99e-04 | Tokens: 409,600
+
+Epoch 2 Summary:
+  Average Train Loss: 1.3739
+  Validation Loss: 1.9574
+  Perplexity: 7.08
+
+========================================
+Epoch 3/7
+========================================
+Step  2850 | Train Loss: 1.2643 | Val Loss: 1.8508 | LR: 1.77e-04 | Tokens: 614,400
+
+Epoch 3 Summary:
+  Average Train Loss: 1.2550
+  Validation Loss: 1.9251
+  Perplexity: 6.86
+
+========================================
+Epoch 4/7
+========================================
+Step  2900 | Train Loss: 1.1920 | Val Loss: 1.8133 | LR: 7.32e-05 | Tokens: 819,200
+
+Epoch 4 Summary:
+  Average Train Loss: 1.1769
+  Validation Loss: 1.9284
+  Perplexity: 6.88
+
+========================================
+Epoch 5/7
+========================================
+Step  2950 | Train Loss: 1.1533 | Val Loss: 1.8102 | LR: 1.08e-05 | Tokens: 1,024,000
+Step  3000 | Train Loss: 1.1600 | Val Loss: 1.8102 | LR: 4.80e-06 | Tokens: 1,228,800
+
+Epoch 5 Summary:
+  Average Train Loss: 1.1596
+  Validation Loss: 1.9277
+  Perplexity: 6.87
+
+========================================
+Epoch 6/7
+========================================
+Step  3050 | Train Loss: 1.1608 | Val Loss: 1.8133 | LR: 5.67e-05 | Tokens: 1,433,600
+
+Epoch 6 Summary:
+  Average Train Loss: 1.1601
+  Validation Loss: 1.9290
+  Perplexity: 6.88
+
+========================================
+Epoch 7/7
+========================================
+Step  3100 | Train Loss: 1.1648 | Val Loss: 1.8211 | LR: 1.54e-04 | Tokens: 1,638,400
+
+Epoch 7 Summary:
+  Average Train Loss: 1.1728
+  Validation Loss: 1.9473
+  Perplexity: 7.01
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.3078
+Total tokens seen: 1,720,320
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time of the seat of the seat of the seat of the season
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a man and savage thee are all
+the same of the sea
+
+Prompt: 'In the beginning'
+Output: In the beginning the season of the season of
+the same savage the s
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 9/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/47356.txt.utf-8
+Saved to: data/47356.txt
+Training on: data/47356.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book47356_20250927_212926
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/47356.txt
+File size: 1.04 MB
+Successfully loaded with utf-8 encoding
+Document length: 1,032,394 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 2,700
+  - Epoch: 0
+  - Best validation loss: 1.3078
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 929,154 chars
+Val text: 103,240 chars
+Tokenizing text of length 929,154 characters...
+Created 2,088 training windows
+Total tokens: 960,609
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 103,240 characters...
+Created 206 training windows
+Total tokens: 105,595
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 1,044
+Val batches: 103
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 2700
+Total training steps: 1,827
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  2750 | Train Loss: 1.3176 | Val Loss: 1.2750 | LR: 2.77e-04 | Tokens: 204,800
+  → Saved best model (val_loss: 1.2750)
+Step  2800 | Train Loss: 1.3126 | Val Loss: 1.2477 | LR: 2.99e-04 | Tokens: 409,600
+  → Saved best model (val_loss: 1.2477)
+Step  2850 | Train Loss: 1.3078 | Val Loss: 1.2328 | LR: 3.22e-04 | Tokens: 614,400
+  → Saved best model (val_loss: 1.2328)
+Step  2900 | Train Loss: 1.2985 | Val Loss: 1.2211 | LR: 3.43e-04 | Tokens: 819,200
+  → Saved best model (val_loss: 1.2211)
+Step  2950 | Train Loss: 1.2961 | Val Loss: 1.2227 | LR: 3.64e-04 | Tokens: 1,024,000
+
+Epoch 1 Summary:
+  Average Train Loss: 1.2948
+  Validation Loss: 1.5172
+  Perplexity: 4.56
+
+========================================
+Epoch 2/7
+========================================
+Step  3000 | Train Loss: 1.2367 | Val Loss: 1.2125 | LR: 3.83e-04 | Tokens: 1,228,800
+  → Saved best model (val_loss: 1.2125)
+Step  3050 | Train Loss: 1.2335 | Val Loss: 1.2227 | LR: 4.02e-04 | Tokens: 1,433,600
+Step  3100 | Train Loss: 1.2309 | Val Loss: 1.2070 | LR: 4.19e-04 | Tokens: 1,638,400
+  → Saved best model (val_loss: 1.2070)
+Step  3150 | Train Loss: 1.2294 | Val Loss: 1.1875 | LR: 4.35e-04 | Tokens: 1,843,200
+  → Saved best model (val_loss: 1.1875)
+Step  3200 | Train Loss: 1.2268 | Val Loss: 1.1812 | LR: 4.50e-04 | Tokens: 2,048,000
+  → Saved best model (val_loss: 1.1812)
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2261
+  Validation Loss: 1.5053
+  Perplexity: 4.51
+
+========================================
+Epoch 3/7
+========================================
+Step  3250 | Train Loss: 1.1935 | Val Loss: 1.1805 | LR: 4.63e-04 | Tokens: 2,252,800
+  → Saved best model (val_loss: 1.1805)
+Step  3300 | Train Loss: 1.1877 | Val Loss: 1.1914 | LR: 4.74e-04 | Tokens: 2,457,600
+Step  3350 | Train Loss: 1.1825 | Val Loss: 1.1781 | LR: 4.83e-04 | Tokens: 2,662,400
+  → Saved best model (val_loss: 1.1781)
+Step  3400 | Train Loss: 1.1778 | Val Loss: 1.1648 | LR: 4.90e-04 | Tokens: 2,867,200
+  → Saved best model (val_loss: 1.1648)
+Step  3450 | Train Loss: 1.1777 | Val Loss: 1.1695 | LR: 4.96e-04 | Tokens: 3,072,000
+
+Epoch 3 Summary:
+  Average Train Loss: 1.1762
+  Validation Loss: 1.4813
+  Perplexity: 4.40
+
+========================================
+Epoch 4/7
+========================================
+Step  3500 | Train Loss: 1.1327 | Val Loss: 1.1617 | LR: 4.99e-04 | Tokens: 3,276,800
+  → Saved best model (val_loss: 1.1617)
+Step  3550 | Train Loss: 1.1187 | Val Loss: 1.1547 | LR: 5.00e-04 | Tokens: 3,481,600
+  → Saved best model (val_loss: 1.1547)
+Step  3600 | Train Loss: 1.1206 | Val Loss: 1.1359 | LR: 4.99e-04 | Tokens: 3,686,400
+  → Saved best model (val_loss: 1.1359)
+Step  3650 | Train Loss: 1.1206 | Val Loss: 1.1461 | LR: 4.96e-04 | Tokens: 3,891,200
+Step  3700 | Train Loss: 1.1214 | Val Loss: 1.1430 | LR: 4.91e-04 | Tokens: 4,096,000
+
+Epoch 4 Summary:
+  Average Train Loss: 1.1229
+  Validation Loss: 1.4355
+  Perplexity: 4.20
+
+========================================
+Epoch 5/7
+========================================
+Step  3750 | Train Loss: 1.0651 | Val Loss: 1.1305 | LR: 4.84e-04 | Tokens: 4,300,800
+  → Saved best model (val_loss: 1.1305)
+Step  3800 | Train Loss: 1.0628 | Val Loss: 1.1344 | LR: 4.75e-04 | Tokens: 4,505,600
+Step  3850 | Train Loss: 1.0654 | Val Loss: 1.1289 | LR: 4.65e-04 | Tokens: 4,710,400
+  → Saved best model (val_loss: 1.1289)
+Step  3900 | Train Loss: 1.0664 | Val Loss: 1.1281 | LR: 4.52e-04 | Tokens: 4,915,200
+  → Saved best model (val_loss: 1.1281)
+Step  3950 | Train Loss: 1.0645 | Val Loss: 1.1078 | LR: 4.38e-04 | Tokens: 5,120,000
+  → Saved best model (val_loss: 1.1078)
+Step  4000 | Train Loss: 1.0617 | Val Loss: 1.0973 | LR: 4.22e-04 | Tokens: 5,324,800
+  → Saved best model (val_loss: 1.0973)
+
+Epoch 5 Summary:
+  Average Train Loss: 1.0621
+  Validation Loss: 1.4358
+  Perplexity: 4.20
+
+========================================
+Epoch 6/7
+========================================
+Step  4050 | Train Loss: 0.9907 | Val Loss: 1.1082 | LR: 4.05e-04 | Tokens: 5,529,600
+Step  4100 | Train Loss: 0.9913 | Val Loss: 1.1168 | LR: 3.86e-04 | Tokens: 5,734,400
+Step  4150 | Train Loss: 0.9921 | Val Loss: 1.1020 | LR: 3.67e-04 | Tokens: 5,939,200
+Step  4200 | Train Loss: 0.9916 | Val Loss: 1.1031 | LR: 3.46e-04 | Tokens: 6,144,000
+Step  4250 | Train Loss: 0.9902 | Val Loss: 1.0902 | LR: 3.25e-04 | Tokens: 6,348,800
+  → Saved best model (val_loss: 1.0902)
+
+Epoch 6 Summary:
+  Average Train Loss: 0.9904
+  Validation Loss: 1.4169
+  Perplexity: 4.12
+
+========================================
+Epoch 7/7
+========================================
+Step  4300 | Train Loss: 0.9031 | Val Loss: 1.1062 | LR: 3.03e-04 | Tokens: 6,553,600
+Step  4350 | Train Loss: 0.9035 | Val Loss: 1.0996 | LR: 2.81e-04 | Tokens: 6,758,400
+Step  4400 | Train Loss: 0.9009 | Val Loss: 1.1035 | LR: 2.58e-04 | Tokens: 6,963,200
+Step  4450 | Train Loss: 0.9000 | Val Loss: 1.1012 | LR: 2.35e-04 | Tokens: 7,168,000
+Step  4500 | Train Loss: 0.8985 | Val Loss: 1.0879 | LR: 2.13e-04 | Tokens: 7,372,800
+  → Saved best model (val_loss: 1.0879)
+
+Epoch 7 Summary:
+  Average Train Loss: 0.8969
+  Validation Loss: 1.4407
+  Perplexity: 4.22
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 7,483,392
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time when the Hellenic races are
+to be suspected only.
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is applied to the soil, and that they were the
+prope
+
+Prompt: 'In the beginning'
+Output: In the beginning of the poems are all the traditions of
+the poems 
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 10/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/26275.txt.utf-8
+Saved to: data/26275.txt
+Training on: data/26275.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book26275_20250927_213452
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/26275.txt
+File size: 0.70 MB
+Successfully loaded with utf-8 encoding
+Document length: 718,511 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 646,659 chars
+Val text: 71,852 chars
+Tokenizing text of length 646,659 characters...
+Created 1,406 training windows
+Total tokens: 647,007
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 71,852 characters...
+Created 140 training windows
+Total tokens: 72,046
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 703
+Val batches: 70
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 1,225
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.3183 | Val Loss: 1.3453 | LR: 4.98e-04 | Tokens: 204,800
+Step  4600 | Train Loss: 1.2749 | Val Loss: 1.3258 | LR: 5.00e-04 | Tokens: 409,600
+Step  4650 | Train Loss: 1.2520 | Val Loss: 1.2969 | LR: 4.98e-04 | Tokens: 614,400
+
+Epoch 1 Summary:
+  Average Train Loss: 1.2438
+  Validation Loss: 1.3840
+  Perplexity: 3.99
+
+========================================
+Epoch 2/7
+========================================
+Step  4700 | Train Loss: 1.1205 | Val Loss: 1.2898 | LR: 4.90e-04 | Tokens: 819,200
+Step  4750 | Train Loss: 1.1166 | Val Loss: 1.2781 | LR: 4.78e-04 | Tokens: 1,024,000
+Step  4800 | Train Loss: 1.1123 | Val Loss: 1.2805 | LR: 4.62e-04 | Tokens: 1,228,800
+Step  4850 | Train Loss: 1.1139 | Val Loss: 1.2648 | LR: 4.42e-04 | Tokens: 1,433,600
+
+Epoch 2 Summary:
+  Average Train Loss: 1.1137
+  Validation Loss: 1.3648
+  Perplexity: 3.92
+
+========================================
+Epoch 3/7
+========================================
+Step  4900 | Train Loss: 1.0295 | Val Loss: 1.2680 | LR: 4.17e-04 | Tokens: 1,638,400
+Step  4950 | Train Loss: 1.0296 | Val Loss: 1.2719 | LR: 3.90e-04 | Tokens: 1,843,200
+Step  5000 | Train Loss: 1.0307 | Val Loss: 1.2500 | LR: 3.60e-04 | Tokens: 2,048,000
+
+Epoch 3 Summary:
+  Average Train Loss: 1.0291
+  Validation Loss: 1.3679
+  Perplexity: 3.93
+
+========================================
+Epoch 4/7
+========================================
+Step  5050 | Train Loss: 0.9376 | Val Loss: 1.2633 | LR: 3.27e-04 | Tokens: 2,252,800
+Step  5100 | Train Loss: 0.9402 | Val Loss: 1.2625 | LR: 2.93e-04 | Tokens: 2,457,600
+Step  5150 | Train Loss: 0.9371 | Val Loss: 1.2641 | LR: 2.59e-04 | Tokens: 2,662,400
+Step  5200 | Train Loss: 0.9336 | Val Loss: 1.2617 | LR: 2.24e-04 | Tokens: 2,867,200
+
+Epoch 4 Summary:
+  Average Train Loss: 0.9334
+  Validation Loss: 1.3790
+  Perplexity: 3.97
+
+========================================
+Epoch 5/7
+========================================
+Step  5250 | Train Loss: 0.8346 | Val Loss: 1.2922 | LR: 1.90e-04 | Tokens: 3,072,000
+Step  5300 | Train Loss: 0.8318 | Val Loss: 1.2930 | LR: 1.56e-04 | Tokens: 3,276,800
+Step  5350 | Train Loss: 0.8292 | Val Loss: 1.2937 | LR: 1.25e-04 | Tokens: 3,481,600
+
+Epoch 5 Summary:
+  Average Train Loss: 0.8267
+  Validation Loss: 1.4182
+  Perplexity: 4.13
+
+========================================
+Epoch 6/7
+========================================
+Step  5400 | Train Loss: 0.7570 | Val Loss: 1.3156 | LR: 9.61e-05 | Tokens: 3,686,400
+Step  5450 | Train Loss: 0.7524 | Val Loss: 1.3234 | LR: 7.02e-05 | Tokens: 3,891,200
+Step  5500 | Train Loss: 0.7524 | Val Loss: 1.3266 | LR: 4.77e-05 | Tokens: 4,096,000
+Step  5550 | Train Loss: 0.7517 | Val Loss: 1.3266 | LR: 2.93e-05 | Tokens: 4,300,800
+
+Epoch 6 Summary:
+  Average Train Loss: 0.7517
+  Validation Loss: 1.4479
+  Perplexity: 4.25
+
+========================================
+Epoch 7/7
+========================================
+Step  5600 | Train Loss: 0.7297 | Val Loss: 1.3281 | LR: 1.51e-05 | Tokens: 4,505,600
+Step  5650 | Train Loss: 0.7305 | Val Loss: 1.3281 | LR: 5.46e-06 | Tokens: 4,710,400
+Step  5700 | Train Loss: 0.7310 | Val Loss: 1.3281 | LR: 6.09e-07 | Tokens: 4,915,200
+
+Epoch 7 Summary:
+  Average Train Loss: 0.7307
+  Validation Loss: 1.4507
+  Perplexity: 4.27
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 5,017,600
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time of wonder in the present Book, which is the
+confl
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is to be true, and then she has
+come to the supersen
+
+Prompt: 'In the beginning'
+Output: In the beginning of the poem. Indeed the poet he
+shows a strength 
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 11/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/45896.txt.utf-8
+Saved to: data/45896.txt
+Training on: data/45896.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book45896_20250927_213815
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/45896.txt
+File size: 0.62 MB
+Successfully loaded with utf-8 encoding
+Document length: 634,839 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 571,355 chars
+Val text: 63,484 chars
+Tokenizing text of length 571,355 characters...
+Created 1,245 training windows
+Total tokens: 572,803
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 63,484 characters...
+Created 124 training windows
+Total tokens: 63,680
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 622
+Val batches: 62
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 1,085
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.4888 | Val Loss: 1.7281 | LR: 2.36e-04 | Tokens: 204,800
+Step  4600 | Train Loss: 1.4129 | Val Loss: 1.6445 | LR: 1.97e-04 | Tokens: 409,600
+Step  4650 | Train Loss: 1.3717 | Val Loss: 1.6359 | LR: 1.58e-04 | Tokens: 614,400
+
+Epoch 1 Summary:
+  Average Train Loss: 1.3681
+  Validation Loss: 1.7116
+  Perplexity: 5.54
+
+========================================
+Epoch 2/7
+========================================
+Step  4700 | Train Loss: 1.1963 | Val Loss: 1.6242 | LR: 1.23e-04 | Tokens: 819,200
+Step  4750 | Train Loss: 1.1919 | Val Loss: 1.6234 | LR: 9.02e-05 | Tokens: 1,024,000
+Step  4800 | Train Loss: 1.1865 | Val Loss: 1.6133 | LR: 6.17e-05 | Tokens: 1,228,800
+
+Epoch 2 Summary:
+  Average Train Loss: 1.1862
+  Validation Loss: 1.6811
+  Perplexity: 5.37
+
+========================================
+Epoch 3/7
+========================================
+Step  4850 | Train Loss: 1.1425 | Val Loss: 1.6133 | LR: 3.79e-05 | Tokens: 1,433,600
+Step  4900 | Train Loss: 1.1447 | Val Loss: 1.6156 | LR: 1.96e-05 | Tokens: 1,638,400
+Step  4950 | Train Loss: 1.1448 | Val Loss: 1.6141 | LR: 7.12e-06 | Tokens: 1,843,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.1430
+  Validation Loss: 1.6840
+  Perplexity: 5.39
+
+========================================
+Epoch 4/7
+========================================
+Step  5000 | Train Loss: 1.1265 | Val Loss: 1.6141 | LR: 7.95e-07 | Tokens: 2,048,000
+Step  5050 | Train Loss: 1.1360 | Val Loss: 1.6148 | LR: 7.94e-07 | Tokens: 2,252,800
+Step  5100 | Train Loss: 1.1384 | Val Loss: 1.6141 | LR: 7.12e-06 | Tokens: 2,457,600
+
+Epoch 4 Summary:
+  Average Train Loss: 1.1385
+  Validation Loss: 1.6842
+  Perplexity: 5.39
+
+========================================
+Epoch 5/7
+========================================
+Step  5150 | Train Loss: 1.1465 | Val Loss: 1.6148 | LR: 1.96e-05 | Tokens: 2,662,400
+Step  5200 | Train Loss: 1.1410 | Val Loss: 1.6148 | LR: 3.79e-05 | Tokens: 2,867,200
+Step  5250 | Train Loss: 1.1403 | Val Loss: 1.6133 | LR: 6.17e-05 | Tokens: 3,072,000
+
+Epoch 5 Summary:
+  Average Train Loss: 1.1389
+  Validation Loss: 1.6857
+  Perplexity: 5.40
+
+========================================
+Epoch 6/7
+========================================
+Step  5300 | Train Loss: 1.1294 | Val Loss: 1.6219 | LR: 9.02e-05 | Tokens: 3,276,800
+Step  5350 | Train Loss: 1.1336 | Val Loss: 1.6250 | LR: 1.23e-04 | Tokens: 3,481,600
+Step  5400 | Train Loss: 1.1388 | Val Loss: 1.6344 | LR: 1.58e-04 | Tokens: 3,686,400
+
+Epoch 6 Summary:
+  Average Train Loss: 1.1412
+  Validation Loss: 1.6943
+  Perplexity: 5.44
+
+========================================
+Epoch 7/7
+========================================
+Step  5450 | Train Loss: 1.1074 | Val Loss: 1.6305 | LR: 1.97e-04 | Tokens: 3,891,200
+Step  5500 | Train Loss: 1.1212 | Val Loss: 1.6555 | LR: 2.36e-04 | Tokens: 4,096,000
+Step  5550 | Train Loss: 1.1288 | Val Loss: 1.6422 | LR: 2.76e-04 | Tokens: 4,300,800
+
+Epoch 7 Summary:
+  Average Train Loss: 1.1338
+  Validation Loss: 1.7572
+  Perplexity: 5.80
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 4,444,160
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time of the seventh century to the seventh century to 
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is not the seals of the _Iliad_ and
+_Odyssey_ and th
+
+Prompt: 'In the beginning'
+Output: In the beginning of the seventh century to the seventh
+centuries o
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 12/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/12651.txt.utf-8
+Saved to: data/12651.txt
+Training on: data/12651.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book12651_20250927_214117
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/12651.txt
+File size: 0.52 MB
+Successfully loaded with utf-8 encoding
+Document length: 532,882 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 479,593 chars
+Val text: 53,289 chars
+Tokenizing text of length 479,593 characters...
+Created 1,042 training windows
+Total tokens: 479,595
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 53,289 characters...
+Created 104 training windows
+Total tokens: 53,473
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 521
+Val batches: 52
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 910
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.5010 | Val Loss: 1.2437 | LR: 2.45e-04 | Tokens: 204,800
+Step  4600 | Train Loss: 1.4252 | Val Loss: 1.2234 | LR: 2.93e-04 | Tokens: 409,600
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4029
+  Validation Loss: 1.5398
+  Perplexity: 4.66
+
+========================================
+Epoch 2/7
+========================================
+Step  4650 | Train Loss: 1.2318 | Val Loss: 1.2109 | LR: 3.40e-04 | Tokens: 614,400
+Step  4700 | Train Loss: 1.2319 | Val Loss: 1.2180 | LR: 3.83e-04 | Tokens: 819,200
+Step  4750 | Train Loss: 1.2376 | Val Loss: 1.2195 | LR: 4.22e-04 | Tokens: 1,024,000
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2374
+  Validation Loss: 1.5374
+  Perplexity: 4.65
+
+========================================
+Epoch 3/7
+========================================
+Step  4800 | Train Loss: 1.1347 | Val Loss: 1.2188 | LR: 4.53e-04 | Tokens: 1,228,800
+Step  4850 | Train Loss: 1.1548 | Val Loss: 1.2117 | LR: 4.78e-04 | Tokens: 1,433,600
+
+Epoch 3 Summary:
+  Average Train Loss: 1.1636
+  Validation Loss: 1.5542
+  Perplexity: 4.73
+
+========================================
+Epoch 4/7
+========================================
+Step  4900 | Train Loss: 1.0789 | Val Loss: 1.2344 | LR: 4.93e-04 | Tokens: 1,638,400
+Step  4950 | Train Loss: 1.0821 | Val Loss: 1.2312 | LR: 5.00e-04 | Tokens: 1,843,200
+Step  5000 | Train Loss: 1.0889 | Val Loss: 1.2266 | LR: 4.97e-04 | Tokens: 2,048,000
+
+Epoch 4 Summary:
+  Average Train Loss: 1.0917
+  Validation Loss: 1.5736
+  Perplexity: 4.82
+
+========================================
+Epoch 5/7
+========================================
+Step  5050 | Train Loss: 0.9794 | Val Loss: 1.2539 | LR: 4.85e-04 | Tokens: 2,252,800
+Step  5100 | Train Loss: 0.9923 | Val Loss: 1.2445 | LR: 4.64e-04 | Tokens: 2,457,600
+Step  5150 | Train Loss: 1.0023 | Val Loss: 1.2297 | LR: 4.35e-04 | Tokens: 2,662,400
+
+Epoch 5 Summary:
+  Average Train Loss: 1.0023
+  Validation Loss: 1.6103
+  Perplexity: 5.00
+
+========================================
+Epoch 6/7
+========================================
+Step  5200 | Train Loss: 0.8734 | Val Loss: 1.2773 | LR: 3.99e-04 | Tokens: 2,867,200
+Step  5250 | Train Loss: 0.8819 | Val Loss: 1.2883 | LR: 3.58e-04 | Tokens: 3,072,000
+
+Epoch 6 Summary:
+  Average Train Loss: 0.8820
+  Validation Loss: 1.6734
+  Perplexity: 5.33
+
+========================================
+Epoch 7/7
+========================================
+Step  5300 | Train Loss: 0.7335 | Val Loss: 1.3258 | LR: 3.12e-04 | Tokens: 3,276,800
+Step  5350 | Train Loss: 0.7286 | Val Loss: 1.3500 | LR: 2.65e-04 | Tokens: 3,481,600
+Step  5400 | Train Loss: 0.7264 | Val Loss: 1.3484 | LR: 2.16e-04 | Tokens: 3,686,400
+
+Epoch 7 Summary:
+  Average Train Loss: 0.7250
+  Validation Loss: 1.7749
+  Perplexity: 5.90
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 3,727,360
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time and went a word in the last two
+figures, and the 
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is that of the theory
+of the individual sense in the
+
+Prompt: 'In the beginning'
+Output: In the beginning of the Odyssey is the same thing it in the
+tent o
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 13/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/65461.txt.utf-8
+Saved to: data/65461.txt
+Training on: data/65461.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book65461_20250927_214346
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/65461.txt
+File size: 0.33 MB
+Successfully loaded with utf-8 encoding
+Document length: 334,143 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 300,728 chars
+Val text: 33,415 chars
+Tokenizing text of length 300,728 characters...
+Created 671 training windows
+Total tokens: 308,916
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 33,415 characters...
+Created 66 training windows
+Total tokens: 34,194
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 335
+Val batches: 33
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 581
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.7041 | Val Loss: 1.9375 | LR: 7.41e-05 | Tokens: 204,800
+
+Epoch 1 Summary:
+  Average Train Loss: 1.6233
+  Validation Loss: 1.8210
+  Perplexity: 6.18
+
+========================================
+Epoch 2/7
+========================================
+Step  4600 | Train Loss: 1.3697 | Val Loss: 1.6422 | LR: 1.40e-04 | Tokens: 409,600
+Step  4650 | Train Loss: 1.2932 | Val Loss: 1.5195 | LR: 2.18e-04 | Tokens: 614,400
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2842
+  Validation Loss: 1.6948
+  Perplexity: 5.45
+
+========================================
+Epoch 3/7
+========================================
+Step  4700 | Train Loss: 1.1293 | Val Loss: 1.4555 | LR: 2.99e-04 | Tokens: 819,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.1234
+  Validation Loss: 1.6776
+  Perplexity: 5.35
+
+========================================
+Epoch 4/7
+========================================
+Step  4750 | Train Loss: 1.0645 | Val Loss: 1.4211 | LR: 3.75e-04 | Tokens: 1,024,000
+Step  4800 | Train Loss: 1.0210 | Val Loss: 1.4430 | LR: 4.38e-04 | Tokens: 1,228,800
+
+Epoch 4 Summary:
+  Average Train Loss: 1.0288
+  Validation Loss: 1.7005
+  Perplexity: 5.48
+
+========================================
+Epoch 5/7
+========================================
+Step  4850 | Train Loss: 0.9319 | Val Loss: 1.4234 | LR: 4.81e-04 | Tokens: 1,433,600
+Step  4900 | Train Loss: 0.9378 | Val Loss: 1.4547 | LR: 4.99e-04 | Tokens: 1,638,400
+
+Epoch 5 Summary:
+  Average Train Loss: 0.9416
+  Validation Loss: 1.7566
+  Perplexity: 5.79
+
+========================================
+Epoch 6/7
+========================================
+Step  4950 | Train Loss: 0.8272 | Val Loss: 1.5055 | LR: 4.92e-04 | Tokens: 1,843,200
+
+Epoch 6 Summary:
+  Average Train Loss: 0.8458
+  Validation Loss: 1.8004
+  Perplexity: 6.05
+
+========================================
+Epoch 7/7
+========================================
+Step  5000 | Train Loss: 0.7168 | Val Loss: 1.5008 | LR: 4.58e-04 | Tokens: 2,048,000
+Step  5050 | Train Loss: 0.7187 | Val Loss: 1.5656 | LR: 4.03e-04 | Tokens: 2,252,800
+
+Epoch 7 Summary:
+  Average Train Loss: 0.7205
+  Validation Loss: 1.8994
+  Perplexity: 6.68
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 2,379,776
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time. The last decades the
+present work is a parallel 
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is that one who desires to the
+extension of the thea
+
+Prompt: 'In the beginning'
+Output: In the beginning of the theatre.
+
+The parting is a female figure i
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 14/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/49858.txt.utf-8
+Saved to: data/49858.txt
+Training on: data/49858.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book49858_20250927_214523
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/49858.txt
+File size: 0.96 MB
+Successfully loaded with utf-8 encoding
+Document length: 965,251 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 868,725 chars
+Val text: 96,526 chars
+Tokenizing text of length 868,725 characters...
+Created 1,925 training windows
+Total tokens: 885,993
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 96,526 characters...
+Created 192 training windows
+Total tokens: 98,579
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 962
+Val batches: 96
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 1,680
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.2769 | Val Loss: 1.3016 | LR: 4.04e-05 | Tokens: 204,800
+Step  4600 | Train Loss: 1.2577 | Val Loss: 1.2891 | LR: 2.79e-05 | Tokens: 409,600
+Step  4650 | Train Loss: 1.2524 | Val Loss: 1.2859 | LR: 1.76e-05 | Tokens: 614,400
+Step  4700 | Train Loss: 1.2475 | Val Loss: 1.2844 | LR: 9.62e-06 | Tokens: 819,200
+
+Epoch 1 Summary:
+  Average Train Loss: 1.2444
+  Validation Loss: 1.4542
+  Perplexity: 4.28
+
+========================================
+Epoch 2/7
+========================================
+Step  4750 | Train Loss: 1.1958 | Val Loss: 1.2820 | LR: 3.99e-06 | Tokens: 1,024,000
+Step  4800 | Train Loss: 1.2206 | Val Loss: 1.2820 | LR: 7.90e-07 | Tokens: 1,228,800
+Step  4850 | Train Loss: 1.2206 | Val Loss: 1.2820 | LR: 4.94e-08 | Tokens: 1,433,600
+Step  4900 | Train Loss: 1.2200 | Val Loss: 1.2820 | LR: 1.78e-06 | Tokens: 1,638,400
+Step  4950 | Train Loss: 1.2215 | Val Loss: 1.2820 | LR: 5.96e-06 | Tokens: 1,843,200
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2231
+  Validation Loss: 1.4533
+  Perplexity: 4.28
+
+========================================
+Epoch 3/7
+========================================
+Step  5000 | Train Loss: 1.2065 | Val Loss: 1.2820 | LR: 1.25e-05 | Tokens: 2,048,000
+Step  5050 | Train Loss: 1.2175 | Val Loss: 1.2812 | LR: 2.15e-05 | Tokens: 2,252,800
+Step  5100 | Train Loss: 1.2172 | Val Loss: 1.2750 | LR: 3.27e-05 | Tokens: 2,457,600
+Step  5150 | Train Loss: 1.2147 | Val Loss: 1.2688 | LR: 4.60e-05 | Tokens: 2,662,400
+Step  5200 | Train Loss: 1.2121 | Val Loss: 1.2547 | LR: 6.14e-05 | Tokens: 2,867,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.2103
+  Validation Loss: 1.4181
+  Perplexity: 4.13
+
+========================================
+Epoch 4/7
+========================================
+Step  5250 | Train Loss: 1.1545 | Val Loss: 1.2328 | LR: 7.86e-05 | Tokens: 3,072,000
+Step  5300 | Train Loss: 1.1529 | Val Loss: 1.2195 | LR: 9.75e-05 | Tokens: 3,276,800
+Step  5350 | Train Loss: 1.1533 | Val Loss: 1.2141 | LR: 1.18e-04 | Tokens: 3,481,600
+Step  5400 | Train Loss: 1.1505 | Val Loss: 1.2039 | LR: 1.40e-04 | Tokens: 3,686,400
+Step  5450 | Train Loss: 1.1435 | Val Loss: 1.2008 | LR: 1.62e-04 | Tokens: 3,891,200
+
+Epoch 4 Summary:
+  Average Train Loss: 1.1444
+  Validation Loss: 1.3691
+  Perplexity: 3.93
+
+========================================
+Epoch 5/7
+========================================
+Step  5500 | Train Loss: 1.0747 | Val Loss: 1.1953 | LR: 1.86e-04 | Tokens: 4,096,000
+Step  5550 | Train Loss: 1.0829 | Val Loss: 1.1922 | LR: 2.10e-04 | Tokens: 4,300,800
+Step  5600 | Train Loss: 1.0914 | Val Loss: 1.1922 | LR: 2.35e-04 | Tokens: 4,505,600
+Step  5650 | Train Loss: 1.0898 | Val Loss: 1.1961 | LR: 2.60e-04 | Tokens: 4,710,400
+Step  5700 | Train Loss: 1.0884 | Val Loss: 1.1914 | LR: 2.85e-04 | Tokens: 4,915,200
+
+Epoch 5 Summary:
+  Average Train Loss: 1.0884
+  Validation Loss: 1.3721
+  Perplexity: 3.94
+
+========================================
+Epoch 6/7
+========================================
+Step  5750 | Train Loss: 1.0365 | Val Loss: 1.1953 | LR: 3.09e-04 | Tokens: 5,120,000
+Step  5800 | Train Loss: 1.0517 | Val Loss: 1.2023 | LR: 3.33e-04 | Tokens: 5,324,800
+Step  5850 | Train Loss: 1.0504 | Val Loss: 1.1984 | LR: 3.56e-04 | Tokens: 5,529,600
+Step  5900 | Train Loss: 1.0553 | Val Loss: 1.1992 | LR: 3.78e-04 | Tokens: 5,734,400
+
+Epoch 6 Summary:
+  Average Train Loss: 1.0576
+  Validation Loss: 1.3867
+  Perplexity: 4.00
+
+========================================
+Epoch 7/7
+========================================
+Step  5950 | Train Loss: 0.9748 | Val Loss: 1.1945 | LR: 3.99e-04 | Tokens: 5,939,200
+Step  6000 | Train Loss: 1.0067 | Val Loss: 1.2094 | LR: 4.18e-04 | Tokens: 6,144,000
+Step  6050 | Train Loss: 1.0172 | Val Loss: 1.2164 | LR: 4.35e-04 | Tokens: 6,348,800
+Step  6100 | Train Loss: 1.0243 | Val Loss: 1.2266 | LR: 4.51e-04 | Tokens: 6,553,600
+Step  6150 | Train Loss: 1.0280 | Val Loss: 1.2273 | LR: 4.65e-04 | Tokens: 6,758,400
+
+Epoch 7 Summary:
+  Average Train Loss: 1.0290
+  Validation Loss: 1.4041
+  Perplexity: 4.07
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 6,881,280
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time of the poems in the Odyssey, and the
+other hand, 
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a substantive of the poems of the
+principle of th
+
+Prompt: 'In the beginning'
+Output: In the beginning of the poems in the poems of the Olympian
+system 
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 15/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/65381.txt.utf-8
+Saved to: data/65381.txt
+Training on: data/65381.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book65381_20250927_215018
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/65381.txt
+File size: 0.42 MB
+Successfully loaded with utf-8 encoding
+Document length: 419,745 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 377,770 chars
+Val text: 41,975 chars
+Tokenizing text of length 377,770 characters...
+Created 843 training windows
+Total tokens: 388,190
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 41,975 characters...
+Created 83 training windows
+Total tokens: 42,667
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 421
+Val batches: 42
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 735
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.6786 | Val Loss: 1.5227 | LR: 7.64e-08 | Tokens: 204,800
+Step  4600 | Train Loss: 1.6879 | Val Loss: 1.5203 | LR: 9.20e-06 | Tokens: 409,600
+
+Epoch 1 Summary:
+  Average Train Loss: 1.6914
+  Validation Loss: 1.8118
+  Perplexity: 6.12
+
+========================================
+Epoch 2/7
+========================================
+Step  4650 | Train Loss: 1.6729 | Val Loss: 1.4758 | LR: 3.30e-05 | Tokens: 614,400
+Step  4700 | Train Loss: 1.6090 | Val Loss: 1.3891 | LR: 7.00e-05 | Tokens: 819,200
+
+Epoch 2 Summary:
+  Average Train Loss: 1.6011
+  Validation Loss: 1.6512
+  Perplexity: 5.21
+
+========================================
+Epoch 3/7
+========================================
+Step  4750 | Train Loss: 1.4170 | Val Loss: 1.3156 | LR: 1.18e-04 | Tokens: 1,024,000
+Step  4800 | Train Loss: 1.3788 | Val Loss: 1.2734 | LR: 1.74e-04 | Tokens: 1,228,800
+
+Epoch 3 Summary:
+  Average Train Loss: 1.3688
+  Validation Loss: 1.5357
+  Perplexity: 4.64
+
+========================================
+Epoch 4/7
+========================================
+Step  4850 | Train Loss: 1.2425 | Val Loss: 1.2508 | LR: 2.35e-04 | Tokens: 1,433,600
+Step  4900 | Train Loss: 1.2331 | Val Loss: 1.2469 | LR: 2.96e-04 | Tokens: 1,638,400
+
+Epoch 4 Summary:
+  Average Train Loss: 1.2341
+  Validation Loss: 1.5138
+  Perplexity: 4.54
+
+========================================
+Epoch 5/7
+========================================
+Step  4950 | Train Loss: 1.1384 | Val Loss: 1.2563 | LR: 3.55e-04 | Tokens: 1,843,200
+Step  5000 | Train Loss: 1.1459 | Val Loss: 1.2539 | LR: 4.07e-04 | Tokens: 2,048,000
+
+Epoch 5 Summary:
+  Average Train Loss: 1.1500
+  Validation Loss: 1.5448
+  Perplexity: 4.69
+
+========================================
+Epoch 6/7
+========================================
+Step  5050 | Train Loss: 1.0486 | Val Loss: 1.2672 | LR: 4.50e-04 | Tokens: 2,252,800
+Step  5100 | Train Loss: 1.0653 | Val Loss: 1.2758 | LR: 4.81e-04 | Tokens: 2,457,600
+
+Epoch 6 Summary:
+  Average Train Loss: 1.0763
+  Validation Loss: 1.5831
+  Perplexity: 4.87
+
+========================================
+Epoch 7/7
+========================================
+Step  5150 | Train Loss: 0.9654 | Val Loss: 1.3039 | LR: 4.97e-04 | Tokens: 2,662,400
+Step  5200 | Train Loss: 0.9818 | Val Loss: 1.2945 | LR: 4.99e-04 | Tokens: 2,867,200
+
+Epoch 7 Summary:
+  Average Train Loss: 0.9919
+  Validation Loss: 1.6057
+  Perplexity: 4.98
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 3,010,560
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time, and the same thing a starting out the
+same type 
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is
+possible to the language of the same thought, and
+
+Prompt: 'In the beginning'
+Output: In the beginning of the
+language of the same thought and a most th
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 16/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/13725.txt.utf-8
+Saved to: data/13725.txt
+Training on: data/13725.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book13725_20250927_215220
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/13725.txt
+File size: 0.38 MB
+Successfully loaded with utf-8 encoding
+Document length: 391,116 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 352,004 chars
+Val text: 39,112 chars
+Tokenizing text of length 352,004 characters...
+Created 765 training windows
+Total tokens: 352,194
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 39,112 characters...
+Created 76 training windows
+Total tokens: 39,315
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 382
+Val batches: 38
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 665
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.4757 | Val Loss: 1.3547 | LR: 4.81e-04 | Tokens: 204,800
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4030
+  Validation Loss: 2.0070
+  Perplexity: 7.44
+
+========================================
+Epoch 2/7
+========================================
+Step  4600 | Train Loss: 1.1922 | Val Loss: 1.3148 | LR: 4.98e-04 | Tokens: 409,600
+Step  4650 | Train Loss: 1.2045 | Val Loss: 1.3039 | LR: 4.97e-04 | Tokens: 614,400
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2072
+  Validation Loss: 2.0127
+  Perplexity: 7.48
+
+========================================
+Epoch 3/7
+========================================
+Step  4700 | Train Loss: 1.0699 | Val Loss: 1.2891 | LR: 4.76e-04 | Tokens: 819,200
+Step  4750 | Train Loss: 1.0952 | Val Loss: 1.2922 | LR: 4.37e-04 | Tokens: 1,024,000
+
+Epoch 3 Summary:
+  Average Train Loss: 1.0994
+  Validation Loss: 2.0541
+  Perplexity: 7.80
+
+========================================
+Epoch 4/7
+========================================
+Step  4800 | Train Loss: 0.9865 | Val Loss: 1.2812 | LR: 3.85e-04 | Tokens: 1,228,800
+Step  4850 | Train Loss: 0.9830 | Val Loss: 1.2734 | LR: 3.22e-04 | Tokens: 1,433,600
+
+Epoch 4 Summary:
+  Average Train Loss: 0.9803
+  Validation Loss: 2.0779
+  Perplexity: 7.99
+
+========================================
+Epoch 5/7
+========================================
+Step  4900 | Train Loss: 0.8522 | Val Loss: 1.3055 | LR: 2.53e-04 | Tokens: 1,638,400
+Step  4950 | Train Loss: 0.8465 | Val Loss: 1.3000 | LR: 1.85e-04 | Tokens: 1,843,200
+
+Epoch 5 Summary:
+  Average Train Loss: 0.8441
+  Validation Loss: 2.1285
+  Perplexity: 8.40
+
+========================================
+Epoch 6/7
+========================================
+Step  5000 | Train Loss: 0.7333 | Val Loss: 1.3414 | LR: 1.21e-04 | Tokens: 2,048,000
+Step  5050 | Train Loss: 0.7309 | Val Loss: 1.3453 | LR: 6.72e-05 | Tokens: 2,252,800
+
+Epoch 6 Summary:
+  Average Train Loss: 0.7310
+  Validation Loss: 2.1815
+  Perplexity: 8.86
+
+========================================
+Epoch 7/7
+========================================
+Step  5100 | Train Loss: 0.6942 | Val Loss: 1.3586 | LR: 2.74e-05 | Tokens: 2,457,600
+Step  5150 | Train Loss: 0.6895 | Val Loss: 1.3617 | LR: 4.72e-06 | Tokens: 2,662,400
+
+Epoch 7 Summary:
+  Average Train Loss: 0.6894
+  Validation Loss: 2.1937
+  Perplexity: 8.97
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 2,723,840
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time he was a supper and spear, and the
+suitors return
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is a ship wrong to his own house."
+
+"Thou sayest wel
+
+Prompt: 'In the beginning'
+Output: In the beginning to the sea, and the whole company
+were asked, and
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 17/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/53646.txt.utf-8
+Saved to: data/53646.txt
+Training on: data/53646.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book53646_20250927_215410
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/53646.txt
+File size: 0.31 MB
+Successfully loaded with utf-8 encoding
+Document length: 317,128 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 285,415 chars
+Val text: 31,713 chars
+Tokenizing text of length 285,415 characters...
+Created 635 training windows
+Total tokens: 292,383
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 31,713 characters...
+Created 62 training windows
+Total tokens: 31,929
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 317
+Val batches: 31
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 553
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.4698 | Val Loss: 1.3555 | LR: 4.62e-04 | Tokens: 204,800
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4261
+  Validation Loss: 1.6260
+  Perplexity: 5.08
+
+========================================
+Epoch 2/7
+========================================
+Step  4600 | Train Loss: 1.2050 | Val Loss: 1.3547 | LR: 4.95e-04 | Tokens: 409,600
+Step  4650 | Train Loss: 1.2158 | Val Loss: 1.3414 | LR: 4.98e-04 | Tokens: 614,400
+
+Epoch 2 Summary:
+  Average Train Loss: 1.2187
+  Validation Loss: 1.6436
+  Perplexity: 5.17
+
+========================================
+Epoch 3/7
+========================================
+Step  4700 | Train Loss: 1.0877 | Val Loss: 1.3664 | LR: 4.71e-04 | Tokens: 819,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.0922
+  Validation Loss: 1.6731
+  Perplexity: 5.33
+
+========================================
+Epoch 4/7
+========================================
+Step  4750 | Train Loss: 0.9367 | Val Loss: 1.3813 | LR: 4.18e-04 | Tokens: 1,024,000
+Step  4800 | Train Loss: 0.9468 | Val Loss: 1.3961 | LR: 3.45e-04 | Tokens: 1,228,800
+
+Epoch 4 Summary:
+  Average Train Loss: 0.9496
+  Validation Loss: 1.7046
+  Perplexity: 5.50
+
+========================================
+Epoch 5/7
+========================================
+Step  4850 | Train Loss: 0.7952 | Val Loss: 1.4578 | LR: 2.61e-04 | Tokens: 1,433,600
+
+Epoch 5 Summary:
+  Average Train Loss: 0.7902
+  Validation Loss: 1.8065
+  Perplexity: 6.09
+
+========================================
+Epoch 6/7
+========================================
+Step  4900 | Train Loss: 0.6627 | Val Loss: 1.4820 | LR: 1.76e-04 | Tokens: 1,638,400
+Step  4950 | Train Loss: 0.6570 | Val Loss: 1.5234 | LR: 9.90e-05 | Tokens: 1,843,200
+
+Epoch 6 Summary:
+  Average Train Loss: 0.6516
+  Validation Loss: 1.8876
+  Perplexity: 6.60
+
+========================================
+Epoch 7/7
+========================================
+Step  5000 | Train Loss: 0.5933 | Val Loss: 1.5539 | LR: 4.03e-05 | Tokens: 2,048,000
+Step  5050 | Train Loss: 0.5896 | Val Loss: 1.5547 | LR: 6.52e-06 | Tokens: 2,252,800
+
+Epoch 7 Summary:
+  Average Train Loss: 0.5898
+  Validation Loss: 1.9113
+  Perplexity: 6.76
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 2,265,088
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time when he sees round it is to be regarded as the
+ex
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is the same as the extreme magic of
+communication by
+
+Prompt: 'In the beginning'
+Output: In the beginning of the
+principles of the primitive particular con
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+
+============================================================
+Processing book 18/18
+============================================================
+Downloading: https://www.gutenberg.org/ebooks/24856.txt.utf-8
+Saved to: data/24856.txt
+Training on: data/24856.txt
+
+============================================================
+Perseid Document Training Pipeline
+============================================================
+Experiment: perseid_288m_book24856_20250927_215546
+Output directory: ./models/perseid_288m_multibook/
+
+========================================
+Step 1: Loading Document
+========================================
+
+Loading document: data/24856.txt
+File size: 0.27 MB
+Successfully loaded with utf-8 encoding
+Document length: 280,879 characters
+
+========================================
+Step 2: Setting Up Model
+========================================
+
+Initializing ByteTokenizer...
+  ✓ Vocabulary size: 259
+  ✓ Special tokens: PAD=256, EOS=257, MASKUNK=258
+
+============================================================
+Resuming Training from Checkpoint
+============================================================
+Loading from: models/perseid_288m_multibook/checkpoint_best.pth
+  ✓ Loaded model configuration from checkpoint
+  ✓ Loaded model weights
+
+Resuming from:
+  - Step: 4,500
+  - Epoch: 0
+  - Best validation loss: 1.0879
+  - Tokens seen: 0
+
+Model Statistics:
+  Total parameters: 71,812,480
+  Trainable parameters: 71,812,480
+  Model size (bfloat16): 0.144 GB
+  Device: cuda
+
+========================================
+Step 3: Preparing Data
+========================================
+
+Creating data loaders with 90% train / 10% validation split
+Train text: 252,791 chars
+Val text: 28,088 chars
+Tokenizing text of length 252,791 characters...
+Created 549 training windows
+Total tokens: 253,030
+Window size: 512, Stride: 460
+Effective overlap: 10.2%
+Tokenizing text of length 28,088 characters...
+Created 55 training windows
+Total tokens: 28,329
+Window size: 512, Stride: 512
+Effective overlap: 0.0%
+
+Train batches: 274
+Val batches: 28
+
+========================================
+Step 4: Training Model
+========================================
+
+============================================================
+Starting Training
+============================================================
+  ✓ Restored optimizer state
+  ✓ Restored scheduler state
+
+Starting from epoch 1, step 4500
+Total training steps: 476
+Warmup steps: 100
+Effective batch size: 8
+
+========================================
+Epoch 1/7
+========================================
+Step  4550 | Train Loss: 1.4542 | Val Loss: 1.7266 | LR: 4.67e-04 | Tokens: 204,800
+
+Epoch 1 Summary:
+  Average Train Loss: 1.4120
+  Validation Loss: 1.8691
+  Perplexity: 6.48
+
+========================================
+Epoch 2/7
+========================================
+Step  4600 | Train Loss: 1.1795 | Val Loss: 1.6023 | LR: 4.99e-04 | Tokens: 409,600
+
+Epoch 2 Summary:
+  Average Train Loss: 1.1795
+  Validation Loss: 1.8845
+  Perplexity: 6.58
+
+========================================
+Epoch 3/7
+========================================
+Step  4650 | Train Loss: 1.0497 | Val Loss: 1.6469 | LR: 4.88e-04 | Tokens: 614,400
+Step  4700 | Train Loss: 1.0627 | Val Loss: 1.6133 | LR: 4.35e-04 | Tokens: 819,200
+
+Epoch 3 Summary:
+  Average Train Loss: 1.0629
+  Validation Loss: 1.9146
+  Perplexity: 6.78
+
+========================================
+Epoch 4/7
+========================================
+Step  4750 | Train Loss: 0.9399 | Val Loss: 1.6648 | LR: 3.51e-04 | Tokens: 1,024,000
+
+Epoch 4 Summary:
+  Average Train Loss: 0.9373
+  Validation Loss: 1.9688
+  Perplexity: 7.16
+
+========================================
+Epoch 5/7
+========================================
+Step  4800 | Train Loss: 0.7951 | Val Loss: 1.6953 | LR: 2.50e-04 | Tokens: 1,228,800
+
+Epoch 5 Summary:
+  Average Train Loss: 0.7924
+  Validation Loss: 2.0608
+  Perplexity: 7.85
+
+========================================
+Epoch 6/7
+========================================
+Step  4850 | Train Loss: 0.6869 | Val Loss: 1.7336 | LR: 1.49e-04 | Tokens: 1,433,600
+Step  4900 | Train Loss: 0.6719 | Val Loss: 1.7570 | LR: 6.46e-05 | Tokens: 1,638,400
+
+Epoch 6 Summary:
+  Average Train Loss: 0.6713
+  Validation Loss: 2.1147
+  Perplexity: 8.29
+
+========================================
+Epoch 7/7
+========================================
+Step  4950 | Train Loss: 0.6232 | Val Loss: 1.7703 | LR: 1.25e-05 | Tokens: 1,843,200
+
+Epoch 7 Summary:
+  Average Train Loss: 0.6244
+  Validation Loss: 2.1275
+  Perplexity: 8.39
+
+============================================================
+Training Complete!
+============================================================
+Best validation loss: 1.0879
+Total tokens seen: 1,949,696
+
+========================================
+Step 5: Saving Results
+========================================
+
+Saving training results to models/perseid_288m_multibook
+  ✓ Model weights saved to models/perseid_288m_multibook/perseid_model_final.pth
+  ✓ Configuration saved to models/perseid_288m_multibook/model_config.json
+  ✓ Training history saved to models/perseid_288m_multibook/training_history.json
+  ✓ Training curves saved to models/perseid_288m_multibook/training_curves.png
+  ✓ Training config saved to models/perseid_288m_multibook/training_config.json
+
+All outputs saved to: models/perseid_288m_multibook
+
+============================================================
+Training Pipeline Complete!
+
+========================================
+Step 5.5: Sample Generation
+========================================
+Prompt: 'Once upon a time'
+Output: Once upon a time. But if it we were out of
+my companions and washi
+
+Prompt: 'The meaning of life is'
+Output: The meaning of life is to the ship, and the suitors
+were thrown a short 
+
+Prompt: 'In the beginning'
+Output: In the beginning of the cave. They stood near me and the ship, and
+
+============================================================
+Model and results saved to: models/perseid_288m_multibook
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py 
+Found...
+['./models/perseid_288m_30235/perseid_model_final.pth', './models/perseid_288m_multibook/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_30235/perseid_model_final.pth', './models/perseid_288m_multibook/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_30235/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_multibook/perseid_model_final.pth
+Enter the Index...
+1
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_multibook/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time. At nood me thought
+most fine and had been snowed by the hand the river was slain. They
+were covered about from the ships and flesh their hearts to depart
+and said: "Thou art a wise man, what is the soul of the ships with
+thee things."
+
+Then Ithacans spoken and that I was the soul of a feast to sle
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is often pleases.
+I will never take a black into the bow and silent stories of the
+gods when he had to come to the chest, and the midst of the gods to
+see the light to do alone.
+
+"I am not then said to the sea and send the men who had gone and said:
+"Shame on thee, standing this voice could not be ang
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning one seated
+there and the waves which was so father and made his son and through
+the stone by the master's palace. But the wind was with the bow, and
+the other servants who have no sacred land."
+
+The suitors had spoken to the food and wept and compable to eat and
+ran who thou dost seen his way home.
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired
+from the last with the great grape and struck the word. When they
+came returned, and she threw it without the sacrifice to the mouth.
+The stories of the ship, and they went down to the ship, and when the
+middle way to the sacrifice to the sea. When they reached the men of
+the suitors came and roast
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown foxering out and his hands,
+and the maids were brought the strangers that we will send thee all
+the ships of the goddess with all his arms about him to show them
+and the way to the cave.
+
+The minstrel started over the first to see the ship white and they
+strike."
+
+
+
+
+CHAPTER XXXII
+THE DEARD OF THE HOS 
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.6
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_multibook/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ 
+

@@ -55,10 +55,10 @@ TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 # Training settings
 TRAINING_CONFIG = {
     "context_length": 512,  # Context window for training
-    "batch_size": 1,  # Batch size (increase if memory allows)
+    "batch_size": 2,  # Batch size (increase if memory allows)
     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
     "learning_rate": 5e-4,  # Learning rate
-    "num_epochs": 30,  # Number of training epochs, default 3
+    "num_epochs": 7,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
     "eval_every": 50,  # Evaluate every N steps
