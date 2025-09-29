@@ -78,7 +78,7 @@ PROMPTS = [
 
 # Generation parameters
 MAX_NEW_TOKENS = 300  # Maximum tokens to generate
-TEMPERATURE = 0.6  # Sampling temperature (0.0 = greedy, higher = more random)
+TEMPERATURE = 0.4  # Sampling temperature (0.1 = greedy, higher = more random)
 TOP_K = 50  # Top-k sampling (0 = disabled)
 TOP_P = 0.9  # Nucleus sampling (0.0 = disabled)
 

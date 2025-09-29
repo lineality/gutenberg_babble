@@ -1,0 +1,792 @@
+env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+5
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_alice/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time of tone.
+
+“You now then on to see,” the Mouse, and the but an some to her again to her had
+not her to her have would the began it ouse to her was get her had and
+was to her way it more to would her hear hought would her such to be
+on great the ought to beget on a good a growen a looked again, a
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is
+onear the Queen our of itsere hooked to her eades about of the wore
+way our to seally and there sear ound all her her her ear ound to see
+to ear for and will as her it, who her hought bear the gried her hear ound
+one un a burce, and she would in her her his was on the sorm on all of the
+his now her
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning to beauted it her
+large it her hear while ground the really, and a loun with the would oun with
+to go, and the was the the was a looked out her hear oun a come out it,
+and the see her his was she hook and the great her her way it way to
+the areself or the bards on the Queen of the begin her hall on
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired to her hear
+readed to with a more or some the Queen at the begin an it is out of the
+way, and an again, there was were oun a gring to the her ear her hear about an barle
+get our from the on her hear oun our had her again the ought to would
+would her his, her was now on the way, whis the her her had
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown fox her its far it
+one and beaut it a poor her her head to on one so there turned her sunded
+to the other hear she took out her all see had her ound bur for see,
+the bure, and the ought his a good our ouse, and she the ear oun on to
+know the ought had would her had her hook out her was now all to the
+c
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.6
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_alice/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+0
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time which the time has reached the leading
+
+     suppositions that had not yet appealed to him.      I think there is nothing
+
+     in the contrast between the contest of the two contending points which
+
+     we are to have had the greatest power of the composition and precision
+
+     of the comparativ
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is come to be the fall of the poem  ,
+
+     and the whole starting words of the world at no cost hereafter.      The
+
+     army appears to be in the present cosm   ,    and the community of the
+
+     speech of the struggle on the spot.      And the speech of the same cause   ,
+
+    when the man is t
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning of the process is a short isle of the raft.
+
+          In the second place the second place,    the local story of the warriors
+
+     had been encountered by the simple instruments of his art and the
+     sensible part of the whole poem is an old bad and bad farewells to the
+     prophet that the p
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired of the court of the same
+
+     way.      The other two forms of the main forms the first to be spoke as
+
+     possible for the same time as the most important   ,    and the most part and
+
+     simple instruments contained in the entire subjects of the writer   's
+
+     hands is one of the poets of
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown fox and the land of Troy.
+
+         There the night is sacred to the starry trees   , and the ships were
+
+     close and the house of Ulysses.     The proud Phaeacians drove off the
+
+     threshold of the chamber and its acts  ,   and the son to the threshold
+
+     present to the suitors , who was the
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.6
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+0
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time when Ulysses had and his own return ,  and
+  therefore passes himself.      The internal subject for the following
+
+   spots of his people of his companions ,  he seems to have only to die in
+
+   the very possible of the main hall with the Gods.     In his fictitious
+
+     action he has to account
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is the foremost of the structure of
+     remarkable recitations between the original.       Our finding one of the
+
+   ceremony in which the _Gerusalemme_ is shown in more part with the
+
+    _Les Greek Literature ,  is late   ,    naturalized with the series of the
+
+family of the _Odyssey_  ,   and th
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning of the traditional poetry , he stands
+  in strength of the soul when he desires to pay my real exclusions  , and
+
+     show the word χόρος in the Homeric poems.      It would be that she's
+
+    the best attached to her breast with its trusty shapes, as a thought of
+     society and only an ext
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired with
+
+ the sorrow of the dead,    that she had set off from the outside garden,
+    and set her off the force  ,   and set it for the door of the greater
+     flame of the deep, and the good man's people would accordingly again he
+
+   would see his face against a his proper story.    The city sto
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown fox’s continued force ,
+
+     Not half the subtle verse of all the ground  ;
+
+     Nor break the raging beams of the sky,
+
+    The brazen cavern with distemperature wound   ,
+
+   And six and all as wealth were leaves in sight,
+
+     Where morning still a crew gave way assay’d.
+
+          His for
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.9
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+0
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+✗ Failed to generate text for prompt 'Once upon a time': Text generation failed for prompt: 'Once upon a time...'. Error: temperature must be positive
+Traceback:
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/generate_text_perseid_byte.py", line 352, in generate_text_perseid_byte
+    raise ValueError("temperature must be positive")
+ValueError: temperature must be positive
+
+
+--- Generation 2/5 ---
+✗ Failed to generate text for prompt 'The meaning of life is': Text generation failed for prompt: 'The meaning of life is...'. Error: temperature must be positive
+Traceback:
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/generate_text_perseid_byte.py", line 352, in generate_text_perseid_byte
+    raise ValueError("temperature must be positive")
+ValueError: temperature must be positive
+
+
+--- Generation 3/5 ---
+✗ Failed to generate text for prompt 'In the beginning': Text generation failed for prompt: 'In the beginning...'. Error: temperature must be positive
+Traceback:
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/generate_text_perseid_byte.py", line 352, in generate_text_perseid_byte
+    raise ValueError("temperature must be positive")
+ValueError: temperature must be positive
+
+
+--- Generation 4/5 ---
+✗ Failed to generate text for prompt 'Alice was beginning to get very tired': Text generation failed for prompt: 'Alice was beginning to get very tired...'. Error: temperature must be positive
+Traceback:
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/generate_text_perseid_byte.py", line 352, in generate_text_perseid_byte
+    raise ValueError("temperature must be positive")
+ValueError: temperature must be positive
+
+
+--- Generation 5/5 ---
+✗ Failed to generate text for prompt 'The quick brown fox': Text generation failed for prompt: 'The quick brown fox...'. Error: temperature must be positive
+Traceback:
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/generate_text_perseid_byte.py", line 352, in generate_text_perseid_byte
+    raise ValueError("temperature must be positive")
+ValueError: temperature must be positive
+
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.0
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+0
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time of the sea   ,    which is the soul of a sort of sorrow  ,   and
+
+     the son of Atreus   ,    who had been set forth and for the sake of the
+
+     sun   ,    and the son of Atreus is the son of Atreus   ,    and he sends his
+
+     son Arete and Arete   ,    and Arete and Arete and Arete and Arete
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is so far from the sea   ,
+
+
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning of the sea   ,
+
+     The sea was seen   ,    and the sea was seen   ,
+
+     The sea  ,   the sea  ,   the sea   ,    the sea   ,
+
+     The sea  ,   the son of Nestor   ,    and his sons   ,
+
+
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired on the subject of the same
+
+     process of the same personal and profound and profound and profound.      It
+
+     is the most important and most important points of the poems there is
+
+     a single point of the poems.      The second point is that the poems are
+
+     the poet that the poet had a
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown foxes of the sea   ,
+
+     And the sea sands the sea   ,    and the sea   ,
+
+     The sea   ,    and the sea   ,    and the sea   ,    and the sea.
+
+
+------------------------------------------------------------
+
+================================================================================
+Text Generation Complete!
+================================================================================
+
+Generation Settings:
+  - Max new tokens: 300
+  - Temperature: 0.1
+  - Top-k: 50
+  - Top-p: 0.9
+  - Model: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+(env) oops@oops-Precision-7780:~/code/gutenberg_babble/perseids/byte_perseid$ python3 generate_text_perseid_byte.py
+Found...
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+default to using first option
+
+Here are optional models, which you the chosen one?
+['./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth', './models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth', './models/perseid_288m_2270/perseid_model_final.pth', './models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth', './models/perseid_288m_alice10_test/perseid_model_final.pth', './models/perseid_288m_alice/perseid_model_final.pth']
+
+index-> 0, model-> ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+index-> 1, model-> ./models/perseid_288m_corpus3x_tennysontochaucer_172652/perseid_model_final.pth
+index-> 2, model-> ./models/perseid_288m_2270/perseid_model_final.pth
+index-> 3, model-> ./models/perseid_288m_corpus_alice_20250928_190939/perseid_model_final.pth
+index-> 4, model-> ./models/perseid_288m_alice10_test/perseid_model_final.pth
+index-> 5, model-> ./models/perseid_288m_alice/perseid_model_final.pth
+Enter the Index...
+0
+================================================================================
+PerseidByte Text Generation
+================================================================================
+
+Step 1: Loading Model
+----------------------------------------
+Loading PerseidByte model from: ./models/perseid_288m_corpus_mixtape_010_aug_20250929_133315/perseid_model_final.pth
+Checkpoint size: 137.1 MB
+Using device: cuda
+✓ Checkpoint loaded successfully
+⚠ Config not found in checkpoint, inferring from weights...
+✓ Inferred model configuration:
+  - vocab_size: 259
+  - emb_dim: 640
+  - n_heads: 4
+  - head_dim: 160
+  - n_layers: 16
+  - hidden_dim: 1792
+  ✓ Detected ByteTokenizer configuration (vocab_size=259)
+✓ Model architecture created
+  - Parameters: 71.6M
+  - Embedding dim: 640
+✓ Model weights loaded
+✓ Model ready for generation on cuda
+
+Step 2: Setting Up Tokenizer
+----------------------------------------
+Initializing ByteTokenizer...
+✓ ByteTokenizer ready
+  - Vocab size: 259
+  - Special tokens: PAD=256, EOS=257
+
+Step 3: Generating Text
+----------------------------------------
+
+--- Generation 1/5 ---
+  Generating from prompt: 'Once upon a time'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'Once upon a time'
+Generated: Once upon a time of mind   ,    and the manner of the poems  ,   who is the manner of a
+
+     stranger   ,    that is to say   ,    that the stranger and profession of the
+
+     world   ,    and the fact that the stranger has been considered as a matter
+
+     which has been described in the spirit of the poems   ,
+------------------------------------------------------------
+
+--- Generation 2/5 ---
+  Generating from prompt: 'The meaning of life is'
+  Prompt tokens: 22
+  Generated 300 new tokens
+
+Prompt: 'The meaning of life is'
+Generated: The meaning of life is brought from the same source of
+
+     water-pots  ,   and when the ships are seen to be dead.      The ships are
+
+     strong and strong as the ships were to be a beautiful and contemptuous
+
+     and all of the sea   ,    and the sea is still a ship and a ship still
+
+     stripped off in the sea
+------------------------------------------------------------
+
+--- Generation 3/5 ---
+  Generating from prompt: 'In the beginning'
+  Prompt tokens: 16
+  Generated 300 new tokens
+
+Prompt: 'In the beginning'
+Generated: In the beginning of the sun,    which the poet introduces the
+
+     supersensible power of the sea   ,    and the more probably striking into
+
+     the problem.      The problem  ,   however,    is the problem of the poem   ,    of the poem
+
+     and his mother   ,    who were the problem of the poet   , and the pr
+------------------------------------------------------------
+
+--- Generation 4/5 ---
+  Generating from prompt: 'Alice was beginning to get very tired'
+  Prompt tokens: 37
+  Generated 300 new tokens
+
+Prompt: 'Alice was beginning to get very tired'
+Generated: Alice was beginning to get very tired on the way   ,    and when they had
+
+     come to the water  ,   the winds and waves and dances of the waves  ,   and
+
+     the women of the sun went down into the sea.      Then he stood beside his
+
+     handmaids  ,   and said :   '   There is a god in the middle of the deep-bosomed
+
+     men of
+------------------------------------------------------------
+
+--- Generation 5/5 ---
+  Generating from prompt: 'The quick brown fox'
+  Prompt tokens: 19
+  Generated 300 new tokens
+
+Prompt: 'The quick brown fox'
+Generated: The quick brown fox’d and shields  ,
+
+     The royal court the fair distinguish’d store,
+
+     The sea-beat ship to the ship along the ground.
+
+         The sea she straight stood still in showers to see
+
+     The sea-shore to the royal sea   ,    and strook
+
+     The shafts of sleep   ,    the shafts of the stra
+------------------------------------------------------------
