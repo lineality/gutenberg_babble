@@ -6,13 +6,11 @@ Provides functions to calculate parameter counts, validate configurations, and
 generate optimal configurations for target model sizes.
 """
 
-# import math
 import traceback
-from typing import Dict, Optional
-import torch
+from typing import Optional
 
 
-def calculate_model_params(config: Dict) -> dict[str, int]:
+def calculate_model_params(config: dict) -> dict[str, int]:
     """
     Calculate detailed parameter counts for a given model configuration.
 
@@ -140,7 +138,7 @@ def calculate_model_params(config: Dict) -> dict[str, int]:
         raise
 
 
-def validate_config(config: Dict) -> tuple[bool, list[str]]:
+def validate_config(config: dict) -> tuple[bool, list[str]]:
     """
     Validate that a model configuration satisfies all architectural constraints.
 
@@ -272,9 +270,9 @@ def validate_config(config: Dict) -> tuple[bool, list[str]]:
 
 def create_perseid_config(
     target_size_millions: int,
-    base_config: Optional[Dict] = None,
+    base_config: Optional[dict] = None,
     strategy: str = "balanced",
-) -> Dict:
+) -> dict:
     """
     Create a Perseid configuration targeting a specific parameter count.
 
@@ -478,7 +476,7 @@ def create_perseid_config(
         raise
 
 
-def compare_configurations(configs: Dict[str, Dict]) -> None:
+def compare_configurations(configs: dict[str, dict]) -> None:
     """
     Compare multiple model configurations side by side.
 
@@ -536,8 +534,8 @@ def compare_configurations(configs: Dict[str, Dict]) -> None:
 
 
 def fine_tune_config_for_target(
-    base_config: Dict, target_millions: float, tolerance: float = 1.0
-) -> Dict:
+    base_config: dict, target_millions: float, tolerance: float = 1.0
+) -> dict:
     """
     Fine-tune a configuration to hit an exact parameter target.
 

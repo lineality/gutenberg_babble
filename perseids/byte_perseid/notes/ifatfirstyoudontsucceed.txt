@@ -1,0 +1,329 @@
+ → Saved best model (val_loss: 1.1508)
+Step  6725 | Train Loss: 1.3246 | Val Loss: 1.1469 | LR: 4.37e-04 | Tokens: 55,091,200
+  → Saved best model (val_loss: 1.1469)
+Step  6750 | Train Loss: 1.3239 | Val Loss: 1.1531 | LR: 4.37e-04 | Tokens: 55,296,000
+Step  6775 | Train Loss: 1.3233 | Val Loss: 1.1531 | LR: 4.36e-04 | Tokens: 55,500,800
+Step  6800 | Train Loss: 1.3227 | Val Loss: 1.1516 | LR: 4.36e-04 | Tokens: 55,705,600
+Step  6825 | Train Loss: 1.3221 | Val Loss: 1.1539 | LR: 4.35e-04 | Tokens: 55,910,400
+Step  6850 | Train Loss: 1.3214 | Val Loss: 1.1547 | LR: 4.35e-04 | Tokens: 56,115,200
+Step  6875 | Train Loss: 1.3208 | Val Loss: 1.1578 | LR: 4.35e-04 | Tokens: 56,320,000
+Step  6900 | Train Loss: 1.3201 | Val Loss: 1.1570 | LR: 4.34e-04 | Tokens: 56,524,800
+Step  6925 | Train Loss: 1.3195 | Val Loss: 1.1602 | LR: 4.34e-04 | Tokens: 56,729,600
+Step  6950 | Train Loss: 1.3189 | Val Loss: 1.1586 | LR: 4.33e-04 | Tokens: 56,934,400
+Step  6975 | Train Loss: 1.3182 | Val Loss: 1.1586 | LR: 4.33e-04 | Tokens: 57,139,200
+Step  7000 | Train Loss: 1.3176 | Val Loss: 1.1539 | LR: 4.32e-04 | Tokens: 57,344,000
+Step  7025 | Train Loss: 1.3168 | Val Loss: 1.1539 | LR: 4.32e-04 | Tokens: 57,548,800
+Step  7050 | Train Loss: 1.3162 | Val Loss: 1.1523 | LR: 4.31e-04 | Tokens: 57,753,600
+Step  7075 | Train Loss: 1.3155 | Val Loss: 1.1539 | LR: 4.31e-04 | Tokens: 57,958,400
+Step  7100 | Train Loss: 1.3149 | Val Loss: 1.1562 | LR: 4.30e-04 | Tokens: 58,163,200
+Step  7125 | Train Loss: 1.3143 | Val Loss: 1.1359 | LR: 4.30e-04 | Tokens: 58,368,000
+  → Saved best model (val_loss: 1.1359)
+Step  7150 | Train Loss: 1.3137 | Val Loss: 1.1484 | LR: 4.29e-04 | Tokens: 58,572,800
+Step  7175 | Train Loss: 1.3131 | Val Loss: 1.1523 | LR: 4.29e-04 | Tokens: 58,777,600
+Step  7200 | Train Loss: 1.3124 | Val Loss: 1.1484 | LR: 4.28e-04 | Tokens: 58,982,400
+Step  7225 | Train Loss: 1.3119 | Val Loss: 1.1484 | LR: 4.28e-04 | Tokens: 59,187,200
+Step  7250 | Train Loss: 1.3112 | Val Loss: 1.1414 | LR: 4.27e-04 | Tokens: 59,392,000
+Step  7275 | Train Loss: 1.3106 | Val Loss: 1.1445 | LR: 4.27e-04 | Tokens: 59,596,800
+Step  7300 | Train Loss: 1.3100 | Val Loss: 1.1383 | LR: 4.27e-04 | Tokens: 59,801,600
+Step  7325 | Train Loss: 1.3094 | Val Loss: 1.1367 | LR: 4.26e-04 | Tokens: 60,006,400
+Step  7350 | Train Loss: 1.3088 | Val Loss: 1.1414 | LR: 4.26e-04 | Tokens: 60,211,200
+Step  7375 | Train Loss: 1.3082 | Val Loss: 1.1445 | LR: 4.25e-04 | Tokens: 60,416,000
+Step  7400 | Train Loss: 1.3076 | Val Loss: 1.1422 | LR: 4.25e-04 | Tokens: 60,620,800
+Step  7425 | Train Loss: 1.3070 | Val Loss: 1.1477 | LR: 4.24e-04 | Tokens: 60,825,600
+Step  7450 | Train Loss: 1.3063 | Val Loss: 1.1375 | LR: 4.24e-04 | Tokens: 61,030,400
+Step  7475 | Train Loss: 1.3057 | Val Loss: 1.1359 | LR: 4.23e-04 | Tokens: 61,235,200
+Step  7500 | Train Loss: 1.3051 | Val Loss: 1.1383 | LR: 4.23e-04 | Tokens: 61,440,000
+Step  7525 | Train Loss: 1.3045 | Val Loss: 1.1383 | LR: 4.22e-04 | Tokens: 61,644,800
+Step  7550 | Train Loss: 1.3039 | Val Loss: 1.1453 | LR: 4.22e-04 | Tokens: 61,849,600
+Step  7575 | Train Loss: 1.3033 | Val Loss: 1.1352 | LR: 4.21e-04 | Tokens: 62,054,400
+  → Saved best model (val_loss: 1.1352)
+Step  7600 | Train Loss: 1.3026 | Val Loss: 1.1367 | LR: 4.21e-04 | Tokens: 62,259,200
+Step  7625 | Train Loss: 1.3021 | Val Loss: 1.1344 | LR: 4.20e-04 | Tokens: 62,464,000
+  → Saved best model (val_loss: 1.1344)
+  
+  &&
+  
+  Step  7750 | Train Loss: 1.2992 | Val Loss: 1.1336 | LR: 4.18e-04 | Tokens: 63,488,000
+Step  7775 | Train Loss: 1.2986 | Val Loss: 1.1375 | LR: 4.17e-04 | Tokens: 63,692,800
+Step  7800 | Train Loss: 1.2980 | Val Loss: 1.1242 | LR: 4.17e-04 | Tokens: 63,897,600
+  → Saved best model (val_loss: 1.1242)
+Step  7825 | Train Loss: 1.2975 | Val Loss: 1.1180 | LR: 4.16e-04 | Tokens: 64,102,400
+  → Saved best model (val_loss: 1.1180)
+Step  7850 | Train Loss: 1.2969 | Val Loss: 1.1344 | LR: 4.16e-04 | Tokens: 64,307,200
+Step  7875 | Train Loss: 1.2963 | Val Loss: 1.1273 | LR: 4.15e-04 | Tokens: 64,512,000
+Step  7900 | Train Loss: 1.2958 | Val Loss: 1.1297 | LR: 4.15e-04 | Tokens: 64,716,800
+Step  7925 | Train Loss: 1.2953 | Val Loss: 1.1289 | LR: 4.14e-04 | Tokens: 64,921,600
+Step  7950 | Train Loss: 1.2947 | Val Loss: 1.1258 | LR: 4.14e-04 | Tokens: 65,126,400
+Step  7975 | Train Loss: 1.2941 | Val Loss: 1.1313 | LR: 4.13e-04 | Tokens: 65,331,200
+Step  8000 | Train Loss: 1.2936 | Val Loss: 1.1258 | LR: 4.12e-04 | Tokens: 65,536,000
+Step  8025 | Train Loss: 1.2930 | Val Loss: 1.1211 | LR: 4.12e-04 | Tokens: 65,740,800
+Step  8050 | Train Loss: 1.2926 | Val Loss: 1.1242 | LR: 4.11e-04 | Tokens: 65,945,600
+Step  8075 | Train Loss: 1.2920 | Val Loss: 1.1242 | LR: 4.11e-04 | Tokens: 66,150,400
+Step  8100 | Train Loss: 1.2915 | Val Loss: 1.1289 | LR: 4.10e-04 | Tokens: 66,355,200
+Step  8125 | Train Loss: 1.2909 | Val Loss: 1.1250 | LR: 4.10e-04 | Tokens: 66,560,000
+Step  8150 | Train Loss: 1.2904 | Val Loss: 1.1250 | LR: 4.09e-04 | Tokens: 66,764,800
+Step  8175 | Train Loss: 1.2899 | Val Loss: 1.1320 | LR: 4.09e-04 | Tokens: 66,969,600
+Step  8200 | Train Loss: 1.2894 | Val Loss: 1.1227 | LR: 4.08e-04 | Tokens: 67,174,400
+Step  8225 | Train Loss: 1.2888 | Val Loss: 1.1266 | LR: 4.08e-04 | Tokens: 67,379,200
+Step  8250 | Train Loss: 1.2883 | Val Loss: 1.1227 | LR: 4.07e-04 | Tokens: 67,584,000
+Step  8275 | Train Loss: 1.2878 | Val Loss: 1.1336 | LR: 4.07e-04 | Tokens: 67,788,800
+Step  8300 | Train Loss: 1.2872 | Val Loss: 1.1250 | LR: 4.06e-04 | Tokens: 67,993,600
+Step  8325 | Train Loss: 1.2866 | Val Loss: 1.1297 | LR: 4.06e-04 | Tokens: 68,198,400
+Step  8350 | Train Loss: 1.2862 | Val Loss: 1.1313 | LR: 4.05e-04 | Tokens: 68,403,200
+Step  8375 | Train Loss: 1.2856 | Val Loss: 1.1289 | LR: 4.05e-04 | Tokens: 68,608,000
+Step  8400 | Train Loss: 1.2851 | Val Loss: 1.1258 | LR: 4.04e-04 | Tokens: 68,812,800
+Step  8425 | Train Loss: 1.2846 | Val Loss: 1.1281 | LR: 4.03e-04 | Tokens: 69,017,600
+Step  8450 | Train Loss: 1.2841 | Val Loss: 1.1281 | LR: 4.03e-04 | Tokens: 69,222,400
+Step  8475 | Train Loss: 1.2836 | Val Loss: 1.1297 | LR: 4.02e-04 | Tokens: 69,427,200
+Step  8500 | Train Loss: 1.2831 | Val Loss: 1.1273 | LR: 4.02e-04 | Tokens: 69,632,000
+Step  8525 | Train Loss: 1.2826 | Val Loss: 1.1250 | LR: 4.01e-04 | Tokens: 69,836,800
+Step  8550 | Train Loss: 1.2820 | Val Loss: 1.1281 | LR: 4.01e-04 | Tokens: 70,041,600
+Step  8575 | Train Loss: 1.2815 | Val Loss: 1.1289 | LR: 4.00e-04 | Tokens: 70,246,400
+Step  8600 | Train Loss: 1.2810 | Val Loss: 1.1375 | LR: 4.00e-04 | Tokens: 70,451,200
+Step  8625 | Train Loss: 1.2805 | Val Loss: 1.1289 | LR: 3.99e-04 | Tokens: 70,656,000
+Step  8650 | Train Loss: 1.2800 | Val Loss: 1.1164 | LR: 3.99e-04 | Tokens: 70,860,800
+  → Saved best model (val_loss: 1.1164)
+Step  8675 | Train Loss: 1.2796 | Val Loss: 1.1086 | LR: 3.98e-04 | Tokens: 71,065,600
+  → Saved best model (val_loss: 1.1086)
+Step  8700 | Train Loss: 1.2791 | Val Loss: 1.1141 | LR: 3.97e-04 | Tokens: 71,270,400
+Step  8725 | Train Loss: 1.2787 | Val Loss: 1.1117 | LR: 3.97e-04 | Tokens: 71,475,200
+Step  8750 | Train Loss: 1.2782 | Val Loss: 1.1195 | LR: 3.96e-04 | Tokens: 71,680,000
+Step  8775 | Train Loss: 1.2778 | Val Loss: 1.1078 | LR: 3.96e-04 | Tokens: 71,884,800
+  → Saved best model (val_loss: 1.1078)
+Step  8800 | Train Loss: 1.2772 | Val Loss: 1.1016 | LR: 3.95e-04 | Tokens: 72,089,600
+
+
+&
+
+Step 12975 | Train Loss: 1.0490 | Val Loss: 1.0535 | LR: 2.91e-04 | Tokens: 106,291,200
+Step 13000 | Train Loss: 1.0488 | Val Loss: 1.0539 | LR: 2.90e-04 | Tokens: 106,496,000
+Step 13025 | Train Loss: 1.0486 | Val Loss: 1.0465 | LR: 2.89e-04 | Tokens: 106,700,800
+  → Saved best model (val_loss: 1.0465)
+Step 13050 | Train Loss: 1.0485 | Val Loss: 1.0406 | LR: 2.89e-04 | Tokens: 106,905,600
+  → Saved best model (val_loss: 1.0406)
+Step 13075 | Train Loss: 1.0484 | Val Loss: 1.0469 | LR: 2.88e-04 | Tokens: 107,110,400
+Step 13100 | Train Loss: 1.0480 | Val Loss: 1.0469 | LR: 2.87e-04 | Tokens: 107,315,200
+Step 13125 | Train Loss: 1.0478 | Val Loss: 1.0488 | LR: 2.87e-04 | Tokens: 107,520,000
+Step 13150 | Train Loss: 1.0475 | Val Loss: 1.0473 | LR: 2.86e-04 | Tokens: 107,724,800
+Step 13175 | Train Loss: 1.0474 | Val Loss: 1.0480 | LR: 2.85e-04 | Tokens: 107,929,600
+Step 13200 | Train Loss: 1.0472 | Val Loss: 1.0434 | LR: 2.85e-04 | Tokens: 108,134,400
+Step 13225 | Train Loss: 1.0471 | Val Loss: 1.0520 | LR: 2.84e-04 | Tokens: 108,339,200
+Step 13250 | Train Loss: 1.0469 | Val Loss: 1.0406 | LR: 2.83e-04 | Tokens: 108,544,000
+Step 13275 | Train Loss: 1.0467 | Val Loss: 1.0473 | LR: 2.83e-04 | Tokens: 108,748,800
+Step 13300 | Train Loss: 1.0465 | Val Loss: 1.0488 | LR: 2.82e-04 | Tokens: 108,953,600
+Step 13325 | Train Loss: 1.0463 | Val Loss: 1.0445 | LR: 2.81e-04 | Tokens: 109,158,400
+Step 13350 | Train Loss: 1.0462 | Val Loss: 1.0484 | LR: 2.81e-04 | Tokens: 109,363,200
+Step 13375 | Train Loss: 1.0460 | Val Loss: 1.0457 | LR: 2.80e-04 | Tokens: 109,568,000
+Step 13400 | Train Loss: 1.0458 | Val Loss: 1.0441 | LR: 2.79e-04 | Tokens: 109,772,800
+Step 13425 | Train Loss: 1.0456 | Val Loss: 1.0473 | LR: 2.79e-04 | Tokens: 109,977,600
+Step 13450 | Train Loss: 1.0455 | Val Loss: 1.0531 | LR: 2.78e-04 | Tokens: 110,182,400
+Step 13475 | Train Loss: 1.0453 | Val Loss: 1.0496 | LR: 2.77e-04 | Tokens: 110,387,200
+Step 13500 | Train Loss: 1.0452 | Val Loss: 1.0492 | LR: 2.77e-04 | Tokens: 110,592,000
+Step 13525 | Train Loss: 1.0451 | Val Loss: 1.0520 | LR: 2.76e-04 | Tokens: 110,796,800
+Step 13550 | Train Loss: 1.0450 | Val Loss: 1.0516 | LR: 2.75e-04 | Tokens: 111,001,600
+Step 13575 | Train Loss: 1.0449 | Val Loss: 1.0527 | LR: 2.75e-04 | Tokens: 111,206,400
+Step 13600 | Train Loss: 1.0446 | Val Loss: 1.0449 | LR: 2.74e-04 | Tokens: 111,411,200
+Step 13625 | Train Loss: 1.0446 | Val Loss: 1.0434 | LR: 2.73e-04 | Tokens: 111,616,000
+Step 13650 | Train Loss: 1.0443 | Val Loss: 1.0461 | LR: 2.72e-04 | Tokens: 111,820,800
+Step 13675 | Train Loss: 1.0441 | Val Loss: 1.0445 | LR: 2.72e-04 | Tokens: 112,025,600
+Step 13700 | Train Loss: 1.0440 | Val Loss: 1.0457 | LR: 2.71e-04 | Tokens: 112,230,400
+Step 13725 | Train Loss: 1.0437 | Val Loss: 1.0477 | LR: 2.70e-04 | Tokens: 112,435,200
+Step 13750 | Train Loss: 1.0436 | Val Loss: 1.0480 | LR: 2.70e-04 | Tokens: 112,640,000
+Step 13775 | Train Loss: 1.0433 | Val Loss: 1.0457 | LR: 2.69e-04 | Tokens: 112,844,800
+Step 13800 | Train Loss: 1.0432 | Val Loss: 1.0453 | LR: 2.68e-04 | Tokens: 113,049,600
+Step 13825 | Train Loss: 1.0430 | Val Loss: 1.0555 | LR: 2.68e-04 | Tokens: 113,254,400
+Step 13850 | Train Loss: 1.0429 | Val Loss: 1.0461 | LR: 2.67e-04 | Tokens: 113,459,200
+Step 13875 | Train Loss: 1.0426 | Val Loss: 1.0488 | LR: 2.66e-04 | Tokens: 113,664,000
+Step 13900 | Train Loss: 1.0425 | Val Loss: 1.0488 | LR: 2.66e-04 | Tokens: 113,868,800
+Step 13925 | Train Loss: 1.0424 | Val Loss: 1.0473 | LR: 2.65e-04 | Tokens: 114,073,600
+Step 13950 | Train Loss: 1.0423 | Val Loss: 1.0500 | LR: 2.64e-04 | Tokens: 114,278,400
+Step 13975 | Train Loss: 1.0422 | Val Loss: 1.0520 | LR: 2.64e-04 | Tokens: 114,483,200
+Step 14000 | Train Loss: 1.0421 | Val Loss: 1.0477 | LR: 2.63e-04 | Tokens: 114,688,000
+Step 14025 | Train Loss: 1.0419 | Val Loss: 1.0512 | LR: 2.62e-04 | Tokens: 114,892,800
+Step 14050 | Train Loss: 1.0416 | Val Loss: 1.0457 | LR: 2.62e-04 | Tokens: 115,097,600
+Step 14075 | Train Loss: 1.0413 | Val Loss: 1.0477 | LR: 2.61e-04 | Tokens: 115,302,400
+Step 14100 | Train Loss: 1.0412 | Val Loss: 1.0496 | LR: 2.60e-04 | Tokens: 115,507,200
+Step 14125 | Train Loss: 1.0410 | Val Loss: 1.0500 | LR: 2.60e-04 | Tokens: 115,712,000
+Step 14150 | Train Loss: 1.0407 | Val Loss: 1.0516 | LR: 2.59e-04 | Tokens: 115,916,800
+Step 14175 | Train Loss: 1.0405 | Val Loss: 1.0473 | LR: 2.58e-04 | Tokens: 116,121,600
+Step 14200 | Train Loss: 1.0403 | Val Loss: 1.0465 | LR: 2.57e-04 | Tokens: 116,326,400
+Step 14225 | Train Loss: 1.0402 | Val Loss: 1.0371 | LR: 2.57e-04 | Tokens: 116,531,200
+  → Saved best model (val_loss: 1.0371)
+Step 14250 | Train Loss: 1.0401 | Val Loss: 1.0371 | LR: 2.56e-04 | Tokens: 116,736,000
+Step 14275 | Train Loss: 1.0400 | Val Loss: 1.0379 | LR: 2.55e-04 | Tokens: 116,940,800
+Step 14300 | Train Loss: 1.0400 | Val Loss: 1.0348 | LR: 2.55e-04 | Tokens: 117,145,600
+  → Saved best model (val_loss: 1.0348)
+Step 14325 | Train Loss: 1.0397 | Val Loss: 1.0414 | LR: 2.54e-04 | Tokens: 117,350,400
+Step 14350 | Train Loss: 1.0396 | Val Loss: 1.0414 | LR: 2.53e-04 | Tokens: 117,555,200
+Step 14375 | Train Loss: 1.0394 | Val Loss: 1.0375 | LR: 2.53e-04 | Tokens: 117,760,000
+Step 14400 | Train Loss: 1.0392 | Val Loss: 1.0387 | LR: 2.52e-04 | Tokens: 117,964,800
+Step 14425 | Train Loss: 1.0390 | Val Loss: 1.0371 | LR: 2.51e-04 | Tokens: 118,169,600
+Step 14450 | Train Loss: 1.0389 | Val Loss: 1.0332 | LR: 2.51e-04 | Tokens: 118,374,400
+  → Saved best model (val_loss: 1.0332)
+Step 14475 | Train Loss: 1.0388 | Val Loss: 1.0273 | LR: 2.50e-04 | Tokens: 118,579,200
+  → Saved best model (val_loss: 1.0273)
+Step 14500 | Train Loss: 1.0388 | Val Loss: 1.0258 | LR: 2.49e-04 | Tokens: 118,784,000
+  → Saved best model (val_loss: 1.0258)
+Step 14525 | Train Loss: 1.0387 | Val Loss: 1.0270 | LR: 2.49e-04 | Tokens: 118,988,800
+Step 14550 | Train Loss: 1.0384 | Val Loss: 1.0328 | LR: 2.48e-04 | Tokens: 119,193,600
+
+
+&
+
+...
+  Validation Loss: 0.9292
+========================================
+Epoch 3/3
+========================================
+Step 19250 | Train Loss: 0.9236 | Val Loss: 0.9758 | LR: 1.25e-04 | Tokens: 157,696,000
+Step 19275 | Train Loss: 0.9300 | Val Loss: 0.9762 | LR: 1.25e-04 | Tokens: 157,900,800
+Step 19300 | Train Loss: 0.9345 | Val Loss: 0.9766 | LR: 1.24e-04 | Tokens: 158,105,600
+Step 19325 | Train Loss: 0.9252 | Val Loss: 0.9766 | LR: 1.24e-04 | Tokens: 158,310,400
+Step 19350 | Train Loss: 0.9273 | Val Loss: 0.9766 | LR: 1.23e-04 | Tokens: 158,515,200
+Step 19375 | Train Loss: 0.9277 | Val Loss: 0.9766 | LR: 1.22e-04 | Tokens: 158,720,000
+Step 19400 | Train Loss: 0.9277 | Val Loss: 0.9777 | LR: 1.22e-04 | Tokens: 158,924,800
+Step 19425 | Train Loss: 0.9291 | Val Loss: 0.9789 | LR: 1.21e-04 | Tokens: 159,129,600
+Step 19450 | Train Loss: 0.9278 | Val Loss: 0.9770 | LR: 1.21e-04 | Tokens: 159,334,400
+Step 19475 | Train Loss: 0.9267 | Val Loss: 0.9770 | LR: 1.20e-04 | Tokens: 159,539,200
+Step 19500 | Train Loss: 0.9265 | Val Loss: 0.9762 | LR: 1.19e-04 | Tokens: 159,744,000
+Step 19525 | Train Loss: 0.9265 | Val Loss: 0.9754 | LR: 1.19e-04 | Tokens: 159,948,800
+Step 19550 | Train Loss: 0.9269 | Val Loss: 0.9750 | LR: 1.18e-04 | Tokens: 160,153,600
+Step 19575 | Train Loss: 0.9269 | Val Loss: 0.9734 | LR: 1.18e-04 | Tokens: 160,358,400
+Step 19600 | Train Loss: 0.9259 | Val Loss: 0.9715 | LR: 1.17e-04 | Tokens: 160,563,200
+  → Saved best model (val_loss: 0.9715)
+Step 19625 | Train Loss: 0.9253 | Val Loss: 0.9691 | LR: 1.17e-04 | Tokens: 160,768,000
+  → Saved best model (val_loss: 0.9691)
+Step 19650 | Train Loss: 0.9243 | Val Loss: 0.9695 | LR: 1.16e-04 | Tokens: 160,972,800
+Step 19675 | Train Loss: 0.9241 | Val Loss: 0.9711 | LR: 1.15e-04 | Tokens: 161,177,600
+Step 19700 | Train Loss: 0.9233 | Val Loss: 0.9723 | LR: 1.15e-04 | Tokens: 161,382,400
+Step 19725 | Train Loss: 0.9230 | Val Loss: 0.9727 | LR: 1.14e-04 | Tokens: 161,587,200
+Step 19750 | Train Loss: 0.9228 | Val Loss: 0.9715 | LR: 1.14e-04 | Tokens: 161,792,000
+Step 19775 | Train Loss: 0.9233 | Val Loss: 0.9699 | LR: 1.13e-04 | Tokens: 161,996,800
+Step 19800 | Train Loss: 0.9231 | Val Loss: 0.9715 | LR: 1.13e-04 | Tokens: 162,201,600
+Step 19825 | Train Loss: 0.9235 | Val Loss: 0.9707 | LR: 1.12e-04 | Tokens: 162,406,400
+Step 19850 | Train Loss: 0.9230 | Val Loss: 0.9703 | LR: 1.11e-04 | Tokens: 162,611,200
+Step 19875 | Train Loss: 0.9229 | Val Loss: 0.9695 | LR: 1.11e-04 | Tokens: 162,816,000
+Step 19900 | Train Loss: 0.9223 | Val Loss: 0.9703 | LR: 1.10e-04 | Tokens: 163,020,800
+Step 19925 | Train Loss: 0.9224 | Val Loss: 0.9723 | LR: 1.10e-04 | Tokens: 163,225,600
+Step 19950 | Train Loss: 0.9220 | Val Loss: 0.9719 | LR: 1.09e-04 | Tokens: 163,430,400
+Step 19975 | Train Loss: 0.9221 | Val Loss: 0.9719 | LR: 1.09e-04 | Tokens: 163,635,200
+Step 20000 | Train Loss: 0.9219 | Val Loss: 0.9711 | LR: 1.08e-04 | Tokens: 163,840,000
+Step 20025 | Train Loss: 0.9220 | Val Loss: 0.9699 | LR: 1.07e-04 | Tokens: 164,044,800
+Step 20050 | Train Loss: 0.9223 | Val Loss: 0.9707 | LR: 1.07e-04 | Tokens: 164,249,600
+Step 20075 | Train Loss: 0.9221 | Val Loss: 0.9691 | LR: 1.06e-04 | Tokens: 164,454,400
+Step 20100 | Train Loss: 0.9224 | Val Loss: 0.9703 | LR: 1.06e-04 | Tokens: 164,659,200
+Step 20125 | Train Loss: 0.9221 | Val Loss: 0.9711 | LR: 1.05e-04 | Tokens: 164,864,000
+Step 20150 | Train Loss: 0.9222 | Val Loss: 0.9719 | LR: 1.05e-04 | Tokens: 165,068,800
+Step 20175 | Train Loss: 0.9223 | Val Loss: 0.9719 | LR: 1.04e-04 | Tokens: 165,273,600
+Step 20200 | Train Loss: 0.9223 | Val Loss: 0.9711 | LR: 1.04e-04 | Tokens: 165,478,400
+Step 20225 | Train Loss: 0.9219 | Val Loss: 0.9711 | LR: 1.03e-04 | Tokens: 165,683,200
+Step 20250 | Train Loss: 0.9224 | Val Loss: 0.9727 | LR: 1.02e-04 | Tokens: 165,888,000
+Step 20275 | Train Loss: 0.9227 | Val Loss: 0.9707 | LR: 1.02e-04 | Tokens: 166,092,800
+Step 20300 | Train Loss: 0.9220 | Val Loss: 0.9680 | LR: 1.01e-04 | Tokens: 166,297,600
+  → Saved best model (val_loss: 0.9680)
+Step 20325 | Train Loss: 0.9221 | Val Loss: 0.9695 | LR: 1.01e-04 | Tokens: 166,502,400
+Step 20350 | Train Loss: 0.9220 | Val Loss: 0.9699 | LR: 1.00e-04 | Tokens: 166,707,200
+Step 20375 | Train Loss: 0.9221 | Val Loss: 0.9695 | LR: 9.97e-05 | Tokens: 166,912,000
+Step 20400 | Train Loss: 0.9219 | Val Loss: 0.9664 | LR: 9.92e-05 | Tokens: 167,116,800
+  → Saved best model (val_loss: 0.9664)
+Step 20425 | Train Loss: 0.9218 | Val Loss: 0.9672 | LR: 9.86e-05 | Tokens: 167,321,600
+Step 20450 | Train Loss: 0.9216 | Val Loss: 0.9668 | LR: 9.81e-05 | Tokens: 167,526,400
+Step 20475 | Train Loss: 0.9217 | Val Loss: 0.9668 | LR: 9.76e-05 | Tokens: 167,731,200
+Step 20500 | Train Loss: 0.9216 | Val Loss: 0.9684 | LR: 9.70e-05 | Tokens: 167,936,000
+Step 20525 | Train Loss: 0.9215 | Val Loss: 0.9660 | LR: 9.65e-05 | Tokens: 168,140,800
+  → Saved best model (val_loss: 0.9660)
+Step 20550 | Train Loss: 0.9213 | Val Loss: 0.9652 | LR: 9.59e-05 | Tokens: 168,345,600
+  → Saved best model (val_loss: 0.9652)
+Step 20575 | Train Loss: 0.9212 | Val Loss: 0.9637 | LR: 9.54e-05 | Tokens: 168,550,400
+  → Saved best model (val_loss: 0.9637)
+Step 20600 | Train Loss: 0.9212 | Val Loss: 0.9645 | LR: 9.49e-05 | Tokens: 168,755,200
+Step 20625 | Train Loss: 0.9213 | Val Loss: 0.9633 | LR: 9.43e-05 | Tokens: 168,960,000
+  → Saved best model (val_loss: 0.9633)
+Step 20650 | Train Loss: 0.9214 | Val Loss: 0.9633 | LR: 9.38e-05 | Tokens: 169,164,800
+Step 20675 | Train Loss: 0.9214 | Val Loss: 0.9637 | LR: 9.33e-05 | Tokens: 169,369,600
+Step 20700 | Train Loss: 0.9212 | Val Loss: 0.9641 | LR: 9.27e-05 | Tokens: 169,574,400
+Step 20725 | Train Loss: 0.9212 | Val Loss: 0.9637 | LR: 9.22e-05 | Tokens: 169,779,200
+Step 20750 | Train Loss: 0.9210 | Val Loss: 0.9648 | LR: 9.17e-05 | Tokens: 169,984,000
+Step 20775 | Train Loss: 0.9210 | Val Loss: 0.9652 | LR: 9.11e-05 | Tokens: 170,188,800
+Step 20800 | Train Loss: 0.9208 | Val Loss: 0.9645 | LR: 9.06e-05 | Tokens: 170,393,600
+Step 20825 | Train Loss: 0.9206 | Val Loss: 0.9641 | LR: 9.01e-05 | Tokens: 170,598,400
+Step 20850 | Train Loss: 0.9203 | Val Loss: 0.9648 | LR: 8.96e-05 | Tokens: 170,803,200
+Step 20875 | Train Loss: 0.9204 | Val Loss: 0.9664 | LR: 8.90e-05 | Tokens: 171,008,000
+Step 20900 | Train Loss: 0.9203 | Val Loss: 0.9664 | LR: 8.85e-05 | Tokens: 171,212,800
+Step 20925 | Train Loss: 0.9202 | Val Loss: 0.9660 | LR: 8.80e-05 | Tokens: 171,417,600
+Step 20950 | Train Loss: 0.9204 | Val Loss: 0.9672 | LR: 8.75e-05 | Tokens: 171,622,400
+Step 20975 | Train Loss: 0.9204 | Val Loss: 0.9676 | LR: 8.70e-05 | Tokens: 171,827,200
+Step 21000 | Train Loss: 0.9205 | Val Loss: 0.9672 | LR: 8.64e-05 | Tokens: 172,032,000
+Step 21025 | Train Loss: 0.9205 | Val Loss: 0.9648 | LR: 8.59e-05 | Tokens: 172,236,800
+Step 21050 | Train Loss: 0.9207 | Val Loss: 0.9676 | LR: 8.54e-05 | Tokens: 172,441,600
+Step 21075 | Train Loss: 0.9207 | Val Loss: 0.9672 | LR: 8.49e-05 | Tokens: 172,646,400
+Step 21100 | Train Loss: 0.9207 | Val Loss: 0.9680 | LR: 8.44e-05 | Tokens: 172,851,200
+Step 21125 | Train Loss: 0.9208 | Val Loss: 0.9656 | LR: 8.39e-05 | Tokens: 173,056,000
+Step 21150 | Train Loss: 0.9206 | Val Loss: 0.9684 | LR: 8.34e-05 | Tokens: 173,260,800
+Step 21175 | Train Loss: 0.9206 | Val Loss: 0.9668 | LR: 8.29e-05 | Tokens: 173,465,600
+Step 21200 | Train Loss: 0.9207 | Val Loss: 0.9664 | LR: 8.23e-05 | Tokens: 173,670,400
+Step 21225 | Train Loss: 0.9207 | Val Loss: 0.9672 | LR: 8.18e-05 | Tokens: 173,875,200
+Step 21250 | Train Loss: 0.9204 | Val Loss: 0.9660 | LR: 8.13e-05 | Tokens: 174,080,000
+Step 21275 | Train Loss: 0.9203 | Val Loss: 0.9668 | LR: 8.08e-05 | Tokens: 174,284,800
+Step 21300 | Train Loss: 0.9203 | Val Loss: 0.9668 | LR: 8.03e-05 | Tokens: 174,489,600
+Step 21325 | Train Loss: 0.9205 | Val Loss: 0.9672 | LR: 7.98e-05 | Tokens: 174,694,400
+Step 21350 | Train Loss: 0.9203 | Val Loss: 0.9684 | LR: 7.93e-05 | Tokens: 174,899,200
+Step 21375 | Train Loss: 0.9202 | Val Loss: 0.9668 | LR: 7.88e-05 | Tokens: 175,104,000
+Step 21400 | Train Loss: 0.9199 | Val Loss: 0.9680 | LR: 7.83e-05 | Tokens: 175,308,800
+Step 21425 | Train Loss: 0.9199 | Val Loss: 0.9676 | LR: 7.78e-05 | Tokens: 175,513,600
+Step 21450 | Train Loss: 0.9200 | Val Loss: 0.9676 | LR: 7.73e-05 | Tokens: 175,718,400
+Step 21475 | Train Loss: 0.9199 | Val Loss: 0.9680 | LR: 7.69e-05 | Tokens: 175,923,200
+Step 21500 | Train Loss: 0.9196 | Val Loss: 0.9695 | LR: 7.64e-05 | Tokens: 176,128,000
+Step 21525 | Train Loss: 0.9197 | Val Loss: 0.9688 | LR: 7.59e-05 | Tokens: 176,332,800
+Step 21550 | Train Loss: 0.9195 | Val Loss: 0.9688 | LR: 7.54e-05 | Tokens: 176,537,600
+Step 21575 | Train Loss: 0.9194 | Val Loss: 0.9684 | LR: 7.49e-05 | Tokens: 176,742,400
+Step 21600 | Train Loss: 0.9193 | Val Loss: 0.9680 | LR: 7.44e-05 | Tokens: 176,947,200
+Step 21625 | Train Loss: 0.9194 | Val Loss: 0.9688 | LR: 7.39e-05 | Tokens: 177,152,000
+Step 21650 | Train Loss: 0.9193 | Val Loss: 0.9684 | LR: 7.34e-05 | Tokens: 177,356,800
+Step 21675 | Train Loss: 0.9192 | Val Loss: 0.9672 | LR: 7.30e-05 | Tokens: 177,561,600
+Step 21700 | Train Loss: 0.9192 | Val Loss: 0.9664 | LR: 7.25e-05 | Tokens: 177,766,400
+Step 21725 | Train Loss: 0.9191 | Val Loss: 0.9664 | LR: 7.20e-05 | Tokens: 177,971,200
+Step 21750 | Train Loss: 0.9191 | Val Loss: 0.9648 | LR: 7.15e-05 | Tokens: 178,176,000
+Step 21775 | Train Loss: 0.9192 | Val Loss: 0.9645 | LR: 7.10e-05 | Tokens: 178,380,800
+Step 21800 | Train Loss: 0.9191 | Val Loss: 0.9648 | LR: 7.06e-05 | Tokens: 178,585,600
+Step 21825 | Train Loss: 0.9192 | Val Loss: 0.9652 | LR: 7.01e-05 | Tokens: 178,790,400
+Step 21850 | Train Loss: 0.9192 | Val Loss: 0.9652 | LR: 6.96e-05 | Tokens: 178,995,200
+Step 21875 | Train Loss: 0.9192 | Val Loss: 0.9656 | LR: 6.91e-05 | Tokens: 179,200,000
+Step 21900 | Train Loss: 0.9191 | Val Loss: 0.9656 | LR: 6.87e-05 | Tokens: 179,404,800
+Step 21925 | Train Loss: 0.9191 | Val Loss: 0.9648 | LR: 6.82e-05 | Tokens: 179,609,600
+Step 21950 | Train Loss: 0.9189 | Val Loss: 0.9652 | LR: 6.77e-05 | Tokens: 179,814,400
+Step 21975 | Train Loss: 0.9190 | Val Loss: 0.9645 | LR: 6.73e-05 | Tokens: 180,019,200
+Step 22000 | Train Loss: 0.9189 | Val Loss: 0.9652 | LR: 6.68e-05 | Tokens: 180,224,000
+Step 22025 | Train Loss: 0.9188 | Val Loss: 0.9652 | LR: 6.63e-05 | Tokens: 180,428,800
+Step 22050 | Train Loss: 0.9186 | Val Loss: 0.9656 | LR: 6.59e-05 | Tokens: 180,633,600
+Step 22075 | Train Loss: 0.9186 | Val Loss: 0.9656 | LR: 6.54e-05 | Tokens: 180,838,400
+Step 22100 | Train Loss: 0.9186 | Val Loss: 0.9660 | LR: 6.49e-05 | Tokens: 181,043,200
+Step 22125 | Train Loss: 0.9187 | Val Loss: 0.9645 | LR: 6.45e-05 | Tokens: 181,248,000
+Step 22150 | Train Loss: 0.9187 | Val Loss: 0.9645 | LR: 6.40e-05 | Tokens: 181,452,800
+Step 22175 | Train Loss: 0.9187 | Val Loss: 0.9648 | LR: 6.36e-05 | Tokens: 181,657,600
+Step 22200 | Train Loss: 0.9188 | Val Loss: 0.9648 | LR: 6.31e-05 | Tokens: 181,862,400
+Step 22225 | Train Loss: 0.9187 | Val Loss: 0.9648 | LR: 6.27e-05 | Tokens: 182,067,200
+Step 22250 | Train Loss: 0.9188 | Val Loss: 0.9641 | LR: 6.22e-05 | Tokens: 182,272,000
+Step 22275 | Train Loss: 0.9188 | Val Loss: 0.9641 | LR: 6.18e-05 | Tokens: 182,476,800
+Step 22300 | Train Loss: 0.9186 | Val Loss: 0.9637 | LR: 6.13e-05 | Tokens: 182,681,600
+Step 22325 | Train Loss: 0.9185 | Val Loss: 0.9645 | LR: 6.09e-05 | Tokens: 182,886,400
+Step 22350 | Train Loss: 0.9184 | Val Loss: 0.9637 | LR: 6.04e-05 | Tokens: 183,091,200
+Step 22375 | Train Loss: 0.9185 | Val Loss: 0.9648 | LR: 6.00e-05 | Tokens: 183,296,000
+Step 22400 | Train Loss: 0.9184 | Val Loss: 0.9641 | LR: 5.95e-05 | Tokens: 183,500,800
+Step 22425 | Train Loss: 0.9184 | Val Loss: 0.9641 | LR: 5.91e-05 | Tokens: 183,705,600
+Step 22450 | Train Loss: 0.9184 | Val Loss: 0.9637 | LR: 5.87e-05 | Tokens: 183,910,400
+Step 22475 | Train Loss: 0.9185 | Val Loss: 0.9637 | LR: 5.82e-05 | Tokens: 184,115,200
+Step 22500 | Train Loss: 0.9185 | Val Loss: 0.9633 | LR: 5.78e-05 | Tokens: 184,320,000
+Step 22525 | Train Loss: 0.9185 | Val Loss: 0.9645 | LR: 5.73e-05 | Tokens: 184,524,800
+Step 22550 | Train Loss: 0.9184 | Val Loss: 0.9641 | LR: 5.69e-05 | Tokens: 184,729,600
+Step 22575 | Train Loss: 0.9185 | Val Loss: 0.9637 | LR: 5.65e-05 | Tokens: 184,934,400
+Step 22600 | Train Loss: 0.9187 | Val Loss: 0.9641 | LR: 5.60e-05 | Tokens: 185,139,200
+Step 22625 | Train Loss: 0.9186 | Val Loss: 0.9633 | LR: 5.56e-05 | Tokens: 185,344,000
+Step 22650 | Train Loss: 0.9187 | Val Loss: 0.9633 | LR: 5.52e-05 | Tokens: 185,548,800
+Step 22675 | Train Loss: 0.9186 | Val Loss: 0.9629 | LR: 5.48e-05 | Tokens: 185,753,600
+  → Saved best model (val_loss: 0.9629)
+Step 22700 | Train Loss: 0.9186 | Val Loss: 0.9633 | LR: 5.43e-05 | Tokens: 185,958,400
+Step 22725 | Train Loss: 0.9184 | Val Loss: 0.9645 | LR: 5.39e-05 | Tokens: 186,163,200
+Step 22750 | Train Loss: 0.9184 | Val Loss: 0.9633 | LR: 5.35e-05 | Tokens: 186,368,000
+
+

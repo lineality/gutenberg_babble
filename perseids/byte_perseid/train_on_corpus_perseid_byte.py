@@ -1,29 +1,120 @@
 """
-train_perseid_byte.py
+train_on_corpus_perseid_byte.py
+
+This tool, along with aug_nlp.py (NLP Augmentation of text file),
+and make_one_corpus_file.py,
+is for pre-training a model on one (big-ish) corpus document
+(that is made of all individual training documents).
+
+This CAN be, but is NOT recommended to be,
+used for continued training or fine-tuning,
+as that can disrupt the other weights.
+
+For fine tuning, use:
+
+
+Note:
+There can be long periods when training does not find an improvement,
+but, as I understand it, that is ok because only the improvements are saved.
+
+e.g.
+```
+→ Saved best model (val_loss: 1.0047)
+Step 15525 | Train Loss: 1.0314 | Val Loss: 1.0000 | LR: 2.21e-04 | Tokens: 127,180,800
+→ Saved best model (val_loss: 1.0000)
+Step 15550 | Train Loss: 1.0312 | Val Loss: 1.0035 | LR: 2.21e-04 | Tokens: 127,385,600
+Step 15575 | Train Loss: 1.0311 | Val Loss: 1.0043 | LR: 2.20e-04 | Tokens: 127,590,400
+Step 15600 | Train Loss: 1.0309 | Val Loss: 1.0059 | LR: 2.19e-04 | Tokens: 127,795,200
+Step 15625 | Train Loss: 1.0306 | Val Loss: 1.0063 | LR: 2.19e-04 | Tokens: 128,000,000
+Step 15650 | Train Loss: 1.0304 | Val Loss: 1.0039 | LR: 2.18e-04 | Tokens: 128,204,800
+Step 15675 | Train Loss: 1.0301 | Val Loss: 0.9945 | LR: 2.17e-04 | Tokens: 128,409,600
+→ Saved best model (val_loss: 0.9945)
+Step 15700 | Train Loss: 1.0299 | Val Loss: 0.9973 | LR: 2.17e-04 | Tokens: 128,614,400
+Step 15725 | Train Loss: 1.0298 | Val Loss: 0.9992 | LR: 2.16e-04 | Tokens: 128,819,200
+Step 15750 | Train Loss: 1.0296 | Val Loss: 0.9965 | LR: 2.15e-04 | Tokens: 129,024,000
+Step 15775 | Train Loss: 1.0294 | Val Loss: 0.9980 | LR: 2.15e-04 | Tokens: 129,228,800
+Step 15800 | Train Loss: 1.0293 | Val Loss: 1.0004 | LR: 2.14e-04 | Tokens: 129,433,600
+Step 15825 | Train Loss: 1.0291 | Val Loss: 1.0012 | LR: 2.13e-04 | Tokens: 129,638,400
+Step 15850 | Train Loss: 1.0290 | Val Loss: 0.9977 | LR: 2.13e-04 | Tokens: 129,843,200
+Step 15875 | Train Loss: 1.0287 | Val Loss: 0.9992 | LR: 2.12e-04 | Tokens: 130,048,000
+Step 15900 | Train Loss: 1.0286 | Val Loss: 1.0031 | LR: 2.11e-04 | Tokens: 130,252,800
+Step 15925 | Train Loss: 1.0284 | Val Loss: 1.0059 | LR: 2.11e-04 | Tokens: 130,457,600
+Step 15950 | Train Loss: 1.0283 | Val Loss: 1.0086 | LR: 2.10e-04 | Tokens: 130,662,400
+Step 15975 | Train Loss: 1.0281 | Val Loss: 1.0004 | LR: 2.09e-04 | Tokens: 130,867,200
+Step 16000 | Train Loss: 1.0279 | Val Loss: 1.0016 | LR: 2.09e-04 | Tokens: 131,072,000
+Step 16025 | Train Loss: 1.0278 | Val Loss: 1.0023 | LR: 2.08e-04 | Tokens: 131,276,800
+Step 16050 | Train Loss: 1.0276 | Val Loss: 0.9988 | LR: 2.07e-04 | Tokens: 131,481,600
+Step 16075 | Train Loss: 1.0274 | Val Loss: 0.9984 | LR: 2.06e-04 | Tokens: 131,686,400
+Step 16100 | Train Loss: 1.0272 | Val Loss: 1.0004 | LR: 2.06e-04 | Tokens: 131,891,200
+Step 16125 | Train Loss: 1.0271 | Val Loss: 1.0000 | LR: 2.05e-04 | Tokens: 132,096,000
+Step 16150 | Train Loss: 1.0269 | Val Loss: 0.9977 | LR: 2.04e-04 | Tokens: 132,300,800
+Step 16175 | Train Loss: 1.0268 | Val Loss: 1.0008 | LR: 2.04e-04 | Tokens: 132,505,600
+Step 16200 | Train Loss: 1.0266 | Val Loss: 0.9980 | LR: 2.03e-04 | Tokens: 132,710,400
+Step 16225 | Train Loss: 1.0265 | Val Loss: 1.0008 | LR: 2.02e-04 | Tokens: 132,915,200
+Step 16250 | Train Loss: 1.0263 | Val Loss: 0.9973 | LR: 2.02e-04 | Tokens: 133,120,000
+Step 16275 | Train Loss: 1.0262 | Val Loss: 1.0020 | LR: 2.01e-04 | Tokens: 133,324,800
+Step 16300 | Train Loss: 1.0260 | Val Loss: 1.0027 | LR: 2.00e-04 | Tokens: 133,529,600
+Step 16325 | Train Loss: 1.0258 | Val Loss: 1.0012 | LR: 2.00e-04 | Tokens: 133,734,400
+Step 16350 | Train Loss: 1.0256 | Val Loss: 1.0016 | LR: 1.99e-04 | Tokens: 133,939,200
+Step 16375 | Train Loss: 1.0254 | Val Loss: 1.0039 | LR: 1.98e-04 | Tokens: 134,144,000
+Step 16400 | Train Loss: 1.0252 | Val Loss: 1.0027 | LR: 1.98e-04 | Tokens: 134,348,800
+Step 16425 | Train Loss: 1.0249 | Val Loss: 0.9996 | LR: 1.97e-04 | Tokens: 134,553,600
+Step 16450 | Train Loss: 1.0248 | Val Loss: 0.9988 | LR: 1.96e-04 | Tokens: 134,758,400
+Step 16475 | Train Loss: 1.0246 | Val Loss: 1.0012 | LR: 1.96e-04 | Tokens: 134,963,200
+Step 16500 | Train Loss: 1.0245 | Val Loss: 0.9988 | LR: 1.95e-04 | Tokens: 135,168,000
+Step 16525 | Train Loss: 1.0243 | Val Loss: 0.9996 | LR: 1.94e-04 | Tokens: 135,372,800
+Step 16550 | Train Loss: 1.0241 | Val Loss: 1.0012 | LR: 1.94e-04 | Tokens: 135,577,600
+Step 16575 | Train Loss: 1.0239 | Val Loss: 1.0012 | LR: 1.93e-04 | Tokens: 135,782,400
+Step 16600 | Train Loss: 1.0237 | Val Loss: 0.9973 | LR: 1.92e-04 | Tokens: 135,987,200
+Step 16625 | Train Loss: 1.0235 | Val Loss: 1.0020 | LR: 1.92e-04 | Tokens: 136,192,000
+Step 16650 | Train Loss: 1.0234 | Val Loss: 0.9984 | LR: 1.91e-04 | Tokens: 136,396,800
+Step 16675 | Train Loss: 1.0232 | Val Loss: 0.9969 | LR: 1.90e-04 | Tokens: 136,601,600
+Step 16700 | Train Loss: 1.0231 | Val Loss: 0.9980 | LR: 1.90e-04 | Tokens: 136,806,400
+Step 16725 | Train Loss: 1.0229 | Val Loss: 1.0035 | LR: 1.89e-04 | Tokens: 137,011,200
+Step 16750 | Train Loss: 1.0228 | Val Loss: 1.0020 | LR: 1.88e-04 | Tokens: 137,216,000
+Step 16775 | Train Loss: 1.0227 | Val Loss: 1.0020 | LR: 1.88e-04 | Tokens: 137,420,800
+Step 16800 | Train Loss: 1.0225 | Val Loss: 1.0020 | LR: 1.87e-04 | Tokens: 137,625,600
+Step 16825 | Train Loss: 1.0222 | Val Loss: 1.0008 | LR: 1.86e-04 | Tokens: 137,830,400
+Step 16850 | Train Loss: 1.0221 | Val Loss: 1.0000 | LR: 1.86e-04 | Tokens: 138,035,200
+Step 16875 | Train Loss: 1.0220 | Val Loss: 0.9969 | LR: 1.85e-04 | Tokens: 138,240,000
+Step 16900 | Train Loss: 1.0218 | Val Loss: 1.0004 | LR: 1.84e-04 | Tokens: 138,444,800
+Step 16925 | Train Loss: 1.0217 | Val Loss: 0.9984 | LR: 1.84e-04 | Tokens: 138,649,600
+Step 16950 | Train Loss: 1.0215 | Val Loss: 0.9973 | LR: 1.83e-04 | Tokens: 138,854,400
+Step 16975 | Train Loss: 1.0213 | Val Loss: 0.9973 | LR: 1.83e-04 | Tokens: 139,059,200
+Step 17000 | Train Loss: 1.0212 | Val Loss: 0.9980 | LR: 1.82e-04 | Tokens: 139,264,000
+Step 17025 | Train Loss: 1.0211 | Val Loss: 0.9934 | LR: 1.81e-04 | Tokens: 139,468,800
+→ Saved best model (val_loss: 0.9934)
+Step 17050 | Train Loss: 1.0210 | Val Loss: 0.9898 | LR: 1.81e-04 | Tokens: 139,673,600
+→ Saved best model (val_loss: 0.9898)
+Step 17075 | Train Loss: 1.0208 | Val Loss: 0.9918 | LR: 1.80e-04 | Tokens: 139,878,400
+```
+
 
 Training module for Perseid models on text document corpus.
 Handles single document input with configurable train/val split.
-Trains from scratch (no pretrained weights),
-unless existing weights are found, then it should continue training.
+Trains from scratch (no pretrained weights required, or can do continued-train),
+unless existing weights are found, then it will continue training.
 
 Usage:
     1. Set configuration parameters at top of file
     2. Run: python train_perseid_byte.py
 
+The innocence of Father Brown by G. K. Chesterton
+https://www.gutenberg.org/ebooks/204.txt.utf-8
 
 Pride & Prejudice
-https://www.gutenberg.org/cache/epub/1342/pg1342.txt
+https://www.gutenberg.org/ebooks/1342.txt.utf-8
 
 shakespeare first folio...
-https://www.gutenberg.org/cache/epub/2270/pg2270.txt
+https://www.gutenberg.org/ebooks/2270.txt.utf-8
 
 chaucer in six volumes...
-https://www.gutenberg.org/cache/epub/43089/pg43089.txt
-https://www.gutenberg.org/cache/epub/44833/pg44833.txt
-https://www.gutenberg.org/cache/epub/45027/pg45027.txt
-https://www.gutenberg.org/cache/epub/22120/pg22120.txt
-https://www.gutenberg.org/cache/epub/43016/pg43016.txt
-https://www.gutenberg.org/cache/epub/43097/pg43097.txt
+https://www.gutenberg.org/ebooks/43089.txt.utf-8
+https://www.gutenberg.org/ebooks/44833.txt.utf-8
+https://www.gutenberg.org/ebooks/45027.txt.utf-8
+https://www.gutenberg.org/ebooks/22120.txt.utf-8
+https://www.gutenberg.org/ebooks/43016.txt.utf-8
+https://www.gutenberg.org/ebooks/43097.txt.utf-8
 
 Poetry:
 https://www.gutenberg.org/cache/epub/30235/pg30235.txt
@@ -58,6 +149,7 @@ from pathlib import Path
 from datetime import datetime
 import urllib.request
 import torch
+import time
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
@@ -150,18 +242,33 @@ TRAINING_CONFIG = {
 }
 
 
-"""
-
 # Training settings
 TRAINING_CONFIG = {
-    "context_length": 512,  # Context window for training
+    "context_length": 1024,  # Context window for training
     "batch_size": 5,  # Batch size (increase if memory allows)
     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
-    "learning_rate": 5e-4,  # Learning rate
+    "learning_rate": 4e-4,  # 5e-4,  # Learning rate
     "num_epochs": 15,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
     "eval_every": 50,  # Evaluate every N steps
+    "eval_batches": 10,  # Number of batches for evaluation
+    "save_every": 500,  # Save checkpoint every N steps
+    "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
+}
+
+"""
+
+# Training settings
+TRAINING_CONFIG = {
+    "context_length": 1024,  # Context window for training
+    "batch_size": 2,  # Batch size (increase if memory allows)
+    "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
+    "learning_rate": 5e-4,  # Learning rate
+    "num_epochs": 3,  # Number of training epochs, default 3
+    "weight_decay": 0.01,  # Weight decay for AdamW
+    "warmup_steps": 100,  # Warmup steps for learning rate
+    "eval_every": 25,  # Evaluate every N steps NOTE purely for human-readable console output during training
     "eval_batches": 10,  # Number of batches for evaluation
     "save_every": 500,  # Save checkpoint every N steps
     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
@@ -208,50 +315,182 @@ def generate_text_simple(model, tokenizer, prompt, max_new_tokens=50, device=Non
 
 class DocumentDataset(Dataset):
     """
-    Dataset for document-based training.
-    Handles chunking and tokenization of text documents.
+    Dataset for document-based training with efficient byte-level tokenization.
+
+    Handles chunking and tokenization of documents efficiently by:
+    - Using direct byte encoding when possible (avoiding string conversions)
+    - Supporting both file paths and text strings
+    - Providing clear progress feedback
     """
 
-    def __init__(self, text, tokenizer, max_length, stride, verbose=True):
+    def __init__(
+        self,
+        data_source,
+        tokenizer,
+        max_length,
+        stride,
+        verbose=True,
+        is_file_path=False,
+    ):
         """
-        Initialize document dataset.
+        Initialize document dataset with efficient tokenization.
 
         Args:
-            text (str): Raw text to process
-            tokenizer: Tokenizer object with encode method
-            max_length (int): Maximum sequence length
+            data_source (str or Path): Either:
+                - File path to document (when is_file_path=True)
+                - Raw text string (when is_file_path=False)
+            tokenizer: ByteTokenizer object with encode_bytes/encode_file methods
+            max_length (int): Maximum sequence length for training windows
             stride (int): Stride between chunks (for overlap)
-            verbose (bool): Print statistics
+            verbose (bool): Print detailed statistics and progress
+            is_file_path (bool): If True, data_source is treated as file path.
+                                If False, data_source is treated as text string.
+
+        Note:
+            When is_file_path=True, uses efficient direct byte encoding
+            avoiding unnecessary string conversions.
         """
         super().__init__()
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.stride = stride
 
-        # Tokenize full text
-        if verbose:
-            print(f"Tokenizing text of length {len(text):,} characters...")
-
         try:
-            self.tokens = tokenizer.encode(text)
+            # ================================================================
+            # TOKENIZATION PHASE - Use most efficient method
+            # ================================================================
 
-            # Create overlapping windows
+            if verbose:
+                print("\n" + "=" * 60)
+                print("TOKENIZATION STARTING")
+                print("=" * 60)
+
+            if is_file_path:
+                # EFFICIENT PATH: Direct file-to-tokens conversion
+                file_path = Path(data_source)
+
+                if not file_path.exists():
+                    raise FileNotFoundError(f"Document file not found: {file_path}")
+
+                file_size_bytes = file_path.stat().st_size
+                file_size_mb = file_size_bytes / (1024 * 1024)
+
+                if verbose:
+                    print(f"Tokenization method: DIRECT FILE ENCODING (most efficient)")
+                    print(f"File: {file_path.name}")
+                    print(
+                        f"File size: {file_size_mb:.2f} MB ({file_size_bytes:,} bytes)"
+                    )
+                    print(f"Starting tokenization...")
+
+                import time
+
+                start_time = time.perf_counter()
+
+                # Use the efficient file encoding method
+                # For very large files, could use chunk_size parameter
+                if file_size_mb > 100:  # For files larger than 100MB
+                    if verbose:
+                        print(f"Large file detected - using chunked encoding...")
+                    self.tokens = tokenizer.encode_file(
+                        file_path,
+                        add_eos=False,
+                        chunk_size=1024 * 1024,  # 1MB chunks
+                    )
+                else:
+                    # Small enough to load at once
+                    self.tokens = tokenizer.encode_file(file_path, add_eos=False)
+
+                tokenization_time = time.perf_counter() - start_time
+
+                if verbose:
+                    tokens_per_second = len(self.tokens) / tokenization_time
+                    mb_per_second = file_size_mb / tokenization_time
+                    print(f"\n✅ FINISH! TOKENIZATION COMPLETE!")
+                    print(f"  Time taken: {tokenization_time:.2f} seconds")
+                    print(f"  Speed: {mb_per_second:.2f} MB/s")
+                    print(f"  Speed: {tokens_per_second:,.0f} tokens/second")
+                    print(f"  Total tokens generated: {len(self.tokens):,}")
+
+            else:
+                # FALLBACK PATH: String-based encoding (for text strings)
+                if verbose:
+                    print(f"Tokenization method: TEXT ENCODING")
+                    print(f"Text length: {len(data_source):,} characters")
+                    print(f"Starting tokenization...")
+
+                import time
+
+                start_time = time.perf_counter()
+
+                # Use the text encoding method
+                self.tokens = tokenizer.encode(data_source, add_eos=False)
+
+                tokenization_time = time.perf_counter() - start_time
+
+                if verbose:
+                    tokens_per_second = len(self.tokens) / tokenization_time
+                    print(f"\n✅ TOKENIZATION COMPLETE!")
+                    print(f"  Time taken: {tokenization_time:.2f} seconds")
+                    print(f"  Speed: {tokens_per_second:,.0f} tokens/second")
+                    print(f"  Total tokens generated: {len(self.tokens):,}")
+
+            # ================================================================
+            #  WINDOW CREATION PHASE
+            # ================================================================
+
+            if verbose:
+                print("\n" + "-" * 60)
+                print("Creating training windows...")
+
+            # Create overlapping windows for training
             self.windows = []
-            for i in range(0, len(self.tokens) - max_length, stride):
-                window = self.tokens[i : i + max_length + 1]  # +1 for target
+            total_possible_windows = (len(self.tokens) - max_length) // stride
+
+            window_creation_start = time.perf_counter()
+            last_progress_report = window_creation_start
+
+            for window_idx, token_start_idx in enumerate(
+                range(0, len(self.tokens) - max_length, stride)
+            ):
+                window = self.tokens[
+                    token_start_idx : token_start_idx + max_length + 1
+                ]  # +1 for target
+
                 if len(window) == max_length + 1:
                     self.windows.append(window)
 
+                # Progress reporting for large datasets
+                if verbose and (
+                    time.perf_counter() - last_progress_report > 1.0
+                ):  # Report every second
+                    progress_pct = (window_idx / total_possible_windows) * 100
+                    print(
+                        f"  Creating windows: {progress_pct:.1f}% ({len(self.windows):,} windows created)"
+                    )
+                    last_progress_report = time.perf_counter()
+
+            window_creation_time = time.perf_counter() - window_creation_start
+
             if verbose:
-                print(f"Created {len(self.windows):,} training windows")
-                print(f"Total tokens: {len(self.tokens):,}")
-                print(f"Window size: {max_length}, Stride: {stride}")
+                print(f"\n✅ WINDOW CREATION COMPLETE!")
+                print(f"  Time taken: {window_creation_time:.2f} seconds")
+                print(f"  Training windows created: {len(self.windows):,}")
+                print(f"  Window size: {max_length} tokens")
+                print(f"  Stride: {stride} tokens")
                 print(
-                    f"Effective overlap: {((max_length - stride) / max_length * 100):.1f}%"
+                    f"  Effective overlap: {((max_length - stride) / max_length * 100):.1f}%"
+                )
+                print(
+                    f"  Coverage: {(len(self.windows) * stride + max_length) / len(self.tokens) * 100:.1f}% of tokens"
                 )
 
+                print("\n" + "=" * 60)
+                print("DATASET PREPARATION COMPLETE")
+                print("=" * 60)
+
         except Exception as e:
-            print(f"Error during tokenization: {e}")
+            print(f"\n❌ ERROR during dataset preparation: {e}")
             traceback.print_exc()
             raise
 
@@ -316,49 +555,253 @@ def load_document(file_path):
         raise
 
 
-def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
+class DocumentDataset(Dataset):
     """
-    Create training and validation data loaders.
+    Dataset for document-based training.
+    Handles chunking and tokenization of text documents.
+
+    Now supports efficient file-based tokenization to avoid
+    unnecessary byte->string->byte conversions.
+    """
+
+    def __init__(
+        self, data_source, tokenizer, max_length, stride, verbose=True, is_file=False
+    ):
+        """
+        Initialize document dataset.
+
+        Args:
+            data_source: Either a string of text or a file path (when is_file=True)
+            tokenizer: Tokenizer object with encode method
+            max_length (int): Maximum sequence length
+            stride (int): Stride between chunks (for overlap)
+            verbose (bool): Print statistics
+            is_file (bool): If True, data_source is a file path to read directly
+        """
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.stride = stride
+
+        try:
+            if verbose:
+                print(f"\n{'=' * 60}")
+                print("TOKENIZATION STARTING")
+                print(f"{'=' * 60}")
+
+            start_time = time.perf_counter()
+
+            if is_file:
+                # Use efficient file encoding - direct bytes to tokens
+                file_path = Path(data_source)
+                file_size = file_path.stat().st_size
+
+                if verbose:
+                    print(f"Source: File - {file_path.name}")
+                    print(
+                        f"Size: {file_size:,} bytes ({file_size / (1024 * 1024):.2f} MB)"
+                    )
+                    print(f"Method: Direct byte encoding (no string conversion)")
+                    print(f"Tokenizing...")
+
+                # Use efficient file encoding
+                # For large files (>100MB), use chunked reading
+                if file_size > 100 * 1024 * 1024:
+                    self.tokens = tokenizer.encode_file(
+                        file_path,
+                        chunk_size=1024 * 1024,  # 1MB chunks
+                        verbose=verbose,
+                    )
+                else:
+                    self.tokens = tokenizer.encode_file(file_path, verbose=verbose)
+
+            else:
+                # Regular text encoding
+                if verbose:
+                    print(f"Source: Text string")
+                    print(f"Length: {len(data_source):,} characters")
+                    print(f"Method: UTF-8 text encoding")
+                    print(f"Tokenizing...")
+
+                self.tokens = tokenizer.encode(data_source)
+
+            elapsed = time.perf_counter() - start_time
+
+            if verbose:
+                tokens_per_sec = len(self.tokens) / elapsed if elapsed > 0 else 0
+                print(f"\n✅ Tokenization complete!")
+                print(f"  Time: {elapsed:.2f} seconds")
+                print(f"  Speed: {tokens_per_sec:,.0f} tokens/second")
+                print(f"  Total tokens: {len(self.tokens):,}")
+
+            # Create overlapping windows
+            if verbose:
+                print(f"\n{'-' * 60}")
+                print(f"Creating training windows...")
+
+            window_start = time.perf_counter()
+            self.windows = []
+
+            for i in range(0, len(self.tokens) - max_length, stride):
+                window = self.tokens[i : i + max_length + 1]  # +1 for target
+                if len(window) == max_length + 1:
+                    self.windows.append(window)
+
+            window_time = time.perf_counter() - window_start
+
+            if verbose:
+                print(f"✅ Window creation complete!")
+                print(f"  Time: {window_time:.2f} seconds")
+                print(f"  Training windows: {len(self.windows):,}")
+                print(f"  Window size: {max_length}")
+                print(f"  Stride: {stride}")
+                print(f"  Overlap: {((max_length - stride) / max_length * 100):.1f}%")
+                print(f"\n{'=' * 60}")
+                print(f"DATASET READY")
+                print(f"{'=' * 60}")
+
+        except Exception as e:
+            print(f"Error during dataset creation: {e}")
+            traceback.print_exc()
+            raise
+
+    def __len__(self):
+        """Return the number of training windows."""
+        return len(self.windows)
+
+    def __getitem__(self, idx):
+        """
+        Get a training sample.
+
+        Returns:
+            tuple: (input_ids, target_ids) where target is input shifted by 1
+        """
+        window = self.windows[idx]
+        # Input is all tokens except the last
+        input_ids = torch.tensor(window[:-1], dtype=torch.long)
+        # Target is all tokens except the first (shifted by 1)
+        target_ids = torch.tensor(window[1:], dtype=torch.long)
+        return input_ids, target_ids
+
+
+def create_data_loaders(
+    text_or_path, tokenizer, config, train_ratio=0.9, is_file_path=False
+):
+    """
+    Create training and validation data loaders with efficient tokenization.
 
     Args:
-        text (str): Full document text
-        tokenizer: Tokenizer object
-        config (dict): Training configuration
-        train_ratio (float): Proportion of data for training
+        text_or_path (str or Path): Either a file path or text string
+        tokenizer: ByteTokenizer object
+        config (dict): Training configuration with keys:
+            - context_length: sequence length for model
+            - chunk_overlap: overlap between chunks (0.0 to 1.0)
+            - batch_size: batch size for data loaders
+        train_ratio (float): Proportion of data for training (default 0.9)
+        is_file_path (bool): If True, text_or_path is a file path.
+                           If False, text_or_path is a text string.
 
     Returns:
-        tuple: (train_loader, val_loader)
+        tuple: (train_loader, val_loader) PyTorch DataLoader objects
     """
     try:
+        print(f"\n" + "=" * 70)
+        print("DATA LOADER CREATION")
+        print(f"=" * 70)
         print(
-            f"\nCreating data loaders with {train_ratio:.0%} train / {(1 - train_ratio):.0%} validation split"
+            f"Split ratio: {train_ratio:.0%} train / {(1 - train_ratio):.0%} validation"
         )
-
-        # Calculate split point
-        split_idx = int(train_ratio * len(text))
-        train_text = text[:split_idx]
-        val_text = text[split_idx:]
-
-        print(f"Train text: {len(train_text):,} chars")
-        print(f"Val text: {len(val_text):,} chars")
 
         # Calculate stride from overlap
         stride = int(config["context_length"] * (1 - config["chunk_overlap"]))
 
-        # Create datasets
-        train_dataset = DocumentDataset(
-            train_text, tokenizer, config["context_length"], stride, verbose=True
-        )
+        if is_file_path:
+            # ============================================================
+            # FILE PATH: Use efficient direct byte encoding
+            # ============================================================
+            print("\nTokenizing file for train/validation split...")
 
-        val_dataset = DocumentDataset(
-            val_text,
-            tokenizer,
-            config["context_length"],
-            config["context_length"],  # No overlap for validation
-            verbose=True,
-        )
+            # Get all tokens first using efficient file encoding
+            file_path = Path(text_or_path)
+            if not file_path.exists():
+                raise FileNotFoundError(f"File not found: {file_path}")
 
-        # Create data loaders
+            # Use efficient file encoding method
+            file_size = file_path.stat().st_size
+            if file_size > 100 * 1024 * 1024:  # Files > 100MB
+                print(
+                    f"Large file detected ({file_size / (1024 * 1024):.1f} MB), using chunked encoding..."
+                )
+                all_tokens = tokenizer.encode_file(
+                    file_path,
+                    add_eos=False,
+                    chunk_size=1024 * 1024,  # 1MB chunks
+                    verbose=True,
+                )
+            else:
+                all_tokens = tokenizer.encode_file(
+                    file_path, add_eos=False, verbose=True
+                )
+
+            # Split tokens for train/validation
+            split_idx = int(train_ratio * len(all_tokens))
+            train_tokens = all_tokens[:split_idx]
+            val_tokens = all_tokens[split_idx:]
+
+            print(
+                f"\nToken split: {len(train_tokens):,} train / {len(val_tokens):,} validation"
+            )
+
+            # Create datasets from pre-tokenized data
+            print("\n" + "-" * 50)
+            print("Creating TRAINING dataset from tokens...")
+            train_dataset = DocumentDatasetFromTokens(
+                train_tokens, config["context_length"], stride, verbose=True
+            )
+
+            print("\n" + "-" * 50)
+            print("Creating VALIDATION dataset from tokens...")
+            val_dataset = DocumentDatasetFromTokens(
+                val_tokens,
+                config["context_length"],
+                config["context_length"],  # No overlap for validation
+                verbose=True,
+            )
+
+        else:
+            # ============================================================
+            # TEXT STRING: Split text then tokenize each part
+            # ============================================================
+            split_idx = int(train_ratio * len(text_or_path))
+            train_text = text_or_path[:split_idx]
+            val_text = text_or_path[split_idx:]
+
+            print(f"\nText split: {len(train_text):,} / {len(val_text):,} characters")
+
+            # Create datasets using DocumentDataset with is_file=False
+            print("\n" + "-" * 50)
+            print("Creating TRAINING dataset...")
+            train_dataset = DocumentDataset(
+                train_text,
+                tokenizer,
+                config["context_length"],
+                stride,
+                verbose=True,
+                is_file=False,  # Changed from is_file_path to is_file
+            )
+
+            print("\n" + "-" * 50)
+            print("Creating VALIDATION dataset...")
+            val_dataset = DocumentDataset(
+                val_text,
+                tokenizer,
+                config["context_length"],
+                config["context_length"],  # No overlap for validation
+                verbose=True,
+                is_file=False,  # Changed from is_file_path to is_file
+            )
+
+        # Create PyTorch data loaders
         train_loader = DataLoader(
             train_dataset,
             batch_size=config["batch_size"],
@@ -375,15 +818,161 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
             num_workers=0,
         )
 
-        print(f"\nTrain batches: {len(train_loader):,}")
-        print(f"Val batches: {len(val_loader):,}")
+        print(f"\n" + "=" * 70)
+        print("✅ DATA PREPARATION COMPLETE")
+        print(f"=" * 70)
+        print(f"Training batches: {len(train_loader):,}")
+        print(f"Validation batches: {len(val_loader):,}")
+        print(f"Batch size: {config['batch_size']}")
+        print(f"Total training samples: {len(train_dataset):,}")
+        print(f"Total validation samples: {len(val_dataset):,}")
 
         return train_loader, val_loader
 
     except Exception as e:
-        print(f"Error creating data loaders: {e}")
+        print(f"\n❌ Error creating data loaders: {e}")
         traceback.print_exc()
         raise
+
+
+class DocumentDatasetFromTokens(Dataset):
+    """
+    Lightweight dataset that works directly with pre-tokenized data.
+
+    This avoids redundant tokenization when tokens are already available
+    (e.g., from file encoding or when splitting pre-tokenized data).
+    """
+
+    def __init__(self, tokens, max_length, stride, verbose=True):
+        """
+        Initialize dataset from pre-tokenized data.
+
+        Args:
+            tokens (list[int]): Pre-tokenized data (list of token IDs 0-258)
+            max_length (int): Maximum sequence length for model input
+            stride (int): Stride between chunks (controls overlap)
+            verbose (bool): Print statistics about dataset creation
+        """
+        super().__init__()
+        self.tokens = tokens
+        self.max_length = max_length
+        self.stride = stride
+
+        # Create overlapping windows for training
+        self.windows = []
+        for i in range(0, len(self.tokens) - max_length, stride):
+            window = self.tokens[i : i + max_length + 1]  # +1 for target
+            if len(window) == max_length + 1:
+                self.windows.append(window)
+
+        if verbose:
+            overlap_percent = (
+                ((max_length - stride) / max_length * 100) if max_length > 0 else 0
+            )
+            print(
+                f"  Created {len(self.windows):,} windows from {len(tokens):,} tokens"
+            )
+            print(f"  Window size: {max_length}, Stride: {stride}")
+            print(f"  Overlap: {overlap_percent:.1f}%")
+
+            # Calculate coverage
+            if len(tokens) > 0:
+                coverage = min(
+                    100, (len(self.windows) * stride + max_length) / len(tokens) * 100
+                )
+                print(f"  Coverage: {coverage:.1f}% of input tokens")
+
+    def __len__(self):
+        """Return the number of training windows."""
+        return len(self.windows)
+
+    def __getitem__(self, idx):
+        """
+        Get a training sample.
+
+        Args:
+            idx (int): Index of the training window
+
+        Returns:
+            tuple: (input_ids, target_ids) as PyTorch tensors
+                  where target_ids is input_ids shifted by 1 position
+        """
+        window = self.windows[idx]
+        # Input is all tokens except the last
+        input_ids = torch.tensor(window[:-1], dtype=torch.long)
+        # Target is all tokens except the first (shifted by 1)
+        target_ids = torch.tensor(window[1:], dtype=torch.long)
+        return input_ids, target_ids
+
+
+# def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
+#     """
+#     Create training and validation data loaders.
+
+#     Args:
+#         text (str): Full document text
+#         tokenizer: Tokenizer object
+#         config (dict): Training configuration
+#         train_ratio (float): Proportion of data for training
+
+#     Returns:
+#         tuple: (train_loader, val_loader)
+#     """
+#     try:
+#         print(
+#             f"\nCreating data loaders with {train_ratio:.0%} train / {(1 - train_ratio):.0%} validation split"
+#         )
+
+#         # Calculate split point
+#         split_idx = int(train_ratio * len(text))
+#         train_text = text[:split_idx]
+#         val_text = text[split_idx:]
+
+#         print(f"Train text: {len(train_text):,} chars")
+#         print(f"Val text: {len(val_text):,} chars")
+
+#         # Calculate stride from overlap
+#         stride = int(config["context_length"] * (1 - config["chunk_overlap"]))
+
+#         # Create datasets
+#         train_dataset = DocumentDataset(
+#             train_text, tokenizer, config["context_length"], stride, verbose=True
+#         )
+
+#         val_dataset = DocumentDataset(
+#             val_text,
+#             tokenizer,
+#             config["context_length"],
+#             config["context_length"],  # No overlap for validation
+#             verbose=True,
+#         )
+
+#         # Create data loaders
+#         train_loader = DataLoader(
+#             train_dataset,
+#             batch_size=config["batch_size"],
+#             shuffle=True,
+#             drop_last=True,
+#             num_workers=0,
+#         )
+
+#         val_loader = DataLoader(
+#             val_dataset,
+#             batch_size=config["batch_size"],
+#             shuffle=False,
+#             drop_last=False,
+#             num_workers=0,
+#         )
+
+#         print(f"\nTrain batches: {len(train_loader):,}")
+#         print(f"Val batches: {len(val_loader):,}")
+
+#         return train_loader, val_loader
+
+#     except Exception as e:
+#         print(f"Error creating data loaders: {e}")
+#         traceback.print_exc()
+#         raise
 
 
 # def setup_model(model_size, strategy, config, device):
@@ -754,14 +1343,46 @@ def train_model(
         total_steps = steps_per_epoch * config["num_epochs"]
 
         # Setup scheduler with warmup
+        # def get_lr(step):
+        #     """Learning rate schedule with warmup."""
+        #     if step < config["warmup_steps"]:
+        #         return step / config["warmup_steps"]
+        #     else:
+        #         progress = (step - config["warmup_steps"]) / (
+        #             total_steps - config["warmup_steps"]
+        #         )
+        #         return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
+        # def get_lr(step):
+        #     """Learning rate schedule with warmup."""
+        #     if step < config["warmup_steps"]:
+        #         # Warmup phase: linear increase
+        #         return step / config["warmup_steps"]
+        #     else:
+        #         # Cosine decay phase
+        #         # SAFETY: Prevent division by zero if warmup_steps >= total_steps
+        #         decay_steps = max(1, total_steps - config["warmup_steps"])
+        #         progress = (step - config["warmup_steps"]) / decay_steps
+        #         return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
         def get_lr(step):
-            """Learning rate schedule with warmup."""
+            """
+            Learning rate schedule with warmup and cosine decay.
+
+            Handles edge case where warmup_steps >= total_steps.
+            """
             if step < config["warmup_steps"]:
+                # Linear warmup
+                if config["warmup_steps"] == 0:
+                    return 1.0
                 return step / config["warmup_steps"]
             else:
-                progress = (step - config["warmup_steps"]) / (
-                    total_steps - config["warmup_steps"]
-                )
+                # Cosine decay
+                # Ensure we don't divide by zero
+                decay_steps = max(1, total_steps - config["warmup_steps"])
+                progress = (step - config["warmup_steps"]) / decay_steps
+
+                # Clamp progress to [0, 1] range
+                progress = min(1.0, max(0.0, progress))
+
                 return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
 
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, get_lr)
@@ -1297,11 +1918,25 @@ def main():
         )
 
         # 3. Create data loaders
+        # print(f"\n{'=' * 40}")
+        # print("Step 3: Preparing Data")
+        # print(f"{'=' * 40}")
+        # train_loader, val_loader = create_data_loaders(
+        #     document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+        # )
+
+        # 3. Create data loaders
         print(f"\n{'=' * 40}")
         print("Step 3: Preparing Data")
         print(f"{'=' * 40}")
+
+        # Use the efficient file-based tokenization
         train_loader, val_loader = create_data_loaders(
-            document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+            DOCUMENT_PATH,  # Pass file path directly
+            tokenizer,
+            TRAINING_CONFIG,
+            train_ratio=TRAIN_VAL_SPLIT,
+            is_file_path=True,  # Tell it this is a file path, not text
         )
 
         # 4. Train model
@@ -1442,39 +2077,6 @@ if __name__ == "__main__":
 
     # preset/reset
     file_path = None
-
-    # # get path if supplied
-    # if len(sys.argv) != 2:
-    #     print("Usage: python script.py <path>")
-
-    #     # Download sample text data
-    #     demo_file_path = "data/alice.txt"
-    #     os.makedirs("data", exist_ok=True)
-
-    #     if not os.path.exists(demo_file_path):
-    #         url = "https://www.gutenberg.org/files/11/11-0.txt"
-    #         print(f"Downloading training data from {url}")
-    #         with urllib.request.urlopen(url) as response:
-    #             text_data = response.read().decode("utf-8")
-    #         with open(demo_file_path, "w", encoding="utf-8") as file:
-    #             file.write(text_data)
-    #     else:
-    #         print(f"Loading existing data from {demo_file_path}")
-    #         with open(demo_file_path, "r", encoding="utf-8") as file:
-    #             text_data = file.read()
-
-    #     # Q&A
-    #     user_path_or_demo_choice = input(
-    #         "\nEnter a file path to a .txt file or for a demo say 'demo'\n"
-    #     )
-
-    #     # use demo if demo is selected
-    #     if user_path_or_demo_choice.lower().strip() == "demo":
-    #         file_path = demo_file_path
-
-    #     # use Q&A input path if selected
-    #     else:
-    #         file_path = user_path_or_demo_choice
 
     # get path if supplied
     if len(sys.argv) != 2:

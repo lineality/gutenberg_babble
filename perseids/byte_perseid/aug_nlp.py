@@ -993,7 +993,7 @@ He looked at the small issue	with tabs and spaces."""
         output_files = generate_text_suite_nlp_augment(
             input_text_path=input_file,
             output_suite_dir_path=output_dir,
-            num_documents=10,
+            num_documents=4,
             randomization_level=0.7,
             seed=42,
             # Enable most augmentations

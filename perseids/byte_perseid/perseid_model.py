@@ -1,5 +1,6 @@
 # perseid_model.py
-# Adapted for the Perseid Architecture
+# Adapted for the Perseids Architectures
+
 
 import torch
 import torch.nn as nn
@@ -768,7 +769,7 @@ PERSEID_BYTE_CONFIG_BASE = {
     "n_kv_groups": 1,
     "rope_local_base": 10_000.0,
     "rope_base": 1_000_000.0,
-    "sliding_window": 512,
+    "sliding_window": 1024,  #  512
     "layer_types": [
         "sliding_attention",
         "sliding_attention",
