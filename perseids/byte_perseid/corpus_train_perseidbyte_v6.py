@@ -1,6 +1,15 @@
 """
 train_on_corpus_perseid_byte.py
 
+note: GPU status
+```bash
+nvidia-smi
+```
+&
+```bash
+watch -n 1 nvidia-smi
+```
+
 This tool, along with aug_nlp.py (NLP Augmentation of text file),
 and make_one_corpus_file.py,
 is for pre-training a model on one (big-ish) corpus document
@@ -47,13 +56,13 @@ from perseid_model import PERSEID_BYTE_CONFIG_BASE
 # Training settings
 TRAINING_CONFIG = {
     "context_length": 1024,  # Context window for training
-    "batch_size": 1,  # Batch size (increase if memory allows)
+    "batch_size": 10,  # ~parallel processsed Batches (increase as memory allows)
     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
     "learning_rate": 5e-4,  # Learning rate
     "num_epochs": 1,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
-    "eval_every": 100,  # Evaluate every N steps NOTE purely for human-readable console output during training
+    "eval_every": 200,  # Evaluate every N steps NOTE purely for human-readable console output during training
     "eval_batches": 10,  # Number of batches for evaluation
     "save_every": 500,  # Save checkpoint every N steps
     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
@@ -65,7 +74,7 @@ MODEL_SIZE = 288  # Options: 256, 288, 320 (millions of parameters)
 MODEL_STRATEGY = "balanced"  # Options: "balanced", "deep", "wide"
 
 # Training continuation settings
-TRAINING_MODE = "continue"  # Options: "new", "continue", "force_restart"
+TRAINING_MODE = "continue"  # "continue"  # Options: "new", "continue", "force_restart"
 # - "new": Start new model if no checkpoint exists, error if checkpoint exists
 # - "continue": Resume from checkpoint if exists, start new if doesn't exist
 # - "force_restart": Always start fresh (WARNING: overwrites existing model!)
