@@ -16,79 +16,165 @@ For fine tuning, use:
 Note:
 There can be long periods when training does not find an improvement,
 but, as I understand it, that is ok because only the improvements are saved.
+"""
 
-e.g.
-```
-→ Saved best model (val_loss: 1.0047)
-Step 15525 | Train Loss: 1.0314 | Val Loss: 1.0000 | LR: 2.21e-04 | Tokens: 127,180,800
-→ Saved best model (val_loss: 1.0000)
-Step 15550 | Train Loss: 1.0312 | Val Loss: 1.0035 | LR: 2.21e-04 | Tokens: 127,385,600
-Step 15575 | Train Loss: 1.0311 | Val Loss: 1.0043 | LR: 2.20e-04 | Tokens: 127,590,400
-Step 15600 | Train Loss: 1.0309 | Val Loss: 1.0059 | LR: 2.19e-04 | Tokens: 127,795,200
-Step 15625 | Train Loss: 1.0306 | Val Loss: 1.0063 | LR: 2.19e-04 | Tokens: 128,000,000
-Step 15650 | Train Loss: 1.0304 | Val Loss: 1.0039 | LR: 2.18e-04 | Tokens: 128,204,800
-Step 15675 | Train Loss: 1.0301 | Val Loss: 0.9945 | LR: 2.17e-04 | Tokens: 128,409,600
-→ Saved best model (val_loss: 0.9945)
-Step 15700 | Train Loss: 1.0299 | Val Loss: 0.9973 | LR: 2.17e-04 | Tokens: 128,614,400
-Step 15725 | Train Loss: 1.0298 | Val Loss: 0.9992 | LR: 2.16e-04 | Tokens: 128,819,200
-Step 15750 | Train Loss: 1.0296 | Val Loss: 0.9965 | LR: 2.15e-04 | Tokens: 129,024,000
-Step 15775 | Train Loss: 1.0294 | Val Loss: 0.9980 | LR: 2.15e-04 | Tokens: 129,228,800
-Step 15800 | Train Loss: 1.0293 | Val Loss: 1.0004 | LR: 2.14e-04 | Tokens: 129,433,600
-Step 15825 | Train Loss: 1.0291 | Val Loss: 1.0012 | LR: 2.13e-04 | Tokens: 129,638,400
-Step 15850 | Train Loss: 1.0290 | Val Loss: 0.9977 | LR: 2.13e-04 | Tokens: 129,843,200
-Step 15875 | Train Loss: 1.0287 | Val Loss: 0.9992 | LR: 2.12e-04 | Tokens: 130,048,000
-Step 15900 | Train Loss: 1.0286 | Val Loss: 1.0031 | LR: 2.11e-04 | Tokens: 130,252,800
-Step 15925 | Train Loss: 1.0284 | Val Loss: 1.0059 | LR: 2.11e-04 | Tokens: 130,457,600
-Step 15950 | Train Loss: 1.0283 | Val Loss: 1.0086 | LR: 2.10e-04 | Tokens: 130,662,400
-Step 15975 | Train Loss: 1.0281 | Val Loss: 1.0004 | LR: 2.09e-04 | Tokens: 130,867,200
-Step 16000 | Train Loss: 1.0279 | Val Loss: 1.0016 | LR: 2.09e-04 | Tokens: 131,072,000
-Step 16025 | Train Loss: 1.0278 | Val Loss: 1.0023 | LR: 2.08e-04 | Tokens: 131,276,800
-Step 16050 | Train Loss: 1.0276 | Val Loss: 0.9988 | LR: 2.07e-04 | Tokens: 131,481,600
-Step 16075 | Train Loss: 1.0274 | Val Loss: 0.9984 | LR: 2.06e-04 | Tokens: 131,686,400
-Step 16100 | Train Loss: 1.0272 | Val Loss: 1.0004 | LR: 2.06e-04 | Tokens: 131,891,200
-Step 16125 | Train Loss: 1.0271 | Val Loss: 1.0000 | LR: 2.05e-04 | Tokens: 132,096,000
-Step 16150 | Train Loss: 1.0269 | Val Loss: 0.9977 | LR: 2.04e-04 | Tokens: 132,300,800
-Step 16175 | Train Loss: 1.0268 | Val Loss: 1.0008 | LR: 2.04e-04 | Tokens: 132,505,600
-Step 16200 | Train Loss: 1.0266 | Val Loss: 0.9980 | LR: 2.03e-04 | Tokens: 132,710,400
-Step 16225 | Train Loss: 1.0265 | Val Loss: 1.0008 | LR: 2.02e-04 | Tokens: 132,915,200
-Step 16250 | Train Loss: 1.0263 | Val Loss: 0.9973 | LR: 2.02e-04 | Tokens: 133,120,000
-Step 16275 | Train Loss: 1.0262 | Val Loss: 1.0020 | LR: 2.01e-04 | Tokens: 133,324,800
-Step 16300 | Train Loss: 1.0260 | Val Loss: 1.0027 | LR: 2.00e-04 | Tokens: 133,529,600
-Step 16325 | Train Loss: 1.0258 | Val Loss: 1.0012 | LR: 2.00e-04 | Tokens: 133,734,400
-Step 16350 | Train Loss: 1.0256 | Val Loss: 1.0016 | LR: 1.99e-04 | Tokens: 133,939,200
-Step 16375 | Train Loss: 1.0254 | Val Loss: 1.0039 | LR: 1.98e-04 | Tokens: 134,144,000
-Step 16400 | Train Loss: 1.0252 | Val Loss: 1.0027 | LR: 1.98e-04 | Tokens: 134,348,800
-Step 16425 | Train Loss: 1.0249 | Val Loss: 0.9996 | LR: 1.97e-04 | Tokens: 134,553,600
-Step 16450 | Train Loss: 1.0248 | Val Loss: 0.9988 | LR: 1.96e-04 | Tokens: 134,758,400
-Step 16475 | Train Loss: 1.0246 | Val Loss: 1.0012 | LR: 1.96e-04 | Tokens: 134,963,200
-Step 16500 | Train Loss: 1.0245 | Val Loss: 0.9988 | LR: 1.95e-04 | Tokens: 135,168,000
-Step 16525 | Train Loss: 1.0243 | Val Loss: 0.9996 | LR: 1.94e-04 | Tokens: 135,372,800
-Step 16550 | Train Loss: 1.0241 | Val Loss: 1.0012 | LR: 1.94e-04 | Tokens: 135,577,600
-Step 16575 | Train Loss: 1.0239 | Val Loss: 1.0012 | LR: 1.93e-04 | Tokens: 135,782,400
-Step 16600 | Train Loss: 1.0237 | Val Loss: 0.9973 | LR: 1.92e-04 | Tokens: 135,987,200
-Step 16625 | Train Loss: 1.0235 | Val Loss: 1.0020 | LR: 1.92e-04 | Tokens: 136,192,000
-Step 16650 | Train Loss: 1.0234 | Val Loss: 0.9984 | LR: 1.91e-04 | Tokens: 136,396,800
-Step 16675 | Train Loss: 1.0232 | Val Loss: 0.9969 | LR: 1.90e-04 | Tokens: 136,601,600
-Step 16700 | Train Loss: 1.0231 | Val Loss: 0.9980 | LR: 1.90e-04 | Tokens: 136,806,400
-Step 16725 | Train Loss: 1.0229 | Val Loss: 1.0035 | LR: 1.89e-04 | Tokens: 137,011,200
-Step 16750 | Train Loss: 1.0228 | Val Loss: 1.0020 | LR: 1.88e-04 | Tokens: 137,216,000
-Step 16775 | Train Loss: 1.0227 | Val Loss: 1.0020 | LR: 1.88e-04 | Tokens: 137,420,800
-Step 16800 | Train Loss: 1.0225 | Val Loss: 1.0020 | LR: 1.87e-04 | Tokens: 137,625,600
-Step 16825 | Train Loss: 1.0222 | Val Loss: 1.0008 | LR: 1.86e-04 | Tokens: 137,830,400
-Step 16850 | Train Loss: 1.0221 | Val Loss: 1.0000 | LR: 1.86e-04 | Tokens: 138,035,200
-Step 16875 | Train Loss: 1.0220 | Val Loss: 0.9969 | LR: 1.85e-04 | Tokens: 138,240,000
-Step 16900 | Train Loss: 1.0218 | Val Loss: 1.0004 | LR: 1.84e-04 | Tokens: 138,444,800
-Step 16925 | Train Loss: 1.0217 | Val Loss: 0.9984 | LR: 1.84e-04 | Tokens: 138,649,600
-Step 16950 | Train Loss: 1.0215 | Val Loss: 0.9973 | LR: 1.83e-04 | Tokens: 138,854,400
-Step 16975 | Train Loss: 1.0213 | Val Loss: 0.9973 | LR: 1.83e-04 | Tokens: 139,059,200
-Step 17000 | Train Loss: 1.0212 | Val Loss: 0.9980 | LR: 1.82e-04 | Tokens: 139,264,000
-Step 17025 | Train Loss: 1.0211 | Val Loss: 0.9934 | LR: 1.81e-04 | Tokens: 139,468,800
-→ Saved best model (val_loss: 0.9934)
-Step 17050 | Train Loss: 1.0210 | Val Loss: 0.9898 | LR: 1.81e-04 | Tokens: 139,673,600
-→ Saved best model (val_loss: 0.9898)
-Step 17075 | Train Loss: 1.0208 | Val Loss: 0.9918 | LR: 1.80e-04 | Tokens: 139,878,400
-```
+import os
+import sys
+import json
+import traceback
+from pathlib import Path
+from datetime import datetime
+import urllib.request
+import torch
+import time
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
 
+# Import model architecture and configuration tools
+from byte_tokenizer import ByteTokenizer
+from perseidbyte_256_288_320_config_tools import (
+    create_perseid_config,
+    calculate_model_params,
+    validate_config,
+)
+
+# from generate_text_tools_perseid import generate_text_simple
+from perseid_model import PerseidByteModel
+from perseid_model import PERSEID_BYTE_CONFIG_BASE
+
+
+# Training settings
+TRAINING_CONFIG = {
+    "context_length": 1024,  # Context window for training
+    "batch_size": 8,  # Batch size (increase if memory allows)
+    "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
+    "learning_rate": 5e-4,  # Learning rate
+    "num_epochs": 30,  # Number of training epochs, default 3
+    "weight_decay": 0.01,  # Weight decay for AdamW
+    "warmup_steps": 100,  # Warmup steps for learning rate
+    "eval_every": 25,  # Evaluate every N steps NOTE purely for human-readable console output during training
+    "eval_batches": 10,  # Number of batches for evaluation
+    "save_every": 500,  # Save checkpoint every N steps
+    "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
+}
+
+
+# Model configuration
+MODEL_SIZE = 288  # Options: 256, 288, 320 (millions of parameters)
+MODEL_STRATEGY = "balanced"  # Options: "balanced", "deep", "wide"
+
+# Training continuation settings
+TRAINING_MODE = "continue"  # Options: "new", "continue", "force_restart"
+# - "new": Start new model if no checkpoint exists, error if checkpoint exists
+# - "continue": Resume from checkpoint if exists, start new if doesn't exist
+# - "force_restart": Always start fresh (WARNING: overwrites existing model!)
+
+CHECKPOINT_PATH = None  # Set to specific checkpoint file, or None to auto-find
+# If None, looks for: {OUTPUT_DIR}/checkpoint_best.pth
+
+# Data split
+TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
+
+"""
+Aim of Checkpoint Management and Training Continuation System
+Current Implementation Status: COMPLETE
+This training script (train_on_corpus_perseid_byte.py) includes two major systems that solve critical training infrastructure problems:
+System 1: Conservative Checkpoint Retention Strategy
+What it does:
+
+Automatically deletes old checkpoint files to prevent disk space exhaustion
+Maintains only essential checkpoints using a sliding window approach
+
+How it works:
+
+Keeps checkpoint_best.pth (lowest validation loss) - NEVER deleted
+Keeps checkpoint_latest.pth (most recent for crash recovery) - ALWAYS updated
+Keeps last 3 checkpoint_step_*.pth files (older ones automatically deleted)
+Keeps last 5 checkpoint_epoch_*.pth files (older ones automatically deleted)
+Checks available disk space before saving (warns if low, aborts if critical)
+Uses atomic write pattern (saves to temp file, then renames) to prevent corruption
+
+Key functions:
+
+save_checkpoint() - Enhanced checkpoint saving with automatic cleanup
+cleanup_old_step_checkpoints() - Removes old step checkpoints beyond retention limit
+cleanup_old_epoch_checkpoints() - Removes old epoch checkpoints beyond retention limit
+
+System 2: Window-Level Training Continuation
+What it does:
+
+Tracks exact position in training data (window-level granularity)
+On resume after interruption, skips already-processed windows
+Prevents the model from re-training on the same data repeatedly
+
+How it works:
+
+Every checkpoint stores windows_processed counter (total windows seen across all epochs)
+On resume, training loop skips the first N windows where N = windows_processed
+Ensures training continues from approximately where it left off
+Prevents bias toward early corpus sections
+
+Key tracking variables:
+
+windows_processed - Total number of training windows processed
+windows_to_skip - Number of windows to skip when resuming
+current_window_index - Current position in the data stream
+
+Problem These Systems Solve
+Without these systems:
+
+Disk fills up - Every 500 steps creates a ~1-2GB checkpoint file, eventually exhausting all disk space
+Training fails - Disk full errors crash training with RuntimeError: File cannot be opened
+Data repetition - After crash/resume, model re-trains on beginning of corpus, creating bias
+Wasted compute - Redundant gradient updates on already-seen data
+
+With these systems:
+
+Controlled disk usage - Only ~8-10 checkpoint files maintained at any time
+Robust training - Can handle interruptions and resume properly
+Even data coverage - Each part of corpus seen approximately equally
+Efficient compute - No wasted gradient updates on repeated data
+
+Files Created and Maintained
+Copyoutput_dir/
+├── checkpoint_best.pth           # Best model (lowest val loss) - PERMANENT
+├── checkpoint_latest.pth         # Most recent - ALWAYS CURRENT
+├── checkpoint_step_156500.pth    # Recent step checkpoints - ROTATING (keep 3)
+├── checkpoint_step_157000.pth
+├── checkpoint_step_157500.pth
+├── checkpoint_epoch_28.pth       # Recent epoch checkpoints - ROTATING (keep 5)
+├── checkpoint_epoch_29.pth
+├── checkpoint_epoch_30.pth
+└── perseid_model_final.pth       # Created at training completion - PERMANENT
+How to Resume Training After Interruption
+Simply re-run the script with the same configuration:
+bashCopypython train_on_corpus_perseid_byte.py
+The script will:
+
+Find checkpoint_best.pth or checkpoint_latest.pth
+Load model weights, optimizer state, learning rate schedule
+Read windows_processed to know where to continue
+Skip already-seen windows
+Continue training from the correct position
+
+Configuration Parameters
+
+max_step_checkpoints=3 - Number of step checkpoints to keep
+max_epoch_checkpoints=5 - Number of epoch checkpoints to keep
+TRAINING_MODE="continue" - Automatically resume if checkpoint exists
+save_every=500 - Save checkpoint every N steps
+
+Monitoring Training Progress
+The console output shows:
+
+When old checkpoints are deleted: 🗑️ Removed old checkpoint: checkpoint_step_155500.pth (1234.5 MB)
+Disk space warnings: ⚠️ WARNING: Low disk space! Only 5.2 GB free
+Window skipping on resume: Skipping window 5,000 of 12,345
+Successful saves: ✓ Checkpoint saved: checkpoint_best.pth (1234.5 MB)
+"""
+
+"""
 
 Training module for Perseid models on text document corpus.
 Handles single document input with configurable train/val split.
@@ -141,47 +227,6 @@ https://www.gutenberg.org/ebooks/24856.txt.utf-8
 
 """
 
-import os
-import sys
-import json
-import traceback
-from pathlib import Path
-from datetime import datetime
-import urllib.request
-import torch
-import time
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-import matplotlib.pyplot as plt
-
-# Import model architecture and configuration tools
-from byte_tokenizer import ByteTokenizer
-from perseidbyte_256_288_320_config_tools import (
-    create_perseid_config,
-    calculate_model_params,
-    validate_config,
-)
-
-# from generate_text_tools_perseid import generate_text_simple
-from perseid_model import PerseidByteModel
-from perseid_model import PERSEID_BYTE_CONFIG_BASE
-
-
-# Model configuration
-MODEL_SIZE = 288  # Options: 256, 288, 320 (millions of parameters)
-MODEL_STRATEGY = "balanced"  # Options: "balanced", "deep", "wide"
-
-# Training continuation settings
-TRAINING_MODE = "continue"  # Options: "new", "continue", "force_restart"
-# - "new": Start new model if no checkpoint exists, error if checkpoint exists
-# - "continue": Resume from checkpoint if exists, start new if doesn't exist
-# - "force_restart": Always start fresh (WARNING: overwrites existing model!)
-
-CHECKPOINT_PATH = None  # Set to specific checkpoint file, or None to auto-find
-# If None, looks for: {OUTPUT_DIR}/checkpoint_best.pth
-
-# Data split
-TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 
 """
 reference
@@ -213,7 +258,7 @@ reference
 #     "eval_batches": 20,  # More validation batches for stable estimate
 #     "save_every": 500,
 #     "chunk_overlap": 0.15,  # Slightly more overlap for context
-#     # New parameters for better control
+#     # parameters for better control
 #     "gradient_clip": 0.5,  # More aggressive clipping
 #     "dropout": 0.1,  # If your model supports it
 #     "label_smoothing": 0.1,  # Helps prevent overconfidence
@@ -259,20 +304,20 @@ TRAINING_CONFIG = {
 
 """
 
-# Training settings
-TRAINING_CONFIG = {
-    "context_length": 1024,  # Context window for training
-    "batch_size": 2,  # Batch size (increase if memory allows)
-    "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
-    "learning_rate": 5e-4,  # Learning rate
-    "num_epochs": 3,  # Number of training epochs, default 3
-    "weight_decay": 0.01,  # Weight decay for AdamW
-    "warmup_steps": 100,  # Warmup steps for learning rate
-    "eval_every": 25,  # Evaluate every N steps NOTE purely for human-readable console output during training
-    "eval_batches": 10,  # Number of batches for evaluation
-    "save_every": 500,  # Save checkpoint every N steps
-    "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
-}
+# # Training settings
+# TRAINING_CONFIG = {
+#     "context_length": 1024,  # Context window for training
+#     "batch_size": 2,  # Batch size (increase if memory allows)
+#     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
+#     "learning_rate": 5e-4,  # Learning rate
+#     "num_epochs": 3,  # Number of training epochs, default 3
+#     "weight_decay": 0.01,  # Weight decay for AdamW
+#     "warmup_steps": 100,  # Warmup steps for learning rate
+#     "eval_every": 25,  # Evaluate every N steps NOTE purely for human-readable console output during training
+#     "eval_batches": 10,  # Number of batches for evaluation
+#     "save_every": 500,  # Save checkpoint every N steps
+#     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
+# }
 
 # ============================================================================
 # END USER CONFIGURATION
@@ -1160,6 +1205,9 @@ def setup_model(
                 "scheduler_state": checkpoint.get("scheduler_state_dict", None),
                 "epoch": checkpoint.get("epoch", 0),
                 "tokens_seen": checkpoint.get("tokens_seen", 0),
+                "windows_processed": checkpoint.get(
+                    "windows_processed", 0
+                ),  # Window tracking for proper continuation
             }
 
             print(f"\nResuming from:")
@@ -1167,6 +1215,7 @@ def setup_model(
             print(f"  - Epoch: {training_state['epoch']}")
             print(f"  - Best validation loss: {training_state['best_val_loss']:.4f}")
             print(f"  - Tokens seen: {training_state['tokens_seen']:,}")
+            print(f"  - Windows processed: {training_state['windows_processed']:,}")
 
         else:
             # Starting fresh
@@ -1306,7 +1355,7 @@ def train_model(
     model, train_loader, val_loader, config, device, output_dir, training_state
 ):
     """
-    Main training loop for Perseid model.
+    Main training loop for Perseid model with window-level continuation support.
 
     Args:
         model: Model to train
@@ -1319,6 +1368,11 @@ def train_model(
 
     Returns:
         dict: Training history
+
+    Specs:
+    - Window-level progress tracking for proper continuation
+    - Intelligent checkpoint management with automatic cleanup
+    - Epoch boundary checkpointing
     """
     try:
         print(f"\n{'=' * 60}")
@@ -1403,7 +1457,15 @@ def train_model(
         tokens_seen = training_state["tokens_seen"]
         start_epoch = training_state["epoch"]
 
+        # Track windows for continuation
+        windows_processed = training_state.get("windows_processed", 0)
+        windows_to_skip = windows_processed  # How many to skip on resume
+
         print(f"\nStarting from epoch {start_epoch + 1}, step {global_step}")
+        if windows_to_skip > 0:
+            print(
+                f"  ✓ Will skip first {windows_to_skip:,} windows (continuation mode)"
+            )
 
         print(f"Total training steps: {total_steps:,}")
         print(f"Warmup steps: {config['warmup_steps']:,}")
@@ -1421,8 +1483,22 @@ def train_model(
             model.train()
             epoch_loss = 0
             epoch_tokens = 0
+            epoch_windows = 0  # Track windows in this epoch
+
+            # Handle continuation by skipping windows
+            windows_skipped_this_epoch = 0
 
             for batch_idx, (input_batch, target_batch) in enumerate(train_loader):
+                # Skip windows if resuming mid-training
+                current_window_index = epoch * len(train_loader) + batch_idx
+                if current_window_index < windows_to_skip:
+                    windows_skipped_this_epoch += 1
+                    if windows_skipped_this_epoch % 1000 == 0:
+                        print(
+                            f"  Skipping window {windows_skipped_this_epoch:,} of {windows_to_skip:,}"
+                        )
+                    continue
+
                 # Calculate loss
                 loss = calculate_loss(input_batch, target_batch, model, device)
                 loss = loss / config["gradient_accumulation_steps"]
@@ -1430,6 +1506,8 @@ def train_model(
 
                 epoch_loss += loss.item() * config["gradient_accumulation_steps"]
                 epoch_tokens += input_batch.numel()
+                epoch_windows += 1
+                windows_processed += 1  # Track total windows seen
 
                 # Update weights after gradient accumulation
                 if (batch_idx + 1) % config["gradient_accumulation_steps"] == 0:
@@ -1468,7 +1546,7 @@ def train_model(
                             f"Tokens: {tokens_seen:,}"
                         )
 
-                        # Save best model
+                        # Save best model with window tracking
                         if val_loss < best_val_loss:
                             best_val_loss = val_loss
                             save_checkpoint(
@@ -1479,10 +1557,13 @@ def train_model(
                                 best_val_loss,
                                 output_dir,
                                 "best",
+                                epoch=epoch,
+                                tokens_seen=tokens_seen,
+                                windows_processed=windows_processed,
                             )
                             print(f"  → Saved best model (val_loss: {val_loss:.4f})")
 
-                    # Periodic checkpoint
+                    # Periodic checkpoint with window tracking
                     if global_step % config["save_every"] == 0:
                         save_checkpoint(
                             model,
@@ -1492,16 +1573,58 @@ def train_model(
                             val_loss,
                             output_dir,
                             f"step_{global_step}",
+                            epoch=epoch,
+                            tokens_seen=tokens_seen,
+                            windows_processed=windows_processed,
                         )
 
-            # End of epoch evaluation
-            avg_epoch_loss = epoch_loss / len(train_loader)
-            val_loss = evaluate_model(model, val_loader, device)
+                        # Also save as "latest" for easy resume
+                        save_checkpoint(
+                            model,
+                            optimizer,
+                            scheduler,
+                            global_step,
+                            val_loss,
+                            output_dir,
+                            "latest",
+                            epoch=epoch,
+                            tokens_seen=tokens_seen,
+                            windows_processed=windows_processed,
+                        )
 
-            print(f"\nEpoch {epoch + 1} Summary:")
-            print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
-            print(f"  Validation Loss: {val_loss:.4f}")
-            print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
+            # # End of epoch evaluation
+            # avg_epoch_loss = epoch_loss / len(train_loader)
+            # val_loss = evaluate_model(model, val_loader, device)
+
+            # print(f"\nEpoch {epoch + 1} Summary:")
+            # print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
+            # print(f"  Validation Loss: {val_loss:.4f}")
+            # print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
+
+            # End of epoch - save epoch checkpoint
+            if epoch_windows > 0:  # Only if we actually processed windows
+                avg_epoch_loss = epoch_loss / epoch_windows
+                val_loss = evaluate_model(model, val_loader, device)
+
+                print(f"\nEpoch {epoch + 1} Summary:")
+                print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
+                print(f"  Validation Loss: {val_loss:.4f}")
+                print(f"  Windows Processed This Epoch: {epoch_windows:,}")
+                print(f"  Total Windows Processed: {windows_processed:,}")
+
+                # Save epoch checkpoint
+                save_checkpoint(
+                    model,
+                    optimizer,
+                    scheduler,
+                    global_step,
+                    val_loss,
+                    output_dir,
+                    f"epoch_{epoch + 1}",
+                    epoch=epoch + 1,
+                    tokens_seen=tokens_seen,
+                    windows_processed=windows_processed,
+                )
 
         print(f"\n{'=' * 60}")
         print("Training Complete!")
@@ -1517,40 +1640,405 @@ def train_model(
         raise
 
 
-def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag):
+# def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag):
+#     """
+#     Save model checkpoint with all training state.
+
+#     Args:
+#         model: Model to save
+#         optimizer: Optimizer state
+#         scheduler: Scheduler state
+#         step: Current training step
+#         val_loss: Current validation loss
+#         output_dir: Output directory
+#         tag: Checkpoint tag (e.g., "best", "step_1000")
+#     """
+#     try:
+#         output_dir = Path(output_dir)
+#         output_dir.mkdir(parents=True, exist_ok=True)
+
+#         checkpoint_path = output_dir / f"checkpoint_{tag}.pth"
+
+#         torch.save(
+#             {
+#                 "model_state_dict": model.state_dict(),
+#                 "optimizer_state_dict": optimizer.state_dict(),
+#                 "scheduler_state_dict": scheduler.state_dict(),
+#                 "step": step,
+#                 "val_loss": val_loss,
+#                 "model_config": model.cfg,
+#             },
+#             checkpoint_path,
+#         )
+
+#     except Exception as e:
+#         print(f"Error saving checkpoint: {e}")
+#         traceback.print_exc()
+
+
+def save_checkpoint(
+    model,
+    optimizer,
+    scheduler,
+    step,
+    val_loss,
+    output_dir,
+    tag,
+    epoch=None,
+    tokens_seen=None,
+    windows_processed=None,
+    max_step_checkpoints=3,
+    max_epoch_checkpoints=5,
+):
     """
-    Save model checkpoint with all training state.
+    Save model checkpoint with intelligent file management and training state tracking.
+
+    CRITICAL DESIGN DECISIONS:
+    1. Timestamps prevent filename collisions between training runs
+    2. Cleanup happens AFTER save to prevent race conditions
+    3. File existence checks before operations prevent FileNotFoundError
+
+    Checkpoint naming strategy:
+    - checkpoint_best.pth (no timestamp - always overwrites)
+    - checkpoint_latest.pth (no timestamp - always overwrites)
+    - checkpoint_step_1000_20240115_143022.pth (timestamped - unique)
+    - checkpoint_epoch_5_20240115_143022.pth (timestamped - unique)
 
     Args:
-        model: Model to save
-        optimizer: Optimizer state
-        scheduler: Scheduler state
-        step: Current training step
-        val_loss: Current validation loss
-        output_dir: Output directory
-        tag: Checkpoint tag (e.g., "best", "step_1000")
+        model (torch.nn.Module): Model to save
+        optimizer (torch.optim.Optimizer): Optimizer state to preserve
+        scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler
+        step (int): Current global training step
+        val_loss (float): Current validation loss
+        output_dir (str or Path): Directory for saving checkpoints
+        tag (str): Checkpoint identifier (e.g., "best", "step_1000", "epoch_5")
+        epoch (int, optional): Current epoch number for tracking
+        tokens_seen (int, optional): Total tokens processed so far
+        windows_processed (int, optional): Total training windows seen (for continuation)
+        max_step_checkpoints (int): Maximum number of step checkpoints to retain
+        max_epoch_checkpoints (int): Maximum number of epoch checkpoints to retain
+
+    Returns:
+        bool: True if save successful, False otherwise
     """
     try:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        checkpoint_path = output_dir / f"checkpoint_{tag}.pth"
+        # ================================================================
+        # SECTION 1: Check disk space
+        # ================================================================
+        import shutil
 
-        torch.save(
-            {
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "scheduler_state_dict": scheduler.state_dict(),
-                "step": step,
-                "val_loss": val_loss,
-                "model_config": model.cfg,
-            },
-            checkpoint_path,
+        disk_stats = shutil.disk_usage(output_dir)
+        free_space_gb = disk_stats.free / (1024**3)
+
+        # Estimate checkpoint size
+        model_size_bytes = sum(p.numel() for p in model.parameters()) * 4
+        checkpoint_size_gb = (
+            model_size_bytes / (1024**3) * 1.5
+        )  # 50% buffer for optimizer
+
+        # Check if we have enough space
+        if free_space_gb < checkpoint_size_gb * 1.2:
+            print(f"❌ ERROR: Insufficient disk space to save checkpoint")
+            print(
+                f"   Need at least {checkpoint_size_gb * 1.2:.2f} GB, have {free_space_gb:.2f} GB"
+            )
+            return False
+
+        if free_space_gb < checkpoint_size_gb * 2:
+            print(f"⚠️  WARNING: Low disk space! Only {free_space_gb:.2f} GB free")
+
+        # ================================================================
+        # SECTION 2: Prepare checkpoint data
+        # ================================================================
+        checkpoint_data = {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "scheduler_state_dict": scheduler.state_dict(),
+            "model_config": model.cfg,
+            "step": step,
+            "val_loss": val_loss,
+            "epoch": epoch if epoch is not None else 0,
+            "tokens_seen": tokens_seen if tokens_seen is not None else 0,
+            "windows_processed": windows_processed
+            if windows_processed is not None
+            else 0,
+            "checkpoint_version": "v3_timestamped",
+            "timestamp": datetime.now().isoformat(),
+            "tag": tag,
+        }
+
+        # ================================================================
+        # SECTION 3: Generate filename with timestamp for uniqueness
+        # ================================================================
+
+        # Generate timestamp for unique identification
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[
+            :21
+        ]  # Include microseconds
+
+        # Determine checkpoint filename based on tag type
+        if tag == "best":
+            # Best model always overwrites (no timestamp needed)
+            checkpoint_filename = "checkpoint_best.pth"
+            needs_cleanup = False
+
+        elif tag == "latest":
+            # Latest always overwrites (no timestamp needed)
+            checkpoint_filename = "checkpoint_latest.pth"
+            needs_cleanup = False
+
+        elif tag.startswith("step_"):
+            # Step checkpoints need timestamps to prevent collisions
+            step_num = tag.split("_")[1]
+            checkpoint_filename = f"checkpoint_step_{step_num}_{timestamp_str}.pth"
+            needs_cleanup = True
+            cleanup_type = "step"
+
+        elif tag.startswith("epoch_"):
+            # Epoch checkpoints need timestamps to prevent collisions
+            epoch_num = tag.split("_")[1]
+            checkpoint_filename = f"checkpoint_epoch_{epoch_num}_{timestamp_str}.pth"
+            needs_cleanup = True
+            cleanup_type = "epoch"
+
+        else:
+            # Generic checkpoint with timestamp
+            checkpoint_filename = f"checkpoint_{tag}_{timestamp_str}.pth"
+            needs_cleanup = False
+
+        checkpoint_path = output_dir / checkpoint_filename
+        temp_path = output_dir / f"temp_{checkpoint_filename}.partial"
+
+        # ================================================================
+        # SECTION 4: Save checkpoint with atomic write pattern
+        # ================================================================
+
+        # Save to temporary file first
+        try:
+            torch.save(checkpoint_data, temp_path)
+
+            # Verify temp file was created successfully
+            if not temp_path.exists():
+                raise IOError(
+                    f"Failed to create temporary checkpoint file: {temp_path}"
+                )
+
+            # For overwriting checkpoints (best/latest), remove old version
+            if checkpoint_path.exists() and tag in ["best", "latest"]:
+                try:
+                    checkpoint_path.unlink()
+                except Exception as remove_error:
+                    print(
+                        f"⚠️  Warning: Could not remove old {tag} checkpoint: {remove_error}"
+                    )
+
+            # Atomic rename from temp to final
+            temp_path.rename(checkpoint_path)
+
+            # Verify the final file exists
+            if not checkpoint_path.exists():
+                raise IOError(
+                    f"Checkpoint file not found after save: {checkpoint_path}"
+                )
+
+        except Exception as save_error:
+            print(f"❌ Failed to save checkpoint: {save_error}")
+            traceback.print_exc()
+
+            # Clean up temp file if it exists
+            if temp_path.exists():
+                try:
+                    temp_path.unlink()
+                except Exception as cleanup_error:
+                    print(f"⚠️  Could not clean up temp file: {cleanup_error}")
+
+            return False
+
+        # ================================================================
+        # SECTION 5: Report success (with file size if available)
+        # ================================================================
+
+        try:
+            file_size_mb = checkpoint_path.stat().st_size / (1024**2)
+            print(f"✓ Checkpoint saved: {checkpoint_filename} ({file_size_mb:.1f} MB)")
+        except Exception as stat_error:
+            print(f"✓ Checkpoint saved: {checkpoint_filename} (size unknown)")
+
+        # ================================================================
+        # SECTION 6: Cleanup old checkpoints AFTER successful save
+        # ================================================================
+        # CRITICAL: This happens AFTER save, preventing deletion of current file
+
+        if needs_cleanup:
+            try:
+                if cleanup_type == "step":
+                    cleanup_old_step_checkpoints(
+                        output_dir,
+                        current_step=step,
+                        max_to_keep=max_step_checkpoints,
+                        exclude_file=checkpoint_path,  # Don't delete the file we just created!
+                    )
+                elif cleanup_type == "epoch":
+                    cleanup_old_epoch_checkpoints(
+                        output_dir,
+                        current_epoch=epoch,
+                        max_to_keep=max_epoch_checkpoints,
+                        exclude_file=checkpoint_path,  # Don't delete the file we just created!
+                    )
+            except Exception as cleanup_error:
+                print(f"⚠️  Warning: Checkpoint cleanup failed: {cleanup_error}")
+                traceback.print_exc()
+                # Non-fatal - we still saved the checkpoint successfully
+
+        return True
+
+    except Exception as unexpected_error:
+        print(f"❌ Unexpected error in save_checkpoint: {unexpected_error}")
+        traceback.print_exc()
+        return False
+
+
+def cleanup_old_step_checkpoints(
+    output_dir, current_step, max_to_keep=3, exclude_file=None
+):
+    """
+    Remove old step checkpoint files, keeping only the most recent N.
+
+    CRITICAL IMPROVEMENTS:
+    1. Handles timestamped filenames correctly
+    2. Excludes the file we just created from deletion
+    3. Uses modification time for reliable sorting
+
+    Args:
+        output_dir (Path): Directory containing checkpoint files
+        current_step (int): Current training step (for logging)
+        max_to_keep (int): Maximum number of step checkpoints to retain
+        exclude_file (Path, optional): File to exclude from deletion (the one we just created)
+
+    Returns:
+        int: Number of files deleted
+    """
+    try:
+        output_dir = Path(output_dir)
+
+        # Find all step checkpoint files
+        # Pattern: checkpoint_step_*.pth matches both old and new formats
+        all_step_files = list(output_dir.glob("checkpoint_step_*.pth"))
+
+        # Exclude the file we just created
+        if exclude_file and exclude_file in all_step_files:
+            all_step_files.remove(exclude_file)
+
+        if len(all_step_files) <= max_to_keep:
+            return 0  # Nothing to delete
+
+        # Sort by modification time (most recent first)
+        sorted_files = sorted(
+            all_step_files, key=lambda f: f.stat().st_mtime, reverse=True
         )
 
-    except Exception as e:
-        print(f"Error saving checkpoint: {e}")
+        # Select files to delete (oldest ones)
+        files_to_delete = sorted_files[max_to_keep:]
+
+        deleted_count = 0
+        total_freed_mb = 0
+
+        for old_checkpoint in files_to_delete:
+            try:
+                file_size_mb = old_checkpoint.stat().st_size / (1024**2)
+                old_checkpoint.unlink()
+                print(
+                    f"  🗑️  Removed old step checkpoint: {old_checkpoint.name} ({file_size_mb:.1f} MB)"
+                )
+                deleted_count += 1
+                total_freed_mb += file_size_mb
+            except Exception as delete_error:
+                print(f"  ⚠️  Failed to delete {old_checkpoint.name}: {delete_error}")
+
+        if deleted_count > 0:
+            print(
+                f"  ✓ Cleanup complete: removed {deleted_count} files, freed {total_freed_mb:.1f} MB"
+            )
+
+        return deleted_count
+
+    except Exception as cleanup_error:
+        print(f"⚠️  Warning: Step checkpoint cleanup failed: {cleanup_error}")
         traceback.print_exc()
+        return 0
+
+
+def cleanup_old_epoch_checkpoints(
+    output_dir, current_epoch, max_to_keep=5, exclude_file=None
+):
+    """
+    Remove old epoch checkpoint files, keeping only the most recent N.
+
+    CRITICAL IMPROVEMENTS:
+    1. Handles timestamped filenames correctly
+    2. Excludes the file we just created from deletion
+    3. Uses modification time for reliable sorting
+
+    Args:
+        output_dir (Path): Directory containing checkpoint files
+        current_epoch (int): Current epoch number (for logging)
+        max_to_keep (int): Maximum number of epoch checkpoints to retain
+        exclude_file (Path, optional): File to exclude from deletion (the one we just created)
+
+    Returns:
+        int: Number of files deleted
+    """
+    try:
+        output_dir = Path(output_dir)
+
+        # Find all epoch checkpoint files
+        # Pattern: checkpoint_epoch_*.pth matches both old and new formats
+        all_epoch_files = list(output_dir.glob("checkpoint_epoch_*.pth"))
+
+        # Exclude the file we just created
+        if exclude_file and exclude_file in all_epoch_files:
+            all_epoch_files.remove(exclude_file)
+
+        if len(all_epoch_files) <= max_to_keep:
+            return 0  # Nothing to delete
+
+        # Sort by modification time (most recent first)
+        sorted_files = sorted(
+            all_epoch_files, key=lambda f: f.stat().st_mtime, reverse=True
+        )
+
+        # Select files to delete (oldest ones)
+        files_to_delete = sorted_files[max_to_keep:]
+
+        deleted_count = 0
+        total_freed_mb = 0
+
+        for old_checkpoint in files_to_delete:
+            try:
+                file_size_mb = old_checkpoint.stat().st_size / (1024**2)
+                old_checkpoint.unlink()
+                print(
+                    f"  🗑️  Removed old epoch checkpoint: {old_checkpoint.name} ({file_size_mb:.1f} MB)"
+                )
+                deleted_count += 1
+                total_freed_mb += file_size_mb
+            except Exception as delete_error:
+                print(f"  ⚠️  Failed to delete {old_checkpoint.name}: {delete_error}")
+
+        if deleted_count > 0:
+            print(
+                f"  ✓ Cleanup complete: removed {deleted_count} files, freed {total_freed_mb:.1f} MB"
+            )
+
+        return deleted_count
+
+    except Exception as cleanup_error:
+        print(f"⚠️  Warning: Epoch checkpoint cleanup failed: {cleanup_error}")
+        traceback.print_exc()
+        return 0
 
 
 def save_training_results(model, model_config, history, output_dir):
@@ -2100,9 +2588,6 @@ if __name__ == "__main__":
             """\nEnter a file path to a .txt file or for a demo say 'demo'
 Or say "url" to enter a gutenberg.org url, e.g.
 
-shakespeare first folio...
-https://www.gutenberg.org/cache/epub/2270/pg2270.txt
-
 chaucer in six volumes...
 https://www.gutenberg.org/cache/epub/43089/pg43089.txt
 https://www.gutenberg.org/cache/epub/44833/pg44833.txt
@@ -2111,10 +2596,67 @@ https://www.gutenberg.org/cache/epub/22120/pg22120.txt
 https://www.gutenberg.org/cache/epub/43016/pg43016.txt
 https://www.gutenberg.org/cache/epub/43097/pg43097.txt
 
-Poetry:
+
+#v shakespeare first folio...
+https://www.gutenberg.org/cache/epub/2270/pg2270.txt
+
+# Aeschylus
+https://www.gutenberg.org/ebooks/8714
+
+
+# Poetry:
 https://www.gutenberg.org/cache/epub/30235/pg30235.txt
 
-# homer & odyssey
+G. K. Chesterton:
+https://www.gutenberg.org/ebooks/204.txt.utf-8
+https://www.gutenberg.org/ebooks/18639.txt.utf-8
+https://www.gutenberg.org/ebooks/13468.txt.utf-8
+https://www.gutenberg.org/ebooks/223.txt.utf-8
+https://www.gutenberg.org/ebooks/65688.txt.utf-8
+https://www.gutenberg.org/ebooks/2134.txt.utf-8
+https://www.gutenberg.org/ebooks/9656.txt.utf-8
+https://www.gutenberg.org/ebooks/16769.txt.utf-8
+https://www.gutenberg.org/ebooks/20058.txt.utf-8
+https://www.gutenberg.org/ebooks/8092.txt.utf-8
+https://www.gutenberg.org/ebooks/1695.txt.utf-8
+https://www.gutenberg.org/ebooks/1719.txt.utf-8
+https://www.gutenberg.org/ebooks/12245.txt.utf-8
+https://www.gutenberg.org/ebooks/59239.txt.utf-8
+https://www.gutenberg.org/ebooks/22362.txt.utf-8
+https://www.gutenberg.org/ebooks/1720.txt.utf-8
+https://www.gutenberg.org/ebooks/21522.txt.utf-8
+https://www.gutenberg.org/ebooks/60057.txt.utf-8
+https://www.gutenberg.org/ebooks/1696.txt.utf-8
+https://www.gutenberg.org/ebooks/21525.txt.utf-8
+https://www.gutenberg.org/ebooks/70175.txt.utf-8
+https://www.gutenberg.org/ebooks/14706.txt.utf-8
+https://www.gutenberg.org/ebooks/67639.txt.utf-8
+https://www.gutenberg.org/ebooks/61760.txt.utf-8
+https://www.gutenberg.org/ebooks/11560.txt.utf-8
+https://www.gutenberg.org/ebooks/11554.txt.utf-8
+https://www.gutenberg.org/ebooks/25795.txt.utf-8
+https://www.gutenberg.org/ebooks/1721.txt.utf-8
+
+
+https://www.gutenberg.org/ebooks/382.txt.utf-8
+
+# jane austin
+https://www.gutenberg.org/ebooks/31100.txt.utf-8
+
+# churchill
+https://www.gutenberg.org/ebooks/5400.txt.utf-8
+
+# franklin
+https://www.gutenberg.org/ebooks/48136.txt.utf-8
+https://www.gutenberg.org/ebooks/48138.txt.utf-8
+https://www.gutenberg.org/ebooks/48137.txt.utf-8
+https://www.gutenberg.org/ebooks/40236.txt.utf-8
+https://www.gutenberg.org/ebooks/36338.txt.utf-8
+
+# dickens
+https://www.gutenberg.org/ebooks/1023.txt.utf-8
+
+# Homer & Odyssey
 https://www.gutenberg.org/ebooks/3160.txt.utf-8
 https://www.gutenberg.org/ebooks/1727.txt.utf-8
 https://www.gutenberg.org/ebooks/348.txt.utf-8
@@ -2146,7 +2688,7 @@ Or say "url" to enter a gutenberg.org url:\n
         elif user_path_or_demo_choice.lower().strip() == "url":
             url = input("url is... -> \n")
             book_id = extract_book_id(url)
-            book_file_path = f"data/{book_id}.txt"
+            book_file_path = f"data/chesterton/{book_id}.txt"
             print(f"Downloading training data from {url}")
             text_data = download_book(url, book_file_path)
             if text_data:

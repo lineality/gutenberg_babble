@@ -1,0 +1,409 @@
+ File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_147000.pth cannot be opened.
+Step 147500 | Train Loss: 0.6920 | Val Loss: 0.6984 | LR: 4.15e-04 | Tokens: 1,208,320,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_147500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_147500.pth cannot be opened.
+Step 148000 | Train Loss: 0.6926 | Val Loss: 0.6906 | LR: 4.15e-04 | Tokens: 1,212,416,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_148000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_148000.pth cannot be opened.
+Step 148500 | Train Loss: 0.6939 | Val Loss: 0.7004 | LR: 4.14e-04 | Tokens: 1,216,512,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_148500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_148500.pth cannot be opened.
+Step 149000 | Train Loss: 0.6945 | Val Loss: 0.6891 | LR: 4.14e-04 | Tokens: 1,220,608,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_149000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_149000.pth cannot be opened.
+Step 149500 | Train Loss: 0.6948 | Val Loss: 0.6801 | LR: 4.13e-04 | Tokens: 1,224,704,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_149500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_149500.pth cannot be opened.
+Step 150000 | Train Loss: 0.6949 | Val Loss: 0.6988 | LR: 4.13e-04 | Tokens: 1,228,800,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_150000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_150000.pth cannot be opened.
+Step 150500 | Train Loss: 0.6957 | Val Loss: 0.6953 | LR: 4.12e-04 | Tokens: 1,232,896,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_150500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_150500.pth cannot be opened.
+Step 151000 | Train Loss: 0.6959 | Val Loss: 0.6875 | LR: 4.12e-04 | Tokens: 1,236,992,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_151000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_151000.pth cannot be opened.
+Step 151500 | Train Loss: 0.6962 | Val Loss: 0.7012 | LR: 4.11e-04 | Tokens: 1,241,088,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_151500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_151500.pth cannot be opened.
+Step 152000 | Train Loss: 0.6967 | Val Loss: 0.6852 | LR: 4.11e-04 | Tokens: 1,245,184,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_152000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_152000.pth cannot be opened.
+Step 152500 | Train Loss: 0.6969 | Val Loss: 0.6859 | LR: 4.10e-04 | Tokens: 1,249,280,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_152500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_152500.pth cannot be opened.
+Step 153000 | Train Loss: 0.6970 | Val Loss: 0.6809 | LR: 4.09e-04 | Tokens: 1,253,376,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_153000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_153000.pth cannot be opened.
+Step 153500 | Train Loss: 0.6972 | Val Loss: 0.6754 | LR: 4.09e-04 | Tokens: 1,257,472,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_153500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_153500.pth cannot be opened.
+Step 154000 | Train Loss: 0.6973 | Val Loss: 0.6891 | LR: 4.08e-04 | Tokens: 1,261,568,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_154000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_154000.pth cannot be opened.
+Step 154500 | Train Loss: 0.6974 | Val Loss: 0.6871 | LR: 4.08e-04 | Tokens: 1,265,664,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_154500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_154500.pth cannot be opened.
+Step 155000 | Train Loss: 0.6976 | Val Loss: 0.6723 | LR: 4.07e-04 | Tokens: 1,269,760,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_155000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_155000.pth cannot be opened.
+Step 155500 | Train Loss: 0.6976 | Val Loss: 0.6840 | LR: 4.07e-04 | Tokens: 1,273,856,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_155500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_155500.pth cannot be opened.
+Step 156000 | Train Loss: 0.6978 | Val Loss: 0.6641 | LR: 4.06e-04 | Tokens: 1,277,952,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_156000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_156000.pth cannot be opened.
+Step 156500 | Train Loss: 0.6979 | Val Loss: 0.6781 | LR: 4.06e-04 | Tokens: 1,282,048,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_156500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_156500.pth cannot be opened.
+Step 157000 | Train Loss: 0.6979 | Val Loss: 0.6609 | LR: 4.05e-04 | Tokens: 1,286,144,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_157000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_157000.pth cannot be opened.
+Step 157500 | Train Loss: 0.6979 | Val Loss: 0.6547 | LR: 4.04e-04 | Tokens: 1,290,240,000
+Error saving checkpoint: [enforce fail at inline_container.cc:664] . unexpected pos 64 vs 0
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 967, in save
+    _save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 1215, in _save
+    zip_file.write_record("data.pkl", data_value, len(data_value))
+RuntimeError: [enforce fail at inline_container.cc:858] . PytorchStreamWriter failed writing file data.pkl: file write failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 798, in __exit__
+    self.file_like.write_end_of_file()
+RuntimeError: [enforce fail at inline_container.cc:664] . unexpected pos 64 vs 0
+  → Saved best model (val_loss: 0.6547)
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_157500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_157500.pth cannot be opened.
+Step 158000 | Train Loss: 0.6979 | Val Loss: 0.6719 | LR: 4.04e-04 | Tokens: 1,294,336,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_158000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_158000.pth cannot be opened.
+Step 158500 | Train Loss: 0.6980 | Val Loss: 0.6699 | LR: 4.03e-04 | Tokens: 1,298,432,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_158500.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_158500.pth cannot be opened.
+Step 159000 | Train Loss: 0.6981 | Val Loss: 0.6645 | LR: 4.03e-04 | Tokens: 1,302,528,000
+Error saving checkpoint: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_159000.pth cannot be opened.
+Traceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1557, in save_checkpoint
+    torch.save(
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: File models/perseid_288m_corpus_english_1_aug_20250930_192342/checkpoint_step_159000.pth cannot be opened.
+^CTraceback (most recent call last):
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 2255, in <module>
+    model, history = main()
+                     ^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1964, in main
+    history = train_model(
+              ^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1445, in train_model
+    loss = calculate_loss(input_batch, target_batch, model, device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/train_on_corpus_perseid_byte.py", line 1278, in calculate_loss
+    logits = model(input_batch)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/perseid_model.py", line 477, in forward
+    x = block(
+        ^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/perseid_model.py", line 371, in forward
+    x_attn = self.att(x, attn_mask, cos, sin)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/perseid_model.py", line 302, in forward
+    queries = self.q_norm(queries)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/oops/code/gutenberg_babble/perseids/byte_perseid/perseid_model.py", line 177, in forward
+    return out.to(input_dtype)
+           ^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
