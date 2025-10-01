@@ -47,10 +47,10 @@ from perseid_model import PERSEID_BYTE_CONFIG_BASE
 # Training settings
 TRAINING_CONFIG = {
     "context_length": 1024,  # Context window for training
-    "batch_size": 8,  # Batch size (increase if memory allows)
+    "batch_size": 10,  # Batch size (increase if memory allows)
     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
     "learning_rate": 5e-4,  # Learning rate
-    "num_epochs": 30,  # Number of training epochs, default 3
+    "num_epochs": 5,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
     "eval_every": 25,  # Evaluate every N steps NOTE purely for human-readable console output during training
@@ -2720,6 +2720,10 @@ Or say "url" to enter a gutenberg.org url:\n
     # Hardware settings
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     USE_BFLOAT16 = torch.cuda.is_available()  # Use bfloat16 if on GPU
+
+    print("\nTraining config:")
+    for i in TRAINING_CONFIG:
+        print(i)phyth
 
     # Run the training pipeline
     model, history = main()
