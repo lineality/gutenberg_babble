@@ -1302,6 +1302,94 @@ def test_integration():
 ################
 
 
+class TaskOutcomeDataset(Dataset):
+    """
+    Dataset that pairs problems with their deterministic solutions.
+    Enables task-outcome based evaluation instead of token prediction.
+    """
+
+    def __init__(self, problems_file, tokenizer, max_length):
+        """
+        Args:
+            problems_file: JSON file with format:
+                [
+                    {
+                        "problem": "# Task: evaluate expression, What is 2+2? Answer:",
+                        "answer": "4",
+                        "answer_delimiters": ["```", "```"]  # optional
+                    },
+                    ...
+                ]
+            tokenizer: ByteTokenizer instance
+            max_length: Maximum sequence length
+        """
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+        # Load problems and solutions
+        with open(problems_file, "r") as f:
+            self.problems = json.load(f)
+
+        print(f"Loaded {len(self.problems)} task-outcome problems")
+
+    def __len__(self):
+        return len(self.problems)
+
+    def __getitem__(self, idx):
+        problem_data = self.problems[idx]
+
+        # Tokenize problem prompt
+        problem_tokens = self.tokenizer.encode(problem_data["problem"])
+
+        # Truncate if needed
+        if len(problem_tokens) > self.max_length:
+            problem_tokens = problem_tokens[: self.max_length]
+
+        # Convert to tensor
+        input_ids = torch.tensor(problem_tokens, dtype=torch.long)
+
+        # Return problem tokens and ground truth answer (as string)
+        return {
+            "input_ids": input_ids,
+            "answer": problem_data["answer"],
+            "problem_text": problem_data["problem"],
+            "delimiters": problem_data.get("answer_delimiters", ["```", "```"]),
+        }
+
+
+def collate_task_outcome_batch(batch):
+    """Custom collate function for variable-length problems."""
+    # Find max length in batch
+    max_len = max(item["input_ids"].shape[0] for item in batch)
+
+    # Pad all sequences
+    padded_inputs = []
+    answers = []
+    problem_texts = []
+    delimiters = []
+
+    for item in batch:
+        # Pad input
+        input_ids = item["input_ids"]
+        padding_length = max_len - input_ids.shape[0]
+        if padding_length > 0:
+            padding = torch.zeros(padding_length, dtype=torch.long)
+            input_ids = torch.cat([input_ids, padding])
+
+        padded_inputs.append(input_ids)
+        answers.append(item["answer"])
+        problem_texts.append(item["problem_text"])
+        delimiters.append(item["delimiters"])
+
+    return {
+        "input_ids": torch.stack(padded_inputs),
+        "answers": answers,
+        "problem_texts": problem_texts,
+        "delimiters": delimiters,
+    }
+
+
 def train_with_task_outcomes(
     model, train_loader, config, device, output_dir, validation_suite, tokenizer
 ):
@@ -1436,6 +1524,532 @@ def save_failed_problems(failed_problems, output_dir, step):
         json.dump(failed_problems, f, indent=2)
 
 
+def extract_answer_from_generation(
+    generated_text, delimiters=["```", "```"], answer_pattern=None
+):
+    """
+    Search generated text for answer within delimiters or using regex.
+
+    Args:
+        generated_text: Full model output
+        delimiters: [start_delim, end_delim] to search between
+        answer_pattern: Optional regex pattern
+
+    Returns:
+        extracted_answer (str or None)
+    """
+    import re
+
+    # Method 1: Delimiter-based extraction
+    if delimiters and len(delimiters) == 2:
+        start_delim, end_delim = delimiters
+
+        # Find content between delimiters
+        pattern = re.escape(start_delim) + r"(.*?)" + re.escape(end_delim)
+        matches = re.findall(pattern, generated_text, re.DOTALL)
+
+        if matches:
+            # Return first match, stripped
+            return matches[0].strip()
+
+    # Method 2: Custom regex pattern
+    if answer_pattern:
+        matches = re.findall(answer_pattern, generated_text)
+        if matches:
+            return matches[0].strip()
+
+    # Method 3: Fallback - look for number after "Answer:"
+    answer_match = re.search(r"Answer:\s*([+-]?\d+\.?\d*)", generated_text)
+    if answer_match:
+        return answer_match.group(1).strip()
+
+    # Method 4: Last resort - look for any number
+    number_matches = re.findall(r"[+-]?\d+\.?\d*", generated_text)
+    if number_matches:
+        return number_matches[-1]  # Return last number found
+
+    return None
+
+
+def check_answer_correctness(extracted_answer, ground_truth, tolerance=1e-6):
+    """
+    Compare extracted answer to ground truth.
+
+    Args:
+        extracted_answer: String extracted from model output
+        ground_truth: Correct answer (string or number)
+        tolerance: Numerical comparison tolerance
+
+    Returns:
+        bool: True if correct
+    """
+    if extracted_answer is None:
+        return False
+
+    # Exact string match
+    if str(extracted_answer).strip() == str(ground_truth).strip():
+        return True
+
+    # Try numerical comparison
+    try:
+        extracted_num = float(extracted_answer)
+        ground_truth_num = float(ground_truth)
+        return abs(extracted_num - ground_truth_num) < tolerance
+    except (ValueError, TypeError):
+        pass
+
+    return False
+
+
+def calculate_task_outcome_loss(
+    model,
+    batch,
+    tokenizer,
+    device,
+    generation_max_tokens=50,
+    answer_weight=10.0,
+    use_token_loss=True,
+):
+    """
+    Calculate loss based on task outcome (correct answer) instead of
+    or in addition to token prediction.
+
+    Args:
+        model: The model being trained
+        batch: Batch from TaskOutcomeDataset
+        tokenizer: Tokenizer for decoding
+        device: torch device
+        generation_max_tokens: How many tokens to generate for answer
+        answer_weight: How much to weight task success vs token loss
+        use_token_loss: If True, combine with traditional loss
+
+    Returns:
+        loss: torch.Tensor scalar loss value
+        metrics: dict with accuracy and other metrics
+    """
+    input_ids = batch["input_ids"].to(device)
+    answers = batch["answers"]
+    delimiters = batch["delimiters"]
+
+    batch_size = input_ids.shape[0]
+
+    # Track metrics
+    correct_count = 0
+    total_count = batch_size
+
+    # Optional: Traditional token prediction loss on prompt
+    token_loss = torch.tensor(0.0, device=device)
+    if use_token_loss:
+        # Calculate standard cross-entropy on the prompt itself
+        # (This ensures model still learns language modeling)
+        logits = model(input_ids)
+        # Use input shifted by 1 as target
+        token_loss = nn.functional.cross_entropy(
+            logits[:, :-1].flatten(0, 1),
+            input_ids[:, 1:].flatten(),
+            ignore_index=0,  # Ignore padding
+        )
+
+    # Generate answers for each problem in batch
+    model.eval()
+    with torch.no_grad():
+        for i in range(batch_size):
+            # Get problem prompt
+            problem_input = input_ids[i : i + 1]
+
+            # Generate answer
+            generated_ids = problem_input.clone()
+
+            for _ in range(generation_max_tokens):
+                logits = model(generated_ids)[:, -1, :]
+                next_token = torch.argmax(logits, dim=-1, keepdim=True)
+                generated_ids = torch.cat([generated_ids, next_token], dim=1)
+
+                # Stop if we hit EOS or exceed context
+                if next_token.item() == tokenizer.EOS_ID:
+                    break
+                if generated_ids.shape[1] > model.cfg["context_length"]:
+                    generated_ids = generated_ids[:, -model.cfg["context_length"] :]
+
+            # Decode generated text
+            generated_text = tokenizer.decode(generated_ids.squeeze(0).tolist())
+
+            # Extract answer
+            extracted = extract_answer_from_generation(
+                generated_text, delimiters=delimiters[i]
+            )
+
+            # Check correctness
+            is_correct = check_answer_correctness(extracted, answers[i])
+
+            if is_correct:
+                correct_count += 1
+
+    model.train()
+
+    # Calculate task outcome component
+    # Convert accuracy to a "loss" (higher accuracy = lower loss)
+    accuracy = correct_count / total_count
+    task_loss = torch.tensor(1.0 - accuracy, device=device, requires_grad=False)
+
+    # Combine losses
+    if use_token_loss:
+        total_loss = token_loss + (answer_weight * task_loss)
+    else:
+        total_loss = task_loss
+
+    metrics = {
+        "accuracy": accuracy,
+        "correct": correct_count,
+        "total": total_count,
+        "token_loss": token_loss.item() if use_token_loss else 0.0,
+        "task_loss": task_loss.item(),
+    }
+
+    return total_loss, metrics
+
+
+def weighted_last_n_token_loss(
+    logits,
+    labels,
+    tokenizer,
+    n_answer_tokens=5,
+    answer_weight=10.0,
+    answer_delimiter="```",
+):
+    """
+    Weight the last N tokens (the answer) much more heavily in loss.
+
+    This is a hybrid approach between pure token prediction and task outcome.
+    """
+    batch_size, seq_len, vocab_size = logits.shape
+
+    # Flatten for loss calculation
+    logits_flat = logits.view(-1, vocab_size)
+    labels_flat = labels.view(-1)
+
+    # Calculate per-token losses
+    loss_fn = nn.CrossEntropyLoss(reduction="none", ignore_index=0)
+    per_token_losses = loss_fn(logits_flat, labels_flat)
+    per_token_losses = per_token_losses.view(batch_size, seq_len)
+
+    # Create weight mask
+    weights = torch.ones_like(per_token_losses)
+
+    # Find answer delimiter in each sequence and weight heavily after it
+    for i in range(batch_size):
+        # Decode to find delimiter position
+        sequence = labels[i].cpu().tolist()
+        decoded = tokenizer.decode(sequence)
+
+        # Find last occurrence of delimiter
+        delimiter_pos = decoded.rfind(answer_delimiter)
+
+        if delimiter_pos != -1:
+            # Roughly convert character position to token position
+            # This is approximate - you may need more sophisticated tracking
+            token_pos = int((delimiter_pos / len(decoded)) * seq_len)
+
+            # Weight last N tokens heavily
+            start_weight_pos = max(0, seq_len - n_answer_tokens)
+            weights[i, start_weight_pos:] = answer_weight
+
+    # Apply weights
+    weighted_losses = per_token_losses * weights
+
+    # Calculate final loss (only over non-padding tokens)
+    mask = (labels != 0).float()
+    loss = (weighted_losses * mask).sum() / mask.sum()
+
+    return loss
+
+
+def train_model_task_outcome(
+    model,
+    train_loader,  # Traditional training data
+    task_val_loader,  # Task-outcome validation problems
+    config,
+    device,
+    output_dir,
+    training_state,
+    tokenizer,
+):
+    """
+    Training loop with task-outcome based validation.
+    """
+    print(f"\n{'=' * 60}")
+    print("Starting Task-Outcome Based Training")
+    print(f"{'=' * 60}")
+
+    # Setup optimizer
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=config["learning_rate"],
+        weight_decay=config["weight_decay"],
+        betas=(0.9, 0.95),
+    )
+
+    if training_state["optimizer_state"] is not None:
+        optimizer.load_state_dict(training_state["optimizer_state"])
+
+    # Setup scheduler
+    steps_per_epoch = len(train_loader) // config["gradient_accumulation_steps"]
+    total_steps = steps_per_epoch * config["num_epochs"]
+
+    def get_lr(step):
+        if step < config["warmup_steps"]:
+            return step / config["warmup_steps"]
+        else:
+            progress = (step - config["warmup_steps"]) / (
+                total_steps - config["warmup_steps"]
+            )
+            return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
+
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, get_lr)
+
+    if training_state["scheduler_state"] is not None:
+        scheduler.load_state_dict(training_state["scheduler_state"])
+
+    # Training state
+    history = {
+        "train_loss": [],
+        "val_task_accuracy": [],  # NEW: Task-based metric
+        "val_task_loss": [],  # NEW: Task-based loss
+        "learning_rates": [],
+        "step": [],
+    }
+
+    global_step = training_state["global_step"]
+    best_task_accuracy = training_state.get("best_task_accuracy", 0.0)
+    tokens_seen = training_state["tokens_seen"]
+    start_epoch = training_state["epoch"]
+
+    print(f"\nStarting from epoch {start_epoch + 1}, step {global_step}")
+    print(f"Best task accuracy so far: {best_task_accuracy:.2%}")
+
+    # Training loop
+    for epoch in range(start_epoch, config["num_epochs"]):
+        print(f"\n{'=' * 40}")
+        print(f"Epoch {epoch + 1}/{config['num_epochs']}")
+        print(f"{'=' * 40}")
+
+        model.train()
+        epoch_loss = 0
+        epoch_tokens = 0
+
+        # Traditional training on general corpus
+        for batch_idx, (input_batch, target_batch) in enumerate(train_loader):
+            # Standard training loss
+            loss = calculate_loss(input_batch, target_batch, model, device)
+            loss = loss / config["gradient_accumulation_steps"]
+            loss.backward()
+
+            epoch_loss += loss.item() * config["gradient_accumulation_steps"]
+            epoch_tokens += input_batch.numel()
+
+            # Update weights after gradient accumulation
+            if (batch_idx + 1) % config["gradient_accumulation_steps"] == 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+                optimizer.step()
+                scheduler.step()
+                optimizer.zero_grad()
+                global_step += 1
+                tokens_seen += epoch_tokens
+                epoch_tokens = 0
+
+                # Periodic task-outcome evaluation
+                if global_step % config["eval_every"] == 0:
+                    # Evaluate on task-outcome validation set
+                    task_metrics = evaluate_task_outcomes(
+                        model, task_val_loader, tokenizer, device
+                    )
+
+                    train_loss = epoch_loss / (batch_idx + 1)
+                    current_lr = scheduler.get_last_lr()[0]
+
+                    history["train_loss"].append(train_loss)
+                    history["val_task_accuracy"].append(task_metrics["accuracy"])
+                    history["val_task_loss"].append(task_metrics["task_loss"])
+                    history["learning_rates"].append(current_lr)
+                    history["step"].append(global_step)
+
+                    print(
+                        f"Step {global_step:5d} | "
+                        f"Train Loss: {train_loss:.4f} | "
+                        f"Task Accuracy: {task_metrics['accuracy']:.2%} "
+                        f"({task_metrics['correct']}/{task_metrics['total']}) | "
+                        f"LR: {current_lr:.2e}"
+                    )
+
+                    # Save best model based on task accuracy (not loss!)
+                    if task_metrics["accuracy"] > best_task_accuracy:
+                        best_task_accuracy = task_metrics["accuracy"]
+                        save_checkpoint_with_task_metrics(
+                            model,
+                            optimizer,
+                            scheduler,
+                            global_step,
+                            task_metrics,
+                            output_dir,
+                            "best",
+                        )
+                        print(
+                            f"  → Saved best model (accuracy: {task_metrics['accuracy']:.2%})"
+                        )
+
+                # Periodic checkpoint
+                if global_step % config["save_every"] == 0:
+                    save_checkpoint_with_task_metrics(
+                        model,
+                        optimizer,
+                        scheduler,
+                        global_step,
+                        task_metrics,
+                        output_dir,
+                        f"step_{global_step}",
+                    )
+
+        # End of epoch evaluation
+        avg_epoch_loss = epoch_loss / len(train_loader)
+        task_metrics = evaluate_task_outcomes(model, task_val_loader, tokenizer, device)
+
+        print(f"\nEpoch {epoch + 1} Summary:")
+        print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
+        print(f"  Task Accuracy: {task_metrics['accuracy']:.2%}")
+        print(f"  Correct Answers: {task_metrics['correct']}/{task_metrics['total']}")
+
+    print(f"\n{'=' * 60}")
+    print("Training Complete!")
+    print(f"{'=' * 60}")
+    print(f"Best task accuracy: {best_task_accuracy:.2%}")
+    print(f"Total tokens seen: {tokens_seen:,}")
+
+    return history
+
+
+def evaluate_task_outcomes(model, task_loader, tokenizer, device, max_batches=None):
+    """
+    Evaluate model on task-outcome dataset.
+
+    Returns metrics dict with accuracy and counts.
+    """
+    model.eval()
+    total_correct = 0
+    total_problems = 0
+    total_task_loss = 0.0
+
+    if max_batches is None:
+        max_batches = len(task_loader)
+
+    with torch.no_grad():
+        for batch_idx, batch in enumerate(task_loader):
+            if batch_idx >= max_batches:
+                break
+
+            # Use the task outcome loss function for evaluation
+            loss, metrics = calculate_task_outcome_loss(
+                model,
+                batch,
+                tokenizer,
+                device,
+                use_token_loss=False,  # Only task outcome for validation
+            )
+
+            total_correct += metrics["correct"]
+            total_problems += metrics["total"]
+            total_task_loss += metrics["task_loss"]
+
+    model.train()
+
+    num_batches = min(batch_idx + 1, max_batches)
+
+    return {
+        "accuracy": total_correct / total_problems if total_problems > 0 else 0.0,
+        "correct": total_correct,
+        "total": total_problems,
+        "task_loss": total_task_loss / num_batches if num_batches > 0 else float("inf"),
+    }
+
+
+def save_checkpoint_with_task_metrics(
+    model, optimizer, scheduler, step, task_metrics, output_dir, tag
+):
+    """Save checkpoint with task accuracy metrics."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    checkpoint_path = output_dir / f"checkpoint_{tag}.pth"
+
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "scheduler_state_dict": scheduler.state_dict(),
+            "step": step,
+            "task_accuracy": task_metrics["accuracy"],
+            "task_loss": task_metrics["task_loss"],
+            "model_config": model.cfg,
+        },
+        checkpoint_path,
+    )
+
+
+def generate_task_problems_file(output_path, num_problems=1000):
+    """
+    Generate task problems using your ALU expression generator.
+
+    This assumes you have the math_expression_generator_vN.py available.
+    """
+    from math_expression_generator_vN import expression_generator_vN
+    from alu_rpn_calculator_vN import alu_list_rpn_calculator
+
+    problems = []
+
+    print(f"Generating {num_problems} task problems...")
+
+    # Generate problems in batches
+    batch_size = 100
+    for i in range(0, num_problems, batch_size):
+        expressions = expression_generator_vN(batch_size)
+
+        for word_expr, symbol_expr in expressions:
+            # Calculate correct answer
+            result = alu_list_rpn_calculator(symbol_expr)
+            answer = str(result[3])  # The solution
+
+            # Create problem variants
+            problems.append(
+                {
+                    "problem": f"# Task: evaluate expression, What is {word_expr}? Answer:",
+                    "answer": answer,
+                    "answer_delimiters": ["```", "```"],
+                }
+            )
+
+            problems.append(
+                {
+                    "problem": f"# Task: evaluate expression, {symbol_expr}= Answer:",
+                    "answer": answer,
+                    "answer_delimiters": ["```", "```"],
+                }
+            )
+
+    # Shuffle and truncate
+    import random
+
+    random.shuffle(problems)
+    problems = problems[:num_problems]
+
+    # Save to JSON
+    with open(output_path, "w") as f:
+        json.dump(problems, f, indent=2)
+
+    print(f"Saved {len(problems)} problems to {output_path}")
+
+    return problems
+
+
 if __name__ == "__main__":
     # Add this line before the main training pipeline
     test_integration()
@@ -1508,3 +2122,52 @@ if __name__ == "__main__":
 
     # Run the training pipeline
     model, history = main()
+
+
+"""
+# for task outcomes
+# In main():
+
+# Generate task problems
+generate_task_problems_file('./data/alu_train_problems.json', num_problems=5000)
+generate_task_problems_file('./data/alu_val_problems.json', num_problems=1000)
+
+# Create task-outcome dataset
+task_train_dataset = TaskOutcomeDataset(
+    './data/alu_train_problems.json',
+    tokenizer,
+    TRAINING_CONFIG["context_length"]
+)
+
+task_val_dataset = TaskOutcomeDataset(
+    './data/alu_val_problems.json',
+    tokenizer,
+    TRAINING_CONFIG["context_length"]
+)
+
+task_train_loader = DataLoader(
+    task_train_dataset,
+    batch_size=TRAINING_CONFIG["batch_size"],
+    shuffle=True,
+    collate_fn=collate_task_outcome_batch
+)
+
+task_val_loader = DataLoader(
+    task_val_dataset,
+    batch_size=TRAINING_CONFIG["batch_size"],
+    shuffle=False,
+    collate_fn=collate_task_outcome_batch
+)
+
+# Use new training loop
+history = train_model_task_outcome(
+    model,
+    train_loader,  # Traditional corpus (optional, could use task_train_loader)
+    task_val_loader,  # Task-outcome validation
+    TRAINING_CONFIG,
+    DEVICE,
+    output_dir,
+    training_state,
+    tokenizer
+)
+"""
