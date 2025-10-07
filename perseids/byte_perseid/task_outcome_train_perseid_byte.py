@@ -1,5 +1,12 @@
 """
-pending: task_outcome_train_perseidbyte.py
+pending: task_outcome_train_perseidbyte.py (still under construction!!)
+
+TODO: still adding functions for
+A. using generated training data
+B. using weighted validation of the last ~16 tokens (more weight on the 'solution' to the task)
+
+Future (not first mvp): looking for solution in longer answer
+
 
 This is an interesting simpler trainer that allows re-training / continued pre-training.
 Possibly should track/log what last-best validation loss was...
@@ -2049,6 +2056,859 @@ def generate_task_problems_file(output_path, num_problems=1000):
 
     return problems
 
+
+"""
+chunk_based_data_loading.py
+
+Utilities for loading training, validation, and test data from directories
+containing pre-generated problem chunks in various formats (JSON, JSONL, TXT).
+
+This module provides functions to load task-outcome based problems from
+organized directory structures, supporting the ALU task-outcome training pipeline.
+"""
+
+import os
+import json
+import traceback
+from pathlib import Path
+from collections.abc import Iterator
+import torch
+from torch.utils.data import Dataset, DataLoader
+
+
+def load_problems_from_chunk_file(
+    chunk_file_path, expected_format="json", verbose=False
+):
+    """
+    Load problems from a single chunk file.
+
+    Supports multiple file formats:
+    - JSON: Single list of problem dicts
+    - JSONL: One problem dict per line
+    - TXT: Custom text format (to be defined)
+
+    Args:
+        chunk_file_path: Path to chunk file
+        expected_format: File format - 'json', 'jsonl', or 'txt'
+        verbose: Print loading details
+
+    Returns:
+        list: List of problem dictionaries, each containing:
+            - 'problem': Problem text prompt
+            - 'answer': Correct answer string
+            - 'answer_delimiters': List of [start_delim, end_delim]
+            - 'problem_id': Unique identifier (optional)
+            - 'metadata': Additional metadata dict (optional)
+
+    Raises:
+        FileNotFoundError: If chunk file doesn't exist
+        json.JSONDecodeError: If JSON parsing fails
+        ValueError: If file format is unsupported or invalid
+
+    Example:
+        >>> problems = load_problems_from_chunk_file('train/chunk_001.json')
+        >>> print(f"Loaded {len(problems)} problems")
+        >>> print(problems[0]['problem'])
+        '# Task: evaluate expression, What is 2+2? Answer:'
+    """
+    try:
+        chunk_path = Path(chunk_file_path)
+
+        if not chunk_path.exists():
+            raise FileNotFoundError(f"Chunk file not found: {chunk_file_path}")
+
+        if verbose:
+            print(f"Loading chunk: {chunk_path.name}")
+
+        problems_list = []
+
+        # Determine format from file extension if not specified
+        if expected_format == "auto":
+            file_extension = chunk_path.suffix.lower()
+            format_mapping = {
+                ".json": "json",
+                ".jsonl": "jsonl",
+                ".txt": "txt",
+            }
+            expected_format = format_mapping.get(file_extension, "json")
+
+        # Load based on format
+        if expected_format == "json":
+            with open(chunk_path, "r", encoding="utf-8") as json_file:
+                problems_list = json.load(json_file)
+
+                if not isinstance(problems_list, list):
+                    raise ValueError(
+                        f"JSON file must contain a list, got {type(problems_list)}"
+                    )
+
+        elif expected_format == "jsonl":
+            with open(chunk_path, "r", encoding="utf-8") as jsonl_file:
+                for line_number, line in enumerate(jsonl_file, start=1):
+                    line_stripped = line.strip()
+
+                    if not line_stripped:
+                        continue  # Skip empty lines
+
+                    try:
+                        problem_dict = json.loads(line_stripped)
+                        problems_list.append(problem_dict)
+
+                    except json.JSONDecodeError as json_error:
+                        print(
+                            f"Warning: Skipping invalid JSON on line {line_number}: {json_error}"
+                        )
+                        if verbose:
+                            print(f"  Line content: {line_stripped[:100]}...")
+                        continue
+
+        elif expected_format == "txt":
+            # Custom text format parsing
+            # This would need to be defined based on your specific text format
+            # Example implementation for simple format:
+            # Problem: <problem_text>
+            # Answer: <answer>
+            # ---
+
+            with open(chunk_path, "r", encoding="utf-8") as txt_file:
+                content = txt_file.read()
+
+                # Split by delimiter
+                problem_blocks = content.split("---")
+
+                for block_index, block in enumerate(problem_blocks):
+                    block_stripped = block.strip()
+
+                    if not block_stripped:
+                        continue
+
+                    # Parse block
+                    lines = block_stripped.split("\n")
+                    problem_data = {}
+
+                    for line in lines:
+                        if line.startswith("Problem:"):
+                            problem_data["problem"] = line.replace(
+                                "Problem:", ""
+                            ).strip()
+                        elif line.startswith("Answer:"):
+                            problem_data["answer"] = line.replace("Answer:", "").strip()
+
+                    if "problem" in problem_data and "answer" in problem_data:
+                        # Add default delimiters if not specified
+                        if "answer_delimiters" not in problem_data:
+                            problem_data["answer_delimiters"] = ["```", "```"]
+
+                        problems_list.append(problem_data)
+
+        else:
+            raise ValueError(f"Unsupported format: {expected_format}")
+
+        # Validate loaded problems
+        for problem_index, problem in enumerate(problems_list):
+            if not isinstance(problem, dict):
+                raise ValueError(
+                    f"Problem at index {problem_index} is not a dict: {type(problem)}"
+                )
+
+            required_keys = ["problem", "answer"]
+            missing_keys = [key for key in required_keys if key not in problem]
+
+            if missing_keys:
+                raise ValueError(
+                    f"Problem at index {problem_index} missing required keys: {missing_keys}"
+                )
+
+        if verbose:
+            print(f"  ✓ Loaded {len(problems_list)} problems from {chunk_path.name}")
+
+        return problems_list
+
+    except Exception as loading_error:
+        print(f"Error loading chunk file {chunk_file_path}: {loading_error}")
+        traceback.print_exc()
+        raise
+
+
+def load_problems_from_directory(
+    directory_path,
+    file_pattern="*.json",
+    format_type="auto",
+    max_files=None,
+    sort_files=True,
+    verbose=True,
+):
+    """
+    Load all problem chunks from a directory.
+
+    This function scans a directory for chunk files matching a pattern,
+    loads each file, and concatenates all problems into a single list.
+    Useful for loading entire train/val/test sets from organized directories.
+
+    Args:
+        directory_path: Path to directory containing chunk files
+        file_pattern: Glob pattern for matching files (e.g., '*.json', 'chunk_*.jsonl')
+        format_type: File format - 'json', 'jsonl', 'txt', or 'auto' (detect from extension)
+        max_files: Maximum number of files to load (None = load all)
+        sort_files: Sort files alphabetically before loading
+        verbose: Print loading progress
+
+    Returns:
+        dict: Dictionary containing:
+            - 'problems': List of all problems from all chunks
+            - 'chunk_count': Number of chunk files loaded
+            - 'total_problems': Total number of problems loaded
+            - 'chunk_files': List of chunk file names loaded
+            - 'problems_per_chunk': Dict mapping chunk filename to problem count
+
+    Raises:
+        FileNotFoundError: If directory doesn't exist
+        ValueError: If no matching files found
+
+    Example:
+        >>> # Load all training problems
+        >>> train_data = load_problems_from_directory(
+        ...     'data/train_chunks/',
+        ...     file_pattern='*.json'
+        ... )
+        >>> print(f"Loaded {train_data['total_problems']} problems from {train_data['chunk_count']} chunks")
+
+        >>> # Load only first 10 validation chunks
+        >>> val_data = load_problems_from_directory(
+        ...     'data/validation_chunks/',
+        ...     file_pattern='val_*.jsonl',
+        ...     max_files=10
+        ... )
+    """
+    try:
+        dir_path = Path(directory_path)
+
+        if not dir_path.exists():
+            raise FileNotFoundError(f"Directory not found: {directory_path}")
+
+        if not dir_path.is_dir():
+            raise ValueError(f"Path is not a directory: {directory_path}")
+
+        if verbose:
+            print(f"\n{'=' * 60}")
+            print(f"Loading problems from directory: {dir_path}")
+            print(f"File pattern: {file_pattern}")
+            print(f"{'=' * 60}")
+
+        # Find all matching files
+        chunk_files_list = list(dir_path.glob(file_pattern))
+
+        if not chunk_files_list:
+            raise ValueError(
+                f"No files matching pattern '{file_pattern}' found in {directory_path}"
+            )
+
+        # Sort files for consistent ordering
+        if sort_files:
+            chunk_files_list = sorted(chunk_files_list)
+
+        # Limit number of files if specified
+        if max_files is not None:
+            chunk_files_list = chunk_files_list[:max_files]
+
+        if verbose:
+            print(f"Found {len(chunk_files_list)} chunk files to load")
+
+        # Load all problems from all chunks
+        all_problems_list = []
+        chunk_metadata = {}
+
+        for chunk_file_path in chunk_files_list:
+            try:
+                chunk_problems = load_problems_from_chunk_file(
+                    chunk_file_path, expected_format=format_type, verbose=verbose
+                )
+
+                all_problems_list.extend(chunk_problems)
+                chunk_metadata[chunk_file_path.name] = len(chunk_problems)
+
+            except Exception as chunk_load_error:
+                print(
+                    f"Warning: Failed to load chunk {chunk_file_path.name}: {chunk_load_error}"
+                )
+                if verbose:
+                    traceback.print_exc()
+                continue
+
+        # Compile results
+        results = {
+            "problems": all_problems_list,
+            "chunk_count": len(chunk_metadata),
+            "total_problems": len(all_problems_list),
+            "chunk_files": list(chunk_metadata.keys()),
+            "problems_per_chunk": chunk_metadata,
+        }
+
+        if verbose:
+            print(f"\n{'=' * 60}")
+            print(f"Loading Complete")
+            print(f"{'=' * 60}")
+            print(f"Total chunks loaded: {results['chunk_count']}")
+            print(f"Total problems loaded: {results['total_problems']}")
+
+            if results["total_problems"] > 0:
+                avg_problems_per_chunk = (
+                    results["total_problems"] / results["chunk_count"]
+                )
+                print(f"Average problems per chunk: {avg_problems_per_chunk:.1f}")
+
+            print(f"{'=' * 60}\n")
+
+        return results
+
+    except Exception as directory_load_error:
+        print(f"Error loading from directory {directory_path}: {directory_load_error}")
+        traceback.print_exc()
+        raise
+
+
+class ChunkBasedTaskDataset(Dataset):
+    """
+    PyTorch Dataset for task-outcome problems loaded from chunk directories.
+
+    This dataset loads problems from pre-generated chunk files and handles
+    tokenization for training. Supports lazy loading for large datasets.
+
+    Attributes:
+        problems: List of problem dictionaries
+        tokenizer: ByteTokenizer instance for encoding
+        max_length: Maximum sequence length for truncation
+        pad_token_id: Token ID for padding
+
+    Example:
+        >>> from byte_tokenizer import ByteTokenizer
+        >>> tokenizer = ByteTokenizer()
+        >>>
+        >>> # Load training dataset
+        >>> train_dataset = ChunkBasedTaskDataset(
+        ...     chunk_directory='data/train_chunks/',
+        ...     tokenizer=tokenizer,
+        ...     max_length=1024
+        ... )
+        >>>
+        >>> # Use with DataLoader
+        >>> train_loader = DataLoader(
+        ...     train_dataset,
+        ...     batch_size=8,
+        ...     shuffle=True,
+        ...     collate_fn=collate_task_outcome_batch
+        ... )
+    """
+
+    def __init__(
+        self,
+        chunk_directory,
+        tokenizer,
+        max_length=1024,
+        file_pattern="*.json",
+        format_type="auto",
+        max_files=None,
+        verbose=True,
+    ):
+        """
+        Initialize chunk-based dataset.
+
+        Args:
+            chunk_directory: Directory containing chunk files
+            tokenizer: Tokenizer with encode/decode methods
+            max_length: Maximum sequence length
+            file_pattern: Glob pattern for chunk files
+            format_type: File format ('json', 'jsonl', 'txt', 'auto')
+            max_files: Maximum number of chunk files to load
+            verbose: Print loading progress
+        """
+        super().__init__()
+
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.pad_token_id = tokenizer.PAD_ID
+
+        # Load all problems from directory
+        loaded_data = load_problems_from_directory(
+            directory_path=chunk_directory,
+            file_pattern=file_pattern,
+            format_type=format_type,
+            max_files=max_files,
+            sort_files=True,
+            verbose=verbose,
+        )
+
+        self.problems = loaded_data["problems"]
+        self.chunk_metadata = {
+            "chunk_count": loaded_data["chunk_count"],
+            "total_problems": loaded_data["total_problems"],
+            "chunk_files": loaded_data["chunk_files"],
+        }
+
+        if verbose:
+            print(f"Dataset initialized with {len(self.problems)} problems")
+
+    def __len__(self):
+        """Return total number of problems in dataset."""
+        return len(self.problems)
+
+    def __getitem__(self, index):
+        """
+        Get a single problem from dataset.
+
+        Args:
+            index: Problem index
+
+        Returns:
+            dict: Problem data with tokenized input
+        """
+        problem_data = self.problems[index]
+
+        # Tokenize problem text
+        problem_tokens = self.tokenizer.encode(problem_data["problem"])
+
+        # Truncate if needed
+        if len(problem_tokens) > self.max_length:
+            problem_tokens = problem_tokens[: self.max_length]
+
+        # Convert to tensor
+        input_ids = torch.tensor(problem_tokens, dtype=torch.long)
+
+        return {
+            "input_ids": input_ids,
+            "answer": problem_data["answer"],
+            "problem_text": problem_data["problem"],
+            "delimiters": problem_data.get("answer_delimiters", ["```", "```"]),
+            "problem_id": problem_data.get("problem_id", f"problem_{index}"),
+            "metadata": problem_data.get("metadata", {}),
+        }
+
+
+def collate_task_outcome_batch(batch_list):
+    """
+    Custom collate function for variable-length task-outcome problems.
+
+    This function is used with DataLoader to batch variable-length sequences
+    by padding them to the same length within each batch.
+
+    Args:
+        batch_list: List of dataset items (dicts) from __getitem__
+
+    Returns:
+        dict: Batched data with padded tensors and metadata
+            - 'input_ids': Tensor of shape [batch_size, max_seq_len]
+            - 'answers': List of answer strings
+            - 'problem_texts': List of problem prompts
+            - 'delimiters': List of delimiter pairs
+            - 'problem_ids': List of problem IDs
+            - 'attention_mask': Tensor indicating non-padded tokens
+
+    Example:
+        >>> train_loader = DataLoader(
+        ...     train_dataset,
+        ...     batch_size=8,
+        ...     collate_fn=collate_task_outcome_batch
+        ... )
+        >>>
+        >>> for batch in train_loader:
+        ...     print(batch['input_ids'].shape)  # [8, max_len]
+        ...     print(len(batch['answers']))     # 8
+    """
+    try:
+        # Find maximum sequence length in this batch
+        max_sequence_length = max(item["input_ids"].shape[0] for item in batch_list)
+
+        # Initialize lists for batch data
+        padded_input_ids_list = []
+        attention_masks_list = []
+        answers_list = []
+        problem_texts_list = []
+        delimiters_list = []
+        problem_ids_list = []
+        metadata_list = []
+
+        # Process each item in batch
+        for item in batch_list:
+            input_ids = item["input_ids"]
+            sequence_length = input_ids.shape[0]
+
+            # Calculate padding needed
+            padding_length = max_sequence_length - sequence_length
+
+            # Pad input sequence
+            if padding_length > 0:
+                padding_tensor = torch.zeros(padding_length, dtype=torch.long)
+                padded_input_ids = torch.cat([input_ids, padding_tensor])
+            else:
+                padded_input_ids = input_ids
+
+            # Create attention mask (1 for real tokens, 0 for padding)
+            attention_mask = torch.ones(sequence_length, dtype=torch.long)
+            if padding_length > 0:
+                padding_mask = torch.zeros(padding_length, dtype=torch.long)
+                attention_mask = torch.cat([attention_mask, padding_mask])
+
+            # Append to batch lists
+            padded_input_ids_list.append(padded_input_ids)
+            attention_masks_list.append(attention_mask)
+            answers_list.append(item["answer"])
+            problem_texts_list.append(item["problem_text"])
+            delimiters_list.append(item["delimiters"])
+            problem_ids_list.append(item["problem_id"])
+            metadata_list.append(item["metadata"])
+
+        # Stack tensors into batch
+        batched_input_ids = torch.stack(padded_input_ids_list)
+        batched_attention_masks = torch.stack(attention_masks_list)
+
+        return {
+            "input_ids": batched_input_ids,
+            "attention_mask": batched_attention_masks,
+            "answers": answers_list,
+            "problem_texts": problem_texts_list,
+            "delimiters": delimiters_list,
+            "problem_ids": problem_ids_list,
+            "metadata": metadata_list,
+        }
+
+    except Exception as collate_error:
+        print(f"Error in collate function: {collate_error}")
+        traceback.print_exc()
+        raise
+
+
+def create_chunk_based_dataloaders(
+    train_dir,
+    validation_dir,
+    test_dir,
+    tokenizer,
+    config,
+    train_file_pattern="*.json",
+    val_file_pattern="*.json",
+    test_file_pattern="*.json",
+):
+    """
+    Create DataLoaders for training, validation, and testing from chunk directories.
+
+    This is the main function to integrate chunk-based loading into the training pipeline.
+    It creates three separate datasets and dataloaders from organized directory structures.
+
+    Args:
+        train_dir: Directory containing training chunk files
+        validation_dir: Directory containing validation chunk files
+        test_dir: Directory containing test/holdout chunk files
+        tokenizer: ByteTokenizer instance
+        config: Training configuration dict with keys:
+            - 'context_length': Maximum sequence length
+            - 'batch_size': Batch size for training
+            - 'val_batch_size': Batch size for validation (optional, defaults to batch_size)
+        train_file_pattern: Glob pattern for training files (default: '*.json')
+        val_file_pattern: Glob pattern for validation files (default: '*.json')
+        test_file_pattern: Glob pattern for test files (default: '*.json')
+
+    Returns:
+        tuple: (train_loader, val_loader, test_loader, dataset_info)
+            - train_loader: DataLoader for training
+            - val_loader: DataLoader for validation
+            - test_loader: DataLoader for testing
+            - dataset_info: Dict with statistics about loaded datasets
+
+    Raises:
+        FileNotFoundError: If any directory doesn't exist
+        ValueError: If no valid chunk files found
+
+    Example:
+        >>> from byte_tokenizer import ByteTokenizer
+        >>> tokenizer = ByteTokenizer()
+        >>>
+        >>> config = {
+        ...     'context_length': 1024,
+        ...     'batch_size': 8,
+        ... }
+        >>>
+        >>> train_loader, val_loader, test_loader, info = create_chunk_based_dataloaders(
+        ...     train_dir='data/train_chunks/',
+        ...     validation_dir='data/validation_chunks/',
+        ...     test_dir='data/test_chunks/',
+        ...     tokenizer=tokenizer,
+        ...     config=config
+        ... )
+        >>>
+        >>> print(f"Training batches: {len(train_loader)}")
+        >>> print(f"Validation batches: {len(val_loader)}")
+        >>>
+        >>> # Use in training loop
+        >>> for batch in train_loader:
+        ...     input_ids = batch['input_ids']  # [batch_size, seq_len]
+        ...     answers = batch['answers']      # List of answer strings
+    """
+    try:
+        print(f"\n{'=' * 60}")
+        print("Creating Chunk-Based DataLoaders")
+        print(f"{'=' * 60}")
+
+        # Create training dataset
+        print("\n[1/3] Loading Training Data")
+        train_dataset = ChunkBasedTaskDataset(
+            chunk_directory=train_dir,
+            tokenizer=tokenizer,
+            max_length=config["context_length"],
+            file_pattern=train_file_pattern,
+            verbose=True,
+        )
+
+        # Create validation dataset
+        print("\n[2/3] Loading Validation Data")
+        val_dataset = ChunkBasedTaskDataset(
+            chunk_directory=validation_dir,
+            tokenizer=tokenizer,
+            max_length=config["context_length"],
+            file_pattern=val_file_pattern,
+            verbose=True,
+        )
+
+        # Create test dataset
+        print("\n[3/3] Loading Test Data")
+        test_dataset = ChunkBasedTaskDataset(
+            chunk_directory=test_dir,
+            tokenizer=tokenizer,
+            max_length=config["context_length"],
+            file_pattern=test_file_pattern,
+            verbose=True,
+        )
+
+        # Get batch sizes
+        train_batch_size = config["batch_size"]
+        val_batch_size = config.get("val_batch_size", config["batch_size"])
+
+        # Create DataLoaders
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=train_batch_size,
+            shuffle=True,
+            collate_fn=collate_task_outcome_batch,
+            num_workers=0,  # Set to 0 for debugging, increase for production
+            drop_last=True,  # Drop incomplete final batch
+        )
+
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=val_batch_size,
+            shuffle=False,
+            collate_fn=collate_task_outcome_batch,
+            num_workers=0,
+            drop_last=False,
+        )
+
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=val_batch_size,
+            shuffle=False,
+            collate_fn=collate_task_outcome_batch,
+            num_workers=0,
+            drop_last=False,
+        )
+
+        # Compile dataset information
+        dataset_info = {
+            "train": {
+                "num_problems": len(train_dataset),
+                "num_batches": len(train_loader),
+                "chunk_count": train_dataset.chunk_metadata["chunk_count"],
+                "batch_size": train_batch_size,
+            },
+            "validation": {
+                "num_problems": len(val_dataset),
+                "num_batches": len(val_loader),
+                "chunk_count": val_dataset.chunk_metadata["chunk_count"],
+                "batch_size": val_batch_size,
+            },
+            "test": {
+                "num_problems": len(test_dataset),
+                "num_batches": len(test_loader),
+                "chunk_count": test_dataset.chunk_metadata["chunk_count"],
+                "batch_size": val_batch_size,
+            },
+        }
+
+        # Print summary
+        print(f"\n{'=' * 60}")
+        print("DataLoader Creation Complete")
+        print(f"{'=' * 60}")
+
+        print(f"\nTraining:")
+        print(f"  Problems: {dataset_info['train']['num_problems']:,}")
+        print(f"  Batches: {dataset_info['train']['num_batches']:,}")
+        print(f"  Chunks: {dataset_info['train']['chunk_count']}")
+
+        print(f"\nValidation:")
+        print(f"  Problems: {dataset_info['validation']['num_problems']:,}")
+        print(f"  Batches: {dataset_info['validation']['num_batches']:,}")
+        print(f"  Chunks: {dataset_info['validation']['chunk_count']}")
+
+        print(f"\nTest:")
+        print(f"  Problems: {dataset_info['test']['num_problems']:,}")
+        print(f"  Batches: {dataset_info['test']['num_batches']:,}")
+        print(f"  Chunks: {dataset_info['test']['chunk_count']}")
+
+        print(f"\n{'=' * 60}\n")
+
+        return train_loader, val_loader, test_loader, dataset_info
+
+    except Exception as dataloader_creation_error:
+        print(f"Error creating dataloaders: {dataloader_creation_error}")
+        traceback.print_exc()
+        raise
+
+
+"""
+Document recommended directory structure for chunk-based datasets.
+
+This function doesn't execute anything - it's documentation showing
+how to organize your chunk files for this loading system.
+
+Recommended Structure:
+
+project_root/
+├── data/
+│   ├── train_chunks/
+│   │   ├── train_chunk_0001.json
+│   │   ├── train_chunk_0002.json
+│   │   ├── train_chunk_0003.json
+│   │   └── ... (many more)
+│   │
+│   ├── validation_chunks/
+│   │   ├── validation_basic_0001.json
+│   │   ├── validation_multistep_0001.json
+│   │   ├── validation_negative_0001.json
+│   │   └── validation_index.json  (optional metadata)
+│   │
+│   ├── test_chunks/
+│   │   ├── holdout_comprehensive_0001.json
+│   │   ├── holdout_edge_cases_0001.json
+│   │   └── test_index.json  (optional metadata)
+│   │
+│   └── generation_logs/
+│       ├── train_generation_log.json
+│       ├── validation_generation_log.json
+│       └── test_generation_log.json
+│
+└── train_perseid_byte.py
+
+
+Each JSON chunk file contains:
+[
+    {
+        "problem": "# Task: evaluate expression, What is 2+2? Answer:",
+        "answer": "4",
+        "answer_delimiters": ["```", "```"],
+        "problem_id": "train_0001_0001",
+        "metadata": {
+            "chunk_file": "train_chunk_0001.json",
+            "seed": 42,
+            "generation_timestamp": "2025-01-15T10:30:00",
+            "difficulty": "basic"
+        }
+    },
+    {
+        "problem": "# Task: evaluate expression, 7-3+2= Answer:",
+        "answer": "6",
+        "answer_delimiters": ["```", "```"],
+        "problem_id": "train_0001_0002",
+        "metadata": {...}
+    },
+    ...
+]
+
+
+Usage in training script:
+
+    train_loader, val_loader, test_loader, info = create_chunk_based_dataloaders(
+        train_dir='data/train_chunks/',
+        validation_dir='data/validation_chunks/',
+        test_dir='data/test_chunks/',
+        tokenizer=tokenizer,
+        config=TRAINING_CONFIG
+    )
+"""
+
+
+"""
+Example showing how to integrate chunk-based loading into existing pipeline.
+
+This replaces the document-based loading in the original train_perseid_byte.py
+"""
+
+# BEFORE (original document-based approach):
+"""
+document_text = load_document(DOCUMENT_PATH)
+train_loader, val_loader = create_data_loaders(
+    document_text,
+    tokenizer,
+    TRAINING_CONFIG,
+    train_ratio=TRAIN_VAL_SPLIT
+)
+"""
+
+# AFTER (chunk-based approach):
+"""
+from chunk_based_data_loading import create_chunk_based_dataloaders
+
+# Define chunk directories
+TRAIN_CHUNKS_DIR = './data/train_chunks/'
+VAL_CHUNKS_DIR = './data/validation_chunks/'
+TEST_CHUNKS_DIR = './data/test_chunks/'
+
+# Create dataloaders from chunks
+train_loader, val_loader, test_loader, dataset_info = create_chunk_based_dataloaders(
+    train_dir=TRAIN_CHUNKS_DIR,
+    validation_dir=VAL_CHUNKS_DIR,
+    test_dir=TEST_CHUNKS_DIR,
+    tokenizer=tokenizer,
+    config=TRAINING_CONFIG,
+    train_file_pattern='train_*.json',
+    val_file_pattern='validation_*.json',
+    test_file_pattern='holdout_*.json'
+)
+
+# Rest of training pipeline remains the same
+history = train_model_task_outcome(
+    model,
+    train_loader,
+    val_loader,
+    TRAINING_CONFIG,
+    DEVICE,
+    output_dir,
+    training_state,
+    tokenizer
+)
+
+# Final evaluation on held-out test set
+final_test_results = evaluate_task_outcomes(
+    model,
+    test_loader,
+    tokenizer,
+    DEVICE
+)
+"""
+
+
+"""
+if __name__ == "__main__":
+    # Example usage and testing
+    print("Chunk-Based Data Loading Module")
+    print("=" * 60)
+    print("\nThis module provides utilities for loading task-outcome problems")
+    print("from organized chunk directories.")
+    print("\nSee example_directory_structure_documentation() for details.")
+    print("\nKey functions:")
+    print("  - load_problems_from_chunk_file(): Load single chunk")
+    print("  - load_problems_from_directory(): Load all chunks from directory")
+    print("  - ChunkBasedTaskDataset: PyTorch Dataset class")
+    print("  - create_chunk_based_dataloaders(): Main integration function")
+    print("\nFor integration with training pipeline, use:")
+    print("  create_chunk_based_dataloaders(train_dir, val_dir, test_dir, ...)")
+"""
 
 if __name__ == "__main__":
     # Add this line before the main training pipeline
