@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+toml_production_output_*
 embeddings_output*
 gemma-3-270m/
 models/
