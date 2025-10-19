@@ -1,7 +1,7 @@
 """
 train_perseid_byte.py
 
-This is an interesting simpler trainer that allows re-training / continued pre-training.
+This is a simpler trainer that allows (if not wisely) re-training / continued pre-training.
 Possibly should track/log what last-best validation loss was...
 
 
@@ -617,10 +617,10 @@ def evaluate_model(model, data_loader, device, num_batches=None):
     return total_loss / num_batches if num_batches > 0 else float("nan")
 
 
-def train_model(
-    model, train_loader, val_loader, config, device, output_dir, training_state
-):
-    """
+# def train_model(
+#     model, train_loader, val_loader, config, device, output_dir, training_state
+# ):
+#     """
     Main training loop for Perseid model.
 
     Args:
@@ -639,6 +639,207 @@ def train_model(
         print(f"\n{'=' * 60}")
         print("Starting Training")
         print(f"{'=' * 60}")
+
+#         # Setup optimizer
+#         optimizer = torch.optim.AdamW(
+#             model.parameters(),
+#             lr=config["learning_rate"],
+#             weight_decay=config["weight_decay"],
+#             betas=(0.9, 0.95),
+#         )
+
+#         # Restore optimizer state if resuming
+#         if training_state["optimizer_state"] is not None:
+#             optimizer.load_state_dict(training_state["optimizer_state"])
+#             print("  ✓ Restored optimizer state")
+
+#         # Calculate total steps
+#         steps_per_epoch = len(train_loader) // config["gradient_accumulation_steps"]
+#         total_steps = steps_per_epoch * config["num_epochs"]
+
+#         # Setup scheduler with warmup
+#         def get_lr(step):
+#             """Learning rate schedule with warmup."""
+#             if step < config["warmup_steps"]:
+#                 return step / config["warmup_steps"]
+#             else:
+#                 progress = (step - config["warmup_steps"]) / (
+#                     total_steps - config["warmup_steps"]
+#                 )
+#                 return 0.5 * (1.0 + torch.cos(torch.tensor(progress * 3.14159)))
+
+#         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, get_lr)
+
+#         # Restore scheduler state if resuming
+#         if training_state["scheduler_state"] is not None:
+#             scheduler.load_state_dict(training_state["scheduler_state"])
+#             print("  ✓ Restored scheduler state")
+
+#         # Training state
+#         history = {"train_loss": [], "val_loss": [], "learning_rates": [], "step": []}
+
+#         # global_step = 0
+#         # best_val_loss = float('inf')
+#         # tokens_seen = 0
+#         global_step = training_state["global_step"]
+#         best_val_loss = training_state["best_val_loss"]
+#         tokens_seen = training_state["tokens_seen"]
+#         start_epoch = training_state["epoch"]
+
+#         print(f"\nStarting from epoch {start_epoch + 1}, step {global_step}")
+
+        print(f"Total training steps: {total_steps:,}")
+        print(f"Warmup steps: {config['warmup_steps']:,}")
+        print(
+            f"Effective batch size: {config['batch_size'] * config['gradient_accumulation_steps']}"
+        )
+
+#         # Training loop
+#         # for epoch in range(config["num_epochs"]):
+#         for epoch in range(start_epoch, config["num_epochs"]):
+#             print(f"\n{'=' * 40}")
+#             print(f"Epoch {epoch + 1}/{config['num_epochs']}")
+#             print(f"{'=' * 40}")
+
+#             model.train()
+#             epoch_loss = 0
+#             epoch_tokens = 0
+
+#             for batch_idx, (input_batch, target_batch) in enumerate(train_loader):
+#                 # Calculate loss
+#                 loss = calculate_loss(input_batch, target_batch, model, device)
+#                 loss = loss / config["gradient_accumulation_steps"]
+#                 loss.backward()
+
+#                 epoch_loss += loss.item() * config["gradient_accumulation_steps"]
+#                 epoch_tokens += input_batch.numel()
+
+#                 # Update weights after gradient accumulation
+#                 if (batch_idx + 1) % config["gradient_accumulation_steps"] == 0:
+#                     # Gradient clipping
+#                     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+#                     optimizer.step()
+#                     scheduler.step()
+#                     optimizer.zero_grad()
+#                     global_step += 1
+#                     tokens_seen += epoch_tokens
+#                     epoch_tokens = 0
+
+#                     # Periodic evaluation
+#                     if global_step % config["eval_every"] == 0:
+#                         val_loss = evaluate_model(
+#                             model,
+#                             val_loader,
+#                             device,
+#                             num_batches=config["eval_batches"],
+#                         )
+
+#                         train_loss = epoch_loss / (batch_idx + 1)
+#                         current_lr = scheduler.get_last_lr()[0]
+
+#                         history["train_loss"].append(train_loss)
+#                         history["val_loss"].append(val_loss)
+#                         history["learning_rates"].append(current_lr)
+#                         history["step"].append(global_step)
+
+#                         print(
+#                             f"Step {global_step:5d} | "
+#                             f"Train Loss: {train_loss:.4f} | "
+#                             f"Val Loss: {val_loss:.4f} | "
+#                             f"LR: {current_lr:.2e} | "
+#                             f"Tokens: {tokens_seen:,}"
+#                         )
+
+#                         # Save best model
+#                         if val_loss < best_val_loss:
+#                             best_val_loss = val_loss
+#                             save_checkpoint(
+#                                 model,
+#                                 optimizer,
+#                                 scheduler,
+#                                 global_step,
+#                                 best_val_loss,
+#                                 output_dir,
+#                                 "best",
+#                             )
+#                             print(f"  → Saved best model (val_loss: {val_loss:.4f})")
+
+                    # Periodic checkpoint
+#                     if global_step % config["save_every"] == 0:
+#                         save_checkpoint(
+#                             model,
+#                             optimizer,
+#                             scheduler,
+#                             global_step,
+#                             val_loss,
+#                             output_dir,
+#                             f"step_{global_step}",
+#                         )
+
+#             # End of epoch evaluation
+#             avg_epoch_loss = epoch_loss / len(train_loader)
+#             val_loss = evaluate_model(model, val_loader, device)
+
+#             print(f"\nEpoch {epoch + 1} Summary:")
+#             print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
+#             print(f"  Validation Loss: {val_loss:.4f}")
+#             print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
+
+#         print(f"\n{'=' * 60}")
+        print("Training Complete!")
+        print(f"{'=' * 60}")
+        print(f"Best validation loss: {best_val_loss:.4f}")
+#         print(f"Total tokens seen: {tokens_seen:,}")
+
+#         return history
+
+#     except Exception as e:
+        print(f"Error during training: {e}")
+        traceback.print_exc()
+        raise
+
+
+def train_model(
+    model,
+    train_loader,
+    val_loader,
+    config,
+    device,
+    output_dir,
+    training_state,
+    tokenizer  # ADD THIS PARAMETER
+):
+    """
+    Main training loop for Perseid model.
+
+    Args:
+        model: Model to train
+        train_loader: Training data loader
+        val_loader: Validation data loader
+        config: Training configuration
+        device: Device to use
+        output_dir: Directory to save outputs
+        training_state: Dict with resume information (global_step, optimizer_state, etc.)
+        tokenizer: ByteTokenizer instance (NEW - required for weighted validation)
+
+    Returns:
+        dict: Training history
+    """
+    try:
+        print(f"\n{'=' * 60}")
+        print("Starting Training")
+        print(f"{'=' * 60}")
+
+        # Print weighted validation status
+        if config.get("use_weighted_validation", False):
+            print(f"\n⚡ Weighted Validation ENABLED:")
+            print(f"  - Delimiter: '{config['target_delimiter_string']}'")
+            print(f"  - Answer weight: {config['answer_weight_multiplier']}x")
+            print(f"  - Grace period: {config['steps_grace_period_before_weighting']} steps")
+            print(f"  - Stochastic weighting: {config['pct_validations_weighted']}% of validations")
+        else:
+            print(f"\n📊 Standard Validation (uniform token weighting)")
 
         # Setup optimizer
         optimizer = torch.optim.AdamW(
@@ -676,11 +877,14 @@ def train_model(
             print("  ✓ Restored scheduler state")
 
         # Training state
-        history = {"train_loss": [], "val_loss": [], "learning_rates": [], "step": []}
+        history = {
+            "train_loss": [],
+            "val_loss": [],
+            "learning_rates": [],
+            "step": [],
+            "weighted_validation_used": []  # NEW: Track when weighted validation was used
+        }
 
-        # global_step = 0
-        # best_val_loss = float('inf')
-        # tokens_seen = 0
         global_step = training_state["global_step"]
         best_val_loss = training_state["best_val_loss"]
         tokens_seen = training_state["tokens_seen"]
@@ -695,7 +899,6 @@ def train_model(
         )
 
         # Training loop
-        # for epoch in range(config["num_epochs"]):
         for epoch in range(start_epoch, config["num_epochs"]):
             print(f"\n{'=' * 40}")
             print(f"Epoch {epoch + 1}/{config['num_epochs']}")
@@ -706,7 +909,7 @@ def train_model(
             epoch_tokens = 0
 
             for batch_idx, (input_batch, target_batch) in enumerate(train_loader):
-                # Calculate loss
+                # Calculate loss (standard training loss - no weighting here)
                 loss = calculate_loss(input_batch, target_batch, model, device)
                 loss = loss / config["gradient_accumulation_steps"]
                 loss.backward()
@@ -726,25 +929,41 @@ def train_model(
                     tokens_seen += epoch_tokens
                     epoch_tokens = 0
 
-                    # Periodic evaluation
+                    # =========================================================
+                    # MODIFIED SECTION: Periodic evaluation with weighted loss
+                    # =========================================================
                     if global_step % config["eval_every"] == 0:
+
+                        # Determine if we should use weighted validation
+                        use_weighted_val = config.get("use_weighted_validation", False)
+
+                        # Calculate validation loss (weighted or standard)
                         val_loss = evaluate_model(
-                            model,
-                            val_loader,
-                            device,
+                            model=model,
+                            data_loader=val_loader,
+                            device=device,
                             num_batches=config["eval_batches"],
+                            tokenizer=tokenizer,  # NEW: Pass tokenizer
+                            config=config,        # NEW: Pass config
+                            current_step=global_step,  # NEW: Pass current step
+                            use_weighted_loss=use_weighted_val  # NEW: Enable weighted loss
                         )
 
                         train_loss = epoch_loss / (batch_idx + 1)
                         current_lr = scheduler.get_last_lr()[0]
 
+                        # Record history
                         history["train_loss"].append(train_loss)
                         history["val_loss"].append(val_loss)
                         history["learning_rates"].append(current_lr)
                         history["step"].append(global_step)
+                        history["weighted_validation_used"].append(use_weighted_val)  # NEW
+
+                        # Print with indicator if weighted validation was used
+                        weighted_indicator = "⚡" if use_weighted_val else "📊"
 
                         print(
-                            f"Step {global_step:5d} | "
+                            f"{weighted_indicator} Step {global_step:5d} | "
                             f"Train Loss: {train_loss:.4f} | "
                             f"Val Loss: {val_loss:.4f} | "
                             f"LR: {current_lr:.2e} | "
@@ -762,6 +981,8 @@ def train_model(
                                 best_val_loss,
                                 output_dir,
                                 "best",
+                                epoch,  # Add epoch parameter
+                                tokens_seen  # Add tokens_seen parameter
                             )
                             print(f"  → Saved best model (val_loss: {val_loss:.4f})")
 
@@ -775,16 +996,31 @@ def train_model(
                             val_loss,
                             output_dir,
                             f"step_{global_step}",
+                            epoch,  # Add epoch parameter
+                            tokens_seen  # Add tokens_seen parameter
                         )
 
             # End of epoch evaluation
             avg_epoch_loss = epoch_loss / len(train_loader)
-            val_loss = evaluate_model(model, val_loader, device)
+
+            # Use weighted validation for end-of-epoch evaluation
+            use_weighted_val = config.get("use_weighted_validation", False)
+            val_loss = evaluate_model(
+                model=model,
+                data_loader=val_loader,
+                device=device,
+                tokenizer=tokenizer,
+                config=config,
+                current_step=global_step,
+                use_weighted_loss=use_weighted_val
+            )
 
             print(f"\nEpoch {epoch + 1} Summary:")
             print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
             print(f"  Validation Loss: {val_loss:.4f}")
             print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
+            if use_weighted_val:
+                print(f"  (Using weighted validation ⚡)")
 
         print(f"\n{'=' * 60}")
         print("Training Complete!")
@@ -794,8 +1030,8 @@ def train_model(
 
         return history
 
-    except Exception as e:
-        print(f"Error during training: {e}")
+    except Exception as training_error:
+        print(f"Error during training: {training_error}")
         traceback.print_exc()
         raise
 

@@ -1,7 +1,7 @@
 """
-train_perseid_byte.py
+backweight_val_docstrain_perseidbyte.py
 
-This is an interesting simpler trainer that allows re-training / continued pre-training.
+This is a simpler trainer that allows re-training / continued pre-training.
 Possibly should track/log what last-best validation loss was...
 
 
@@ -13,6 +13,134 @@ unless existing weights are found, then it should continue training.
 Usage:
     1. Set configuration parameters at top of file
     2. Run: python train_perseid_byte.py
+
+
+
+Description:
+
+Weighted validation loss target by one of two mutually exclusive options:
+A. last N non-padding tokens
+B. delimitor string surrounding target
+
+Raise exception if both modes enabled.
+Only applies to validation loss by default, possible option toggle to apply to both training and validation.
+
+
+## A. last N non-padding tokens
+Backweighted validation-loss for specific training chunks is designed
+to give the last ~8-16 non-padding tokens (bytes, using a byte-tokenizer) more weight,
+as a foot in the door or text-proxy for having the 'outcome' of a 'task'
+be focused on above misc token-regurgitation for all tokens uniformly.
+
+Find last N real (non-padding) tokens and weight those
+Probably 16 is a safe first N, since six are delimitors,
+and the answer flag will be there if the answer itself is short
+
+e.g. this is 16 bytes, which showing the shortest answer
+filling that weight span.
+# answer\n|||1|||
+
+Here the format of the training/validation data is designed so that the answer to the question
+is at the end (before the padding tokens).
+
+
+## B. delimitor string surrounding target
+The delimted target uses a string only used around the target answer.
+"|||" tripple pipe will be used by default, because that is unlikely to collide
+even with math notation. Only weight what is inside; this is one
+of the main differences to test-compare for N-last tokens (including delimitors)
+vs. only what is inside.
+
+This is more targeted and more strict.
+If there are no delimitors, it is an automatic fail for the validation.
+
+e.g. here the target is inside the delimiters
+# answer\n|||1|||
+
+
+If delimitor not found in results.
+
+Other ~parameters of valiation regime include:
+- always weighting validation, or N pct of the time (seeded) randomely
+- grace-period before starting weight
+
+What Gets Heavily Weighted: e.g. for |||4|||
+- Only the '4' token inside |||4||| gets the 10x multiplier
+- Everything else: normal weight (1x) or masked (0x for padding)
+
+e.g.
+
+TRAINING_CONFIG = {
+    ...
+    "weight_only_validation": True,       # by default only the validation-loss is weighted
+    "validation_loss_weight_multiplier": 10.0,     # How much to weight answer tokens
+    "training_loss_weight_multiplier": 0.0,        # How much to weight answer tokens
+    "use_back_weighted_loss": False,      # Enable back-weighted loss
+    "n_answer_tokens": 16,                # Number of answer tokens to weight
+    "use_delimited_target_weighted_loss": True,    # Enable delimited weighted loss
+    "target_delimiter_string": "|||",     # default, tripple pipe delimiter
+    "pct_valiations_weighted": 50,        # how frequently validation uses weight
+    "steps_grace_period_before_weighting": 200     # allow some learning before strict requirements
+}
+
+e.g.
+
+def calculate_weighted_loss_backweighted_last_n(
+    input_batch: torch.Tensor,
+    target_batch: torch.Tensor,
+    model: nn.Module,
+    device: torch.device,
+    n_answer_tokens: int = 16,
+    answer_weight_multiplier: float = 10.0,
+    pad_token_id: int = 0,
+    pct_valiations_weighted = 100,
+    steps_grace_period_before_weighting = 100,
+)-> torch.Tensor:
+
+
+def calculate_weighted_loss_delimited_target(
+    input_batch: torch.Tensor,
+    target_batch: torch.Tensor,
+    model: nn.Module,
+    device: torch.device,
+    target_delimiter_string: str = "|||",
+    answer_weight_multiplier: float = 10.0,
+    pad_token_id: int = 0,
+    tokenizer: ByteTokenizer = None,
+    pct_valiations_weighted = 100,
+    steps_grace_period_before_weighting = 100,
+) -> torch.Tensor:
+
+or
+def calculate_weighted_loss_delimited_target(
+    input_batch: torch.Tensor,              # [batch_size, seq_len] - model inputs
+    target_batch: torch.Tensor,             # [batch_size, seq_len] - ground truth targets
+    model: nn.Module,                       # The neural network model
+    device: torch.device,                   # 'cuda' or 'cpu'
+    target_delimiter_string: str = "|||",   # Delimiter surrounding answer
+    answer_weight_multiplier: float = 10.0, # How much to weight answer tokens
+    pad_token_id: int = 0,                  # Padding token ID to mask
+    tokenizer: ByteTokenizer = None,        # Needed to encode delimiter string
+    pct_validations_weighted: int = 100,    # % of time to apply weighting (0-100)
+    steps_grace_period_before_weighting: int = 100,  # Steps before weighting starts
+    current_step: int = 0,                  # Current training step (for grace period)
+    random_seed: int = 42,                  # Seed for reproducible probability sampling
+) -> torch.Tensor:                          # Returns: scalar loss value
+    '''
+    Calculate cross-entropy loss with heavy weighting on tokens between delimiters.
+
+    The goal: Focus learning on the actual answer (between |||delimiters|||) rather
+    than uniformly weighting all token predictions including prompt regurgitation.
+
+    This is a "task outcome" proxy - we care most about predicting the answer correctly,
+    less about perfectly mimicking formatting/prompt tokens.
+    '''
+
+
+note:
+    maybe alternative to grace period?
+    Option A (Strict): Set all weights to 0.0 for that sequence (treat as failed validation)
+    Option B (Lenient): Fall back to uniform weighting (weight = 1.0 for all non-padding)
 """
 
 import os
@@ -38,6 +166,7 @@ from perseidbyte_256_288_320_config_tools import (
 # from generate_text_tools_perseid import generate_text_simple
 from perseid_model import PerseidByteModel
 from perseid_model import PERSEID_BYTE_CONFIG_BASE
+
 
 # Check if CUDA (GPU support) is available
 print("CUDA available:", torch.cuda.is_available())
@@ -67,20 +196,43 @@ CHECKPOINT_PATH = None  # Set to specific checkpoint file, or None to auto-find
 # Data split
 TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 
-# Training settings
+# # Training settings
+# TRAINING_CONFIG = {
+#     "context_length": 1024,  # Context window for training
+#     "batch_size": 11,  # Batch size (increase if memory allows)
+#     "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
+#     "learning_rate": 5e-4,  # Learning rate
+#     "num_epochs": 7,  # Number of training epochs, default 3
+#     "weight_decay": 0.01,  # Weight decay for AdamW
+#     "warmup_steps": 100,  # Warmup steps for learning rate
+#     "eval_every": 2,  # Evaluate every N steps
+#     "eval_batches": 10,  # Number of batches for evaluation
+#     "save_every": 500,  # Save checkpoint every N steps
+#     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
+# }
+
+
 TRAINING_CONFIG = {
-    "context_length": 1024,  # Context window for training
-    "batch_size": 11,  # Batch size (increase if memory allows)
-    "gradient_accumulation_steps": 4,  # Effective batch = batch_size * this
-    "learning_rate": 5e-4,  # Learning rate
-    "num_epochs": 7,  # Number of training epochs, default 3
-    "weight_decay": 0.01,  # Weight decay for AdamW
-    "warmup_steps": 100,  # Warmup steps for learning rate
-    "eval_every": 2,  # Evaluate every N steps
-    "eval_batches": 10,  # Number of batches for evaluation
-    "save_every": 500,  # Save checkpoint every N steps
-    "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
+    "context_length": 1024,
+    "batch_size": 11,
+    "gradient_accumulation_steps": 4,
+    "learning_rate": 5e-4,
+    "num_epochs": 2,  # 7
+    "weight_decay": 0.01,
+    "warmup_steps": 100,
+    "eval_every": 2,
+    "eval_batches": 10,
+    "save_every": 500,  # 100
+    "chunk_overlap": 0.1,
+    # NEW: Weighted validation loss parameters
+    "use_weighted_validation": True,  # Enable/disable weighted validation
+    "target_delimiter_string": "|||",  # Delimiter surrounding answers
+    "answer_weight_multiplier": 10.0,  # Weight multiplier for answer tokens
+    "pct_validations_weighted": 100,  # Percentage of validations to weight (0-100)
+    "steps_grace_period_before_weighting": 200,  # Grace period steps before weighting starts
+    "validation_random_seed": 42,  # Seed for reproducible stochastic weighting
 }
+
 
 # ============================================================================
 # END USER CONFIGURATION
@@ -299,73 +451,6 @@ def create_data_loaders(text, tokenizer, config, train_ratio=0.9):
         print(f"Error creating data loaders: {e}")
         traceback.print_exc()
         raise
-
-
-# def setup_model(model_size, strategy, config, device):
-#     """
-#     Initialize Perseid model with specified configuration.
-
-#     Args:
-#         model_size (int): Target model size in millions
-#         strategy (str): Model strategy (balanced/deep/wide)
-#         config (dict): Training configuration
-#         device: Device to move model to
-
-#     Returns:
-#         tuple: (model, model_config)
-#     """
-#     try:
-#         print(f"\n{'='*60}")
-#         print(f"Setting up Perseid-{model_size}M ({strategy} strategy)")
-#         print(f"{'='*60}")
-
-#         # Generate Perseid configuration
-#         model_config = create_perseid_config(
-#             target_size_millions=model_size,
-#             strategy=strategy
-#         )
-
-#         # Override context length for training
-#         model_config["context_length"] = config["context_length"]
-
-#         # Set dtype
-#         if USE_BFLOAT16:
-#             model_config["dtype"] = torch.bfloat16
-#         else:
-#             model_config["dtype"] = torch.float32
-
-#         # Validate configuration
-#         is_valid, issues = validate_config(model_config)
-#         if not is_valid:
-#             print("Configuration validation issues:")
-#             for issue in issues:
-#                 print(f"  - {issue}")
-#             if len([i for i in issues if "Warning" not in i]) > 0:
-#                 raise ValueError("Critical configuration issues found")
-
-#         # Initialize model
-#         print("\nInitializing model...")
-#         model = Gemma3Model(model_config)
-
-#         # Move to device
-#         model = model.to(device)
-
-#         # Print model statistics
-#         total_params = sum(p.numel() for p in model.parameters())
-#         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-#         print(f"Model initialized successfully")
-#         print(f"Total parameters: {total_params:,}")
-#         print(f"Trainable parameters: {trainable_params:,}")
-#         print(f"Model size (bfloat16): {total_params * 2 / 1e9:.3f} GB")
-#         print(f"Device: {device}")
-
-#         return model, model_config
-
-#     except Exception as e:
-#         print(f"Error setting up model: {e}")
-#         traceback.print_exc()
-#         raise
 
 
 def setup_model(
@@ -596,40 +681,108 @@ def calculate_loss(input_batch, target_batch, model, device):
         raise
 
 
-def evaluate_model(model, data_loader, device, num_batches=None):
+def evaluate_model(
+    model,
+    data_loader,
+    device,
+    num_batches=None,
+    tokenizer=None,
+    config=None,
+    current_step=0,
+    use_weighted_loss=False,
+):
     """
-    Evaluate model on data loader.
+    Evaluate model on data loader with optional weighted loss.
 
     Args:
         model: Model to evaluate
         data_loader: Data loader for evaluation
         device: Device to use
-        num_batches: Maximum number of batches to evaluate
+        num_batches: Maximum number of batches to evaluate (None = all)
+        tokenizer: ByteTokenizer instance (required for weighted loss)
+        config: Training configuration dict (required for weighted loss)
+        current_step: Current global training step (for grace period logic)
+        use_weighted_loss: Whether to use delimiter-weighted loss
 
     Returns:
-        float: Average loss
+        float: Average loss across evaluated batches
     """
-    model.eval()
-    total_loss = 0.0
+    try:
+        model.eval()
+        total_loss = 0.0
 
-    if num_batches is None:
-        num_batches = len(data_loader)
-    else:
-        num_batches = min(num_batches, len(data_loader))
+        if num_batches is None:
+            num_batches = len(data_loader)
+        else:
+            num_batches = min(num_batches, len(data_loader))
 
-    with torch.no_grad():
-        for i, (input_batch, target_batch) in enumerate(data_loader):
-            if i >= num_batches:
-                break
-            loss = calculate_loss(input_batch, target_batch, model, device)
-            total_loss += loss.item()
+        # Determine which loss function to use
+        if use_weighted_loss:
+            # Validate required parameters for weighted loss
+            if tokenizer is None:
+                raise ValueError(
+                    "Tokenizer required for weighted validation loss. "
+                    "Pass tokenizer parameter to evaluate_model()."
+                )
+            if config is None:
+                raise ValueError(
+                    "Config required for weighted validation loss. "
+                    "Pass config parameter to evaluate_model()."
+                )
 
-    model.train()
-    return total_loss / num_batches if num_batches > 0 else float("nan")
+            print(f"  Using weighted validation loss (step {current_step})")
+
+        with torch.no_grad():
+            for batch_idx, (input_batch, target_batch) in enumerate(data_loader):
+                if batch_idx >= num_batches:
+                    break
+
+                # Choose loss calculation method
+                if use_weighted_loss:
+                    # Calculate weighted loss focusing on delimited answers
+                    loss = calculate_weighted_loss_delimited_target(
+                        input_batch=input_batch,
+                        target_batch=target_batch,
+                        model=model,
+                        device=device,
+                        target_delimiter_string=config["target_delimiter_string"],
+                        answer_weight_multiplier=config["answer_weight_multiplier"],
+                        pad_token_id=tokenizer.PAD_ID,
+                        tokenizer=tokenizer,
+                        pct_validations_weighted=config["pct_validations_weighted"],
+                        steps_grace_period_before_weighting=config[
+                            "steps_grace_period_before_weighting"
+                        ],
+                        current_step=current_step,
+                        random_seed=config["validation_random_seed"],
+                    )
+                else:
+                    # Standard uniform cross-entropy loss
+                    loss = calculate_loss(input_batch, target_batch, model, device)
+
+                total_loss += loss.item()
+
+        model.train()
+
+        average_loss = total_loss / num_batches if num_batches > 0 else float("nan")
+
+        return average_loss
+
+    except Exception as evaluation_error:
+        print(f"Error during model evaluation: {evaluation_error}")
+        traceback.print_exc()
+        raise
 
 
 def train_model(
-    model, train_loader, val_loader, config, device, output_dir, training_state
+    model,
+    train_loader,
+    val_loader,
+    config,
+    device,
+    output_dir,
+    training_state,
+    tokenizer,  # ADD THIS PARAMETER
 ):
     """
     Main training loop for Perseid model.
@@ -642,6 +795,7 @@ def train_model(
         device: Device to use
         output_dir: Directory to save outputs
         training_state: Dict with resume information (global_step, optimizer_state, etc.)
+        tokenizer: ByteTokenizer instance (NEW - required for weighted validation)
 
     Returns:
         dict: Training history
@@ -650,6 +804,20 @@ def train_model(
         print(f"\n{'=' * 60}")
         print("Starting Training")
         print(f"{'=' * 60}")
+
+        # Print weighted validation status
+        if config.get("use_weighted_validation", False):
+            print(f"\n⚡ Weighted Validation ENABLED:")
+            print(f"  - Delimiter: '{config['target_delimiter_string']}'")
+            print(f"  - Answer weight: {config['answer_weight_multiplier']}x")
+            print(
+                f"  - Grace period: {config['steps_grace_period_before_weighting']} steps"
+            )
+            print(
+                f"  - Stochastic weighting: {config['pct_validations_weighted']}% of validations"
+            )
+        else:
+            print(f"\n📊 Standard Validation (uniform token weighting)")
 
         # Setup optimizer
         optimizer = torch.optim.AdamW(
@@ -687,11 +855,14 @@ def train_model(
             print("  ✓ Restored scheduler state")
 
         # Training state
-        history = {"train_loss": [], "val_loss": [], "learning_rates": [], "step": []}
+        history = {
+            "train_loss": [],
+            "val_loss": [],
+            "learning_rates": [],
+            "step": [],
+            "weighted_validation_used": [],  # NEW: Track when weighted validation was used
+        }
 
-        # global_step = 0
-        # best_val_loss = float('inf')
-        # tokens_seen = 0
         global_step = training_state["global_step"]
         best_val_loss = training_state["best_val_loss"]
         tokens_seen = training_state["tokens_seen"]
@@ -706,7 +877,6 @@ def train_model(
         )
 
         # Training loop
-        # for epoch in range(config["num_epochs"]):
         for epoch in range(start_epoch, config["num_epochs"]):
             print(f"\n{'=' * 40}")
             print(f"Epoch {epoch + 1}/{config['num_epochs']}")
@@ -717,7 +887,7 @@ def train_model(
             epoch_tokens = 0
 
             for batch_idx, (input_batch, target_batch) in enumerate(train_loader):
-                # Calculate loss
+                # Calculate loss (standard training loss - no weighting here)
                 loss = calculate_loss(input_batch, target_batch, model, device)
                 loss = loss / config["gradient_accumulation_steps"]
                 loss.backward()
@@ -737,25 +907,42 @@ def train_model(
                     tokens_seen += epoch_tokens
                     epoch_tokens = 0
 
-                    # Periodic evaluation
+                    # =========================================================
+                    # MODIFIED SECTION: Periodic evaluation with weighted loss
+                    # =========================================================
                     if global_step % config["eval_every"] == 0:
+                        # Determine if we should use weighted validation
+                        use_weighted_val = config.get("use_weighted_validation", False)
+
+                        # Calculate validation loss (weighted or standard)
                         val_loss = evaluate_model(
-                            model,
-                            val_loader,
-                            device,
+                            model=model,
+                            data_loader=val_loader,
+                            device=device,
                             num_batches=config["eval_batches"],
+                            tokenizer=tokenizer,  # NEW: Pass tokenizer
+                            config=config,  # NEW: Pass config
+                            current_step=global_step,  # NEW: Pass current step
+                            use_weighted_loss=use_weighted_val,  # NEW: Enable weighted loss
                         )
 
                         train_loss = epoch_loss / (batch_idx + 1)
                         current_lr = scheduler.get_last_lr()[0]
 
+                        # Record history
                         history["train_loss"].append(train_loss)
                         history["val_loss"].append(val_loss)
                         history["learning_rates"].append(current_lr)
                         history["step"].append(global_step)
+                        history["weighted_validation_used"].append(
+                            use_weighted_val
+                        )  # NEW
+
+                        # Print with indicator if weighted validation was used
+                        weighted_indicator = "⚡" if use_weighted_val else "📊"
 
                         print(
-                            f"Step {global_step:5d} | "
+                            f"{weighted_indicator} Step {global_step:5d} | "
                             f"Train Loss: {train_loss:.4f} | "
                             f"Val Loss: {val_loss:.4f} | "
                             f"LR: {current_lr:.2e} | "
@@ -773,6 +960,8 @@ def train_model(
                                 best_val_loss,
                                 output_dir,
                                 "best",
+                                epoch,  # Add epoch parameter
+                                tokens_seen,  # Add tokens_seen parameter
                             )
                             print(f"  → Saved best model (val_loss: {val_loss:.4f})")
 
@@ -786,16 +975,31 @@ def train_model(
                             val_loss,
                             output_dir,
                             f"step_{global_step}",
+                            epoch,  # Add epoch parameter
+                            tokens_seen,  # Add tokens_seen parameter
                         )
 
             # End of epoch evaluation
             avg_epoch_loss = epoch_loss / len(train_loader)
-            val_loss = evaluate_model(model, val_loader, device)
+
+            # Use weighted validation for end-of-epoch evaluation
+            use_weighted_val = config.get("use_weighted_validation", False)
+            val_loss = evaluate_model(
+                model=model,
+                data_loader=val_loader,
+                device=device,
+                tokenizer=tokenizer,
+                config=config,
+                current_step=global_step,
+                use_weighted_loss=use_weighted_val,
+            )
 
             print(f"\nEpoch {epoch + 1} Summary:")
             print(f"  Average Train Loss: {avg_epoch_loss:.4f}")
             print(f"  Validation Loss: {val_loss:.4f}")
             print(f"  Perplexity: {torch.exp(torch.tensor(val_loss)):.2f}")
+            if use_weighted_val:
+                print(f"  (Using weighted validation ⚡)")
 
         print(f"\n{'=' * 60}")
         print("Training Complete!")
@@ -805,13 +1009,15 @@ def train_model(
 
         return history
 
-    except Exception as e:
-        print(f"Error during training: {e}")
+    except Exception as training_error:
+        print(f"Error during training: {training_error}")
         traceback.print_exc()
         raise
 
 
-def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag):
+def save_checkpoint(
+    model, optimizer, scheduler, step, val_loss, output_dir, tag, epoch=0, tokens_seen=0
+):
     """
     Save model checkpoint with all training state.
 
@@ -823,6 +1029,8 @@ def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag
         val_loss: Current validation loss
         output_dir: Output directory
         tag: Checkpoint tag (e.g., "best", "step_1000")
+        epoch: Current epoch number (NEW)
+        tokens_seen: Total tokens processed (NEW)
     """
     try:
         output_dir = Path(output_dir)
@@ -838,12 +1046,14 @@ def save_checkpoint(model, optimizer, scheduler, step, val_loss, output_dir, tag
                 "step": step,
                 "val_loss": val_loss,
                 "model_config": model.cfg,
+                "epoch": epoch,  # NEW
+                "tokens_seen": tokens_seen,  # NEW
             },
             checkpoint_path,
         )
 
-    except Exception as e:
-        print(f"Error saving checkpoint: {e}")
+    except Exception as checkpoint_save_error:
+        print(f"Error saving checkpoint: {checkpoint_save_error}")
         traceback.print_exc()
 
 
@@ -1163,115 +1373,115 @@ def save_training_results(model, model_config, history, output_dir):
         raise
 
 
-def main():
-    """
-    Main training pipeline for Perseid document training.
-    """
-    try:
-        print(f"\n{'=' * 60}")
-        print("Perseid Document Training Pipeline")
-        print(f"{'=' * 60}")
-        print(f"Experiment: {EXPERIMENT_NAME}")
-        print(f"Output directory: {OUTPUT_DIR}")
+# def main():
+#     """
+#     Main training pipeline for Perseid document training.
+#     """
+#     try:
+#         print(f"\n{'=' * 60}")
+#         print("Perseid Document Training Pipeline")
+#         print(f"{'=' * 60}")
+#         print(f"Experiment: {EXPERIMENT_NAME}")
+#         print(f"Output directory: {OUTPUT_DIR}")
 
-        # Create output directory
-        output_dir = Path(OUTPUT_DIR)
-        output_dir.mkdir(parents=True, exist_ok=True)
+#         # Create output directory
+#         output_dir = Path(OUTPUT_DIR)
+#         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Set random seeds for reproducibility
-        torch.manual_seed(42)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(42)
+#         # Set random seeds for reproducibility
+#         torch.manual_seed(42)
+#         if torch.cuda.is_available():
+#             torch.cuda.manual_seed(42)
 
-        # 1. Load document
-        print(f"\n{'=' * 40}")
-        print("Step 1: Loading Document")
-        print(f"{'=' * 40}")
-        document_text = load_document(DOCUMENT_PATH)
+#         # 1. Load document
+#         print(f"\n{'=' * 40}")
+#         print("Step 1: Loading Document")
+#         print(f"{'=' * 40}")
+#         document_text = load_document(DOCUMENT_PATH)
 
-        # 2. Setup model and tokenizer
-        print(f"\n{'=' * 40}")
-        print("Step 2: Setting Up Model")
-        print(f"{'=' * 40}")
+#         # 2. Setup model and tokenizer
+#         print(f"\n{'=' * 40}")
+#         print("Step 2: Setting Up Model")
+#         print(f"{'=' * 40}")
 
-        ###############################
-        # Setup ByteTokenizer
-        ###############################
+#         ###############################
+#         # Setup ByteTokenizer
+#         ###############################
 
-        tokenizer = setup_tokenizer()
+#         tokenizer = setup_tokenizer()
 
-        # Initialize model
-        model, model_config, training_state = setup_model(
-            MODEL_SIZE,
-            MODEL_STRATEGY,
-            TRAINING_CONFIG,
-            DEVICE,
-            OUTPUT_DIR,
-            TRAINING_MODE,
-            CHECKPOINT_PATH,
-        )
+#         # Initialize model
+#         model, model_config, training_state = setup_model(
+#             MODEL_SIZE,
+#             MODEL_STRATEGY,
+#             TRAINING_CONFIG,
+#             DEVICE,
+#             OUTPUT_DIR,
+#             TRAINING_MODE,
+#             CHECKPOINT_PATH,
+#         )
 
-        # 3. Create data loaders
-        print(f"\n{'=' * 40}")
-        print("Step 3: Preparing Data")
-        print(f"{'=' * 40}")
-        train_loader, val_loader = create_data_loaders(
-            document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
-        )
+#         # 3. Create data loaders
+#         print(f"\n{'=' * 40}")
+#         print("Step 3: Preparing Data")
+#         print(f"{'=' * 40}")
+#         train_loader, val_loader = create_data_loaders(
+#             document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+#         )
 
-        # 4. Train model
-        print(f"\n{'=' * 40}")
-        print("Step 4: Training Model")
-        print(f"{'=' * 40}")
-        history = train_model(
-            model,
-            train_loader,
-            val_loader,
-            TRAINING_CONFIG,
-            DEVICE,
-            output_dir,
-            training_state,
-        )
+#         # 4. Train model
+#         print(f"\n{'=' * 40}")
+#         print("Step 4: Training Model")
+#         print(f"{'=' * 40}")
+#         history = train_model(
+#             model,
+#             train_loader,
+#             val_loader,
+#             TRAINING_CONFIG,
+#             DEVICE,
+#             output_dir,
+#             training_state,
+#         )
 
-        # 5. Save results
-        print(f"\n{'=' * 40}")
-        print("Step 5: Saving Results")
-        print(f"{'=' * 40}")
-        save_training_results(model, model_config, history, output_dir)
+#         # 5. Save results
+#         print(f"\n{'=' * 40}")
+#         print("Step 5: Saving Results")
+#         print(f"{'=' * 40}")
+#         save_training_results(model, model_config, history, output_dir)
 
-        print(f"\n{'=' * 60}")
-        print("Training Pipeline Complete!")
+#         print(f"\n{'=' * 60}")
+#         print("Training Pipeline Complete!")
 
-        # 5.5 Generate sample text with trained model
-        print(f"\n{'=' * 40}")
-        print("Step 5.5: Sample Generation")
-        print(f"{'=' * 40}")
+#         # 5.5 Generate sample text with trained model
+#         print(f"\n{'=' * 40}")
+#         print("Step 5.5: Sample Generation")
+#         print(f"{'=' * 40}")
 
-        test_prompts = [
-            "Once upon a time",
-            "The meaning of life is",
-            "In the beginning",
-        ]
-        for prompt in test_prompts:
-            # output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50)
-            output = generate_text_simple(
-                model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
-            )
-            print(f"Prompt: '{prompt}'")
-            print(f"Output: {output}\n")
+#         test_prompts = [
+#             "Once upon a time",
+#             "The meaning of life is",
+#             "In the beginning",
+#         ]
+#         for prompt in test_prompts:
+#             # output = generate_text_simple(model, tokenizer, prompt, max_new_tokens=50)
+#             output = generate_text_simple(
+#                 model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
+#             )
+#             print(f"Prompt: '{prompt}'")
+#             print(f"Output: {output}\n")
 
-        print(f"{'=' * 60}")
-        print(f"Model and results saved to: {output_dir}")
+#         print(f"{'=' * 60}")
+#         print(f"Model and results saved to: {output_dir}")
 
-        return model, history
+#         return model, history
 
-    except Exception as e:
-        print(f"\n{'=' * 60}")
-        print("Training Pipeline Failed")
-        print(f"{'=' * 60}")
-        print(f"Error: {e}")
-        traceback.print_exc()
-        raise
+#     except Exception as e:
+#         print(f"\n{'=' * 60}")
+#         print("Training Pipeline Failed")
+#         print(f"{'=' * 60}")
+#         print(f"Error: {e}")
+#         traceback.print_exc()
+#         raise
 
 
 def test_integration():
@@ -1306,6 +1516,699 @@ def test_integration():
     print(f"  Model size: {params['total_millions']:.2f}M parameters")
 
     return tokenizer, model_config
+
+
+"""
+calculate_weighted_loss_delimited_target.py
+
+Weighted validation loss calculation that focuses learning on delimited answer tokens.
+
+This module provides a loss function that assigns heavy weights to tokens appearing
+between delimiter markers (e.g., |||answer|||) while maintaining normal weights for
+other content and masking padding tokens.
+
+Usage:
+    from calculate_weighted_loss_delimited_target import calculate_weighted_loss_delimited_target
+
+    loss = calculate_weighted_loss_delimited_target(
+        input_batch=input_ids,
+        target_batch=target_ids,
+        model=model,
+        device=device,
+        tokenizer=tokenizer,
+        current_step=global_step
+    )
+"""
+
+import sys
+import traceback
+from collections.abc import Sequence
+import torch
+import torch.nn as nn
+
+
+def calculate_weighted_loss_delimited_target(
+    input_batch: torch.Tensor,
+    target_batch: torch.Tensor,
+    model: nn.Module,
+    device: torch.device,
+    target_delimiter_string: str = "|||",
+    answer_weight_multiplier: float = 10.0,
+    pad_token_id: int = 0,
+    tokenizer=None,  # ByteTokenizer instance
+    pct_validations_weighted: int = 100,
+    steps_grace_period_before_weighting: int = 100,
+    current_step: int = 0,
+    random_seed: int = 42,
+) -> torch.Tensor:
+    """
+    Calculate cross-entropy loss with heavy weighting on tokens between delimiters.
+
+    The goal: Focus learning on the actual answer (between |||delimiters|||) rather
+    than uniformly weighting all token predictions including prompt regurgitation.
+
+    This is a "task outcome" proxy - we care most about predicting the answer correctly,
+    less about perfectly mimicking formatting/prompt tokens.
+
+    Algorithm:
+        1. Run forward pass through model to get logits
+        2. Calculate per-token cross-entropy loss (no reduction)
+        3. For each sequence in batch:
+           - Decode target tokens to text
+           - Find delimiter pairs in text
+           - Map delimiter positions back to token indices
+           - Create weight mask with high weights for answer tokens
+        4. Apply stochastic weighting decision (pct_validations_weighted)
+        5. Apply grace period logic (steps_grace_period_before_weighting)
+        6. Multiply per-token losses by weight mask
+        7. Return weighted average loss
+
+    Args:
+        input_batch: Model input token IDs [batch_size, seq_len]
+        target_batch: Ground truth target token IDs [batch_size, seq_len]
+        model: Neural network model to evaluate
+        device: Torch device ('cuda' or 'cpu')
+        target_delimiter_string: String marking answer boundaries (default: "|||")
+        answer_weight_multiplier: Weight multiplier for answer tokens (default: 10.0)
+        pad_token_id: Token ID representing padding (default: 0)
+        tokenizer: ByteTokenizer instance with encode/decode methods (required)
+        pct_validations_weighted: Percentage of time to apply weighting 0-100 (default: 100)
+        steps_grace_period_before_weighting: Steps before weighting begins (default: 100)
+        current_step: Current training/validation step number (default: 0)
+        random_seed: Random seed for reproducible stochastic weighting (default: 42)
+
+    Returns:
+        Scalar tensor containing weighted loss value
+
+    Raises:
+        ValueError: If tokenizer is None, or if parameters are invalid
+        RuntimeError: If forward pass or loss calculation fails
+
+    Example:
+        >>> # Training data format: "What is 2+2? answer\\n|||4|||"
+        >>> loss = calculate_weighted_loss_delimited_target(
+        ...     input_batch=input_ids,
+        ...     target_batch=target_ids,
+        ...     model=model,
+        ...     device=device,
+        ...     target_delimiter_string="|||",
+        ...     answer_weight_multiplier=10.0,
+        ...     tokenizer=byte_tokenizer,
+        ...     current_step=500
+        ... )
+        >>> loss.backward()  # Gradients focus on answer prediction
+
+    Notes:
+        - If delimiters not found: sequence gets zero weight (validation fail)
+        - If only one delimiter found: sequence gets zero weight (malformed)
+        - Padding tokens always get zero weight
+        - Grace period uses uniform weighting (no special answer weighting)
+        - Stochastic weighting uses seeded random for reproducibility
+        - Multiple delimiter pairs in one sequence: all answer regions weighted
+    """
+
+    try:
+        # =====================================================================
+        # SECTION 1: Input Validation and Sanity Checks
+        # =====================================================================
+
+        # Check that tokenizer was provided
+        if tokenizer is None:
+            error_message = (
+                "Tokenizer cannot be None! ByteTokenizer instance required for "
+                "delimiter detection. Pass tokenizer=your_byte_tokenizer instance."
+            )
+            raise ValueError(error_message)
+
+        # Validate percentage parameter is in valid range
+        if not (0 <= pct_validations_weighted <= 100):
+            print(
+                f"Warning: pct_validations_weighted={pct_validations_weighted} "
+                f"out of range [0,100]. Clamping to valid range."
+            )
+            pct_validations_weighted = max(0, min(100, pct_validations_weighted))
+
+        # Ensure current_step is non-negative
+        if current_step < 0:
+            print(
+                f"Warning: current_step={current_step} is negative. Treating as step 0."
+            )
+            current_step = 0
+
+        # Check for empty batch
+        batch_size, seq_len = target_batch.shape
+        if batch_size == 0 or seq_len == 0:
+            print("Warning: Empty batch received. Returning zero loss.")
+            return torch.tensor(0.0, device=device)
+
+        # =====================================================================
+        # SECTION 2: Determine if Weighting Should Be Applied This Call
+        # =====================================================================
+
+        # Check grace period - if we're still in grace period, don't weight
+        currently_in_grace_period = current_step < steps_grace_period_before_weighting
+
+        # Stochastic weighting decision - use seeded random for reproducibility
+        apply_weighting_this_call = True
+
+        if currently_in_grace_period:
+            apply_weighting_this_call = False
+            # print(f"Debug: Step {current_step} in grace period, using uniform weights")
+
+        elif pct_validations_weighted < 100:
+            # Create a seeded random number generator for reproducibility
+            # Seed changes with current_step so different steps get different decisions
+            # but same step always gets same decision (reproducible)
+            rng_for_probability = torch.Generator(device="cpu")
+            rng_for_probability.manual_seed(random_seed + current_step)
+
+            # Generate random value between 0 and 100
+            random_percentage_value = (
+                torch.rand(1, generator=rng_for_probability).item() * 100
+            )
+
+            # Decide if we apply weighting based on percentage threshold
+            apply_weighting_this_call = (
+                random_percentage_value < pct_validations_weighted
+            )
+
+            # Debug logging (can be removed in production)
+            # if not apply_weighting_this_call:
+            #     print(f"Debug: Step {current_step} skipping weighting (random={random_percentage_value:.1f})")
+
+        # =====================================================================
+        # SECTION 3: Forward Pass Through Model
+        # =====================================================================
+
+        try:
+            # Move inputs to correct device
+            input_batch = input_batch.to(device)
+            target_batch = target_batch.to(device)
+
+            # Get model predictions (logits)
+            # Shape: [batch_size, seq_len, vocab_size]
+            logits = model(input_batch)
+
+        except Exception as forward_pass_error:
+            error_message = f"Forward pass through model failed: {forward_pass_error}"
+            print(f"ERROR: {error_message}")
+            traceback.print_exc()
+            raise RuntimeError(error_message) from forward_pass_error
+
+        # =====================================================================
+        # SECTION 4: Calculate Per-Token Cross-Entropy Loss (No Reduction)
+        # =====================================================================
+
+        try:
+            # Flatten logits and targets for cross-entropy calculation
+            # logits: [batch_size * seq_len, vocab_size]
+            # targets: [batch_size * seq_len]
+            logits_flattened = logits.view(-1, logits.size(-1))
+            targets_flattened = target_batch.view(-1)
+
+            # Calculate cross-entropy loss per token (no reduction)
+            # This gives us individual loss value for each token position
+            loss_function = nn.CrossEntropyLoss(reduction="none")
+            per_token_losses_flat = loss_function(logits_flattened, targets_flattened)
+
+            # Reshape back to [batch_size, seq_len] for easier manipulation
+            per_token_losses = per_token_losses_flat.view(batch_size, seq_len)
+
+        except Exception as loss_calculation_error:
+            error_message = f"Loss calculation failed: {loss_calculation_error}"
+            print(f"ERROR: {error_message}")
+            traceback.print_exc()
+            raise RuntimeError(error_message) from loss_calculation_error
+
+        # =====================================================================
+        # SECTION 5: Build Weight Mask for Each Sequence in Batch
+        # =====================================================================
+
+        # Initialize weight mask with uniform weights (1.0 for all positions)
+        # Shape: [batch_size, seq_len]
+        weight_mask = torch.ones_like(
+            per_token_losses, dtype=torch.float32, device=device
+        )
+
+        # If we're not applying weighting this call, skip delimiter detection
+        # and just mask padding tokens
+        if not apply_weighting_this_call:
+            # Just mask padding tokens (set weight to 0.0)
+            padding_mask = target_batch == pad_token_id
+            weight_mask[padding_mask] = 0.0
+
+        else:
+            # Apply delimiter-based weighting
+
+            # Process each sequence in the batch individually
+            for sequence_index in range(batch_size):
+                try:
+                    # Extract token IDs for this sequence
+                    target_token_ids = target_batch[sequence_index].tolist()
+
+                    # Decode tokens back to text string
+                    # This is necessary to search for delimiter string
+                    decoded_text = tokenizer.decode(target_token_ids)
+
+                    # Convert delimiter string to bytes for consistent matching
+                    delimiter_bytes = target_delimiter_string.encode("utf-8")
+                    decoded_bytes = decoded_text.encode("utf-8")
+
+                    # =========================================================
+                    # SECTION 5A: Find All Delimiter Pairs in Decoded Text
+                    # =========================================================
+
+                    # Find all occurrences of delimiter in the byte sequence
+                    delimiter_positions_list = []
+                    search_start_position = 0
+
+                    while True:
+                        # Search for next delimiter occurrence
+                        delimiter_position = decoded_bytes.find(
+                            delimiter_bytes, search_start_position
+                        )
+
+                        # If no more delimiters found, stop searching
+                        if delimiter_position == -1:
+                            break
+
+                        # Record this delimiter position
+                        delimiter_positions_list.append(delimiter_position)
+
+                        # Move search position past this delimiter
+                        search_start_position = delimiter_position + len(
+                            delimiter_bytes
+                        )
+
+                    # =========================================================
+                    # SECTION 5B: Validate Delimiter Pairs
+                    # =========================================================
+
+                    # We need pairs of delimiters (opening and closing)
+                    # If odd number of delimiters, something is malformed
+                    number_of_delimiters_found = len(delimiter_positions_list)
+
+                    if number_of_delimiters_found == 0:
+                        # No delimiters found - validation fail
+                        # Set entire sequence weight to zero
+                        weight_mask[sequence_index, :] = 0.0
+                        # print(f"Debug: Sequence {sequence_index} has no delimiters, weight=0")
+                        continue
+
+                    elif number_of_delimiters_found % 2 != 0:
+                        # Odd number of delimiters - malformed (unpaired)
+                        # Set entire sequence weight to zero
+                        weight_mask[sequence_index, :] = 0.0
+                        print(
+                            f"Warning: Sequence {sequence_index} has {number_of_delimiters_found} "
+                            f"delimiters (unpaired). Setting weight=0."
+                        )
+                        continue
+
+                    # =========================================================
+                    # SECTION 5C: Map Byte Positions to Token Indices
+                    # =========================================================
+
+                    # Process delimiter pairs
+                    number_of_pairs = number_of_delimiters_found // 2
+
+                    for pair_index in range(number_of_pairs):
+                        # Get byte positions of opening and closing delimiters
+                        opening_delimiter_byte_pos = delimiter_positions_list[
+                            pair_index * 2
+                        ]
+                        closing_delimiter_byte_pos = delimiter_positions_list[
+                            pair_index * 2 + 1
+                        ]
+
+                        # Calculate byte position range for answer content
+                        # (content between delimiters, excluding the delimiters themselves)
+                        answer_start_byte = opening_delimiter_byte_pos + len(
+                            delimiter_bytes
+                        )
+                        answer_end_byte = closing_delimiter_byte_pos
+
+                        # Skip if delimiters are adjacent (empty answer)
+                        if answer_start_byte >= answer_end_byte:
+                            continue
+
+                        # Map byte positions to token indices
+                        # Strategy: Re-encode tokens one-by-one and track cumulative byte positions
+                        cumulative_byte_position = 0
+                        answer_token_start_index = None
+                        answer_token_end_index = None
+
+                        for token_index, token_id in enumerate(target_token_ids):
+                            # Get byte representation of this single token
+                            token_bytes = tokenizer.decode([token_id]).encode("utf-8")
+                            token_byte_length = len(token_bytes)
+
+                            # Check if this token overlaps with answer region
+                            token_starts_at_byte = cumulative_byte_position
+                            token_ends_at_byte = (
+                                cumulative_byte_position + token_byte_length
+                            )
+
+                            # Check if token starts within or after answer start
+                            if (
+                                answer_token_start_index is None
+                                and token_ends_at_byte > answer_start_byte
+                            ):
+                                answer_token_start_index = token_index
+
+                            # Check if token ends within or after answer end
+                            if (
+                                answer_token_start_index is not None
+                                and token_starts_at_byte >= answer_end_byte
+                            ):
+                                answer_token_end_index = token_index
+                                break
+
+                            # Update cumulative position for next token
+                            cumulative_byte_position += token_byte_length
+
+                        # If we found answer region, apply heavy weighting
+                        if answer_token_start_index is not None:
+                            # If we didn't find end, weight until end of sequence
+                            if answer_token_end_index is None:
+                                answer_token_end_index = seq_len
+
+                            # Apply heavy weight to answer tokens
+                            weight_mask[
+                                sequence_index,
+                                answer_token_start_index:answer_token_end_index,
+                            ] = answer_weight_multiplier
+
+                            # Debug logging (can be removed in production)
+                            # print(
+                            #     f"Debug: Sequence {sequence_index} answer tokens "
+                            #     f"[{answer_token_start_index}:{answer_token_end_index}] "
+                            #     f"weighted {answer_weight_multiplier}x"
+                            # )
+
+                    # =========================================================
+                    # SECTION 5D: Mask Padding Tokens
+                    # =========================================================
+
+                    # Set padding token weights to zero
+                    # (This applies regardless of delimiter weighting)
+                    padding_positions = target_batch[sequence_index] == pad_token_id
+                    weight_mask[sequence_index, padding_positions] = 0.0
+
+                except Exception as sequence_processing_error:
+                    # If anything goes wrong processing this sequence,
+                    # set its weight to zero and continue with other sequences
+                    print(
+                        f"Warning: Error processing sequence {sequence_index}: "
+                        f"{sequence_processing_error}"
+                    )
+                    print(f"Setting sequence {sequence_index} weight to zero.")
+                    weight_mask[sequence_index, :] = 0.0
+                    # Don't raise - continue processing other sequences
+
+        # =====================================================================
+        # SECTION 6: Calculate Weighted Loss
+        # =====================================================================
+
+        try:
+            # Apply weight mask to per-token losses
+            # Element-wise multiplication
+            weighted_losses = per_token_losses * weight_mask
+
+            # Calculate total weighted loss (sum of all weighted token losses)
+            total_weighted_loss = weighted_losses.sum()
+
+            # Calculate total weight (sum of all weight mask values)
+            total_weight = weight_mask.sum()
+
+            # Calculate final normalized loss
+            # Divide by total weight rather than sequence length
+            # This ensures that answer tokens contribute proportionally to their weight
+            if total_weight > 0:
+                final_loss = total_weighted_loss / total_weight
+            else:
+                # Edge case: all weights are zero (all sequences failed validation)
+                # Return a very small loss rather than NaN
+                print(
+                    "Warning: Total weight is zero (all sequences failed validation). "
+                    "Returning loss=0.0"
+                )
+                final_loss = torch.tensor(0.0, device=device)
+
+            return final_loss
+
+        except Exception as weighted_loss_error:
+            error_message = f"Weighted loss calculation failed: {weighted_loss_error}"
+            print(f"ERROR: {error_message}")
+            traceback.print_exc()
+            raise RuntimeError(error_message) from weighted_loss_error
+
+    except Exception as unexpected_error:
+        # Catch-all for any unexpected errors
+        error_message = (
+            f"Unexpected error in calculate_weighted_loss_delimited_target: "
+            f"{unexpected_error}"
+        )
+        print(f"ERROR: {error_message}")
+        traceback.print_exc()
+        raise RuntimeError(error_message) from unexpected_error
+
+
+# =============================================================================
+# EXAMPLE USAGE AND TESTING
+# =============================================================================
+
+
+def example_usage_demonstration():
+    """
+    Demonstrate how to use calculate_weighted_loss_delimited_target in a training loop.
+
+    This is a conceptual example showing integration patterns.
+    """
+    print("\n" + "=" * 70)
+    print("Example Usage of calculate_weighted_loss_delimited_target")
+    print("=" * 70)
+
+    example_code = '''
+    # =========================================================================
+    # Example 1: Basic Validation Loop Integration
+    # =========================================================================
+
+    # During validation phase of training
+    model.eval()
+    total_val_loss = 0.0
+
+    with torch.no_grad():
+        for batch_idx, (input_batch, target_batch) in enumerate(val_loader):
+
+            # Calculate weighted validation loss
+            val_loss = calculate_weighted_loss_delimited_target(
+                input_batch=input_batch,
+                target_batch=target_batch,
+                model=model,
+                device=device,
+                target_delimiter_string="|||",
+                answer_weight_multiplier=10.0,
+                pad_token_id=tokenizer.PAD_ID,
+                tokenizer=tokenizer,
+                pct_validations_weighted=100,
+                steps_grace_period_before_weighting=200,
+                current_step=global_step,
+                random_seed=42
+            )
+
+            total_val_loss += val_loss.item()
+
+    avg_val_loss = total_val_loss / len(val_loader)
+    print(f"Validation Loss: {avg_val_loss:.4f}")
+
+    # =========================================================================
+    # Example 2: Stochastic Weighting (50% of validations)
+    # =========================================================================
+
+    # Only apply delimiter weighting 50% of the time
+    val_loss = calculate_weighted_loss_delimited_target(
+        input_batch=input_batch,
+        target_batch=target_batch,
+        model=model,
+        device=device,
+        tokenizer=tokenizer,
+        pct_validations_weighted=50,  # Only 50% of calls use weighting
+        current_step=global_step,
+        random_seed=42  # Reproducible randomness
+    )
+
+    # =========================================================================
+    # Example 3: Grace Period (No Weighting for First 500 Steps)
+    # =========================================================================
+
+    # Allow model to learn basics before enforcing strict answer focus
+    val_loss = calculate_weighted_loss_delimited_target(
+        input_batch=input_batch,
+        target_batch=target_batch,
+        model=model,
+        device=device,
+        tokenizer=tokenizer,
+        steps_grace_period_before_weighting=500,  # First 500 steps: uniform weighting
+        current_step=global_step
+    )
+
+    # =========================================================================
+    # Example 4: Custom Delimiter and Weight
+    # =========================================================================
+
+    # Use different delimiter and higher answer weighting
+    val_loss = calculate_weighted_loss_delimited_target(
+        input_batch=input_batch,
+        target_batch=target_batch,
+        model=model,
+        device=device,
+        tokenizer=tokenizer,
+        target_delimiter_string=">>>",  # Custom delimiter
+        answer_weight_multiplier=20.0,  # 20x weight on answers
+        current_step=global_step
+    )
+
+    # =========================================================================
+    # Example 5: Training Data Format
+    # =========================================================================
+
+    # Your training data should look like this:
+    training_example = """
+    What is 2+2?
+    answer
+    |||4|||
+    """
+
+    # Or for math expression evaluation:
+    training_example_math = """
+    ||expression section||
+
+    |English|
+    seven minus six
+
+    |symbolic|
+    7-6
+
+    ||evaluation section||
+
+    |answer|
+    |||1|||
+    """
+
+    # The delimiter |||answer||| gets 10x weight during validation
+    '''
+
+    print(example_code)
+    print("=" * 70 + "\n")
+
+
+def main():
+    """
+    Main training pipeline for Perseid document training.
+    """
+    try:
+        print(f"\n{'=' * 60}")
+        print("Perseid Document Training Pipeline")
+        print(f"{'=' * 60}")
+        print(f"Experiment: {EXPERIMENT_NAME}")
+        print(f"Output directory: {OUTPUT_DIR}")
+
+        # Create output directory
+        output_dir = Path(OUTPUT_DIR)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Set random seeds for reproducibility
+        torch.manual_seed(42)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(42)
+
+        # 1. Load document
+        print(f"\n{'=' * 40}")
+        print("Step 1: Loading Document")
+        print(f"{'=' * 40}")
+        document_text = load_document(DOCUMENT_PATH)
+
+        # 2. Setup model and tokenizer
+        print(f"\n{'=' * 40}")
+        print("Step 2: Setting Up Model")
+        print(f"{'=' * 40}")
+
+        # Setup ByteTokenizer
+        tokenizer = setup_tokenizer()
+
+        # Initialize model
+        model, model_config, training_state = setup_model(
+            MODEL_SIZE,
+            MODEL_STRATEGY,
+            TRAINING_CONFIG,
+            DEVICE,
+            OUTPUT_DIR,
+            TRAINING_MODE,
+            CHECKPOINT_PATH,
+        )
+
+        # 3. Create data loaders
+        print(f"\n{'=' * 40}")
+        print("Step 3: Preparing Data")
+        print(f"{'=' * 40}")
+        train_loader, val_loader = create_data_loaders(
+            document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+        )
+
+        # 4. Train model
+        print(f"\n{'=' * 40}")
+        print("Step 4: Training Model")
+        print(f"{'=' * 40}")
+        history = train_model(
+            model,
+            train_loader,
+            val_loader,
+            TRAINING_CONFIG,
+            DEVICE,
+            output_dir,
+            training_state,
+            tokenizer,  # NEW: Pass tokenizer to training loop
+        )
+
+        # 5. Save results
+        print(f"\n{'=' * 40}")
+        print("Step 5: Saving Results")
+        print(f"{'=' * 40}")
+        save_training_results(model, model_config, history, output_dir)
+
+        print(f"\n{'=' * 60}")
+        print("Training Pipeline Complete!")
+
+        # 5.5 Generate sample text with trained model
+        print(f"\n{'=' * 40}")
+        print("Step 5.5: Sample Generation")
+        print(f"{'=' * 40}")
+
+        test_prompts = [
+            "Once upon a time",
+            "The meaning of life is",
+            "In the beginning",
+        ]
+        for prompt in test_prompts:
+            output = generate_text_simple(
+                model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
+            )
+            print(f"Prompt: '{prompt}'")
+            print(f"Output: {output}\n")
+
+        print(f"{'=' * 60}")
+        print(f"Model and results saved to: {output_dir}")
+
+        return model, history
+
+    except Exception as main_error:
+        print(f"\n{'=' * 60}")
+        print("Training Pipeline Failed")
+        print(f"{'=' * 60}")
+        print(f"Error: {main_error}")
+        traceback.print_exc()
+        raise
 
 
 if __name__ == "__main__":
