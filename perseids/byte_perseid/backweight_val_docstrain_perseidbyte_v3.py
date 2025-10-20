@@ -154,6 +154,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
+from pathlib import Path
+from typing import Tuple
+import random
 
 # Import model architecture and configuration tools
 from byte_tokenizer import ByteTokenizer
@@ -237,6 +240,445 @@ TRAINING_CONFIG = {
 # ============================================================================
 # END USER CONFIGURATION
 # ============================================================================
+
+
+def load_documents_from_directory(
+    directory_path: str | Path,
+    file_extension: str = ".toml",
+    train_val_split: float = 0.9,
+    shuffle_files: bool = True,
+    random_seed: int = 42,
+    verbose: bool = True,
+) -> Tuple[str, str]:
+    """
+    Load all text files from directory and split into train/val sets.
+
+    This function loads multiple training files, shuffles them (optionally),
+    and splits them into training and validation sets at the FILE level
+    (not character level), which is better for validation integrity.
+
+    Args:
+        directory_path: Path to directory containing training files
+        file_extension: File extension to filter (default: ".toml")
+        train_val_split: Fraction of files for training (default: 0.9 = 90%)
+        shuffle_files: Whether to shuffle files before splitting (default: True)
+        random_seed: Random seed for reproducible shuffling (default: 42)
+        verbose: Print detailed information (default: True)
+
+    Returns:
+        Tuple[str, str]: (train_text, val_text) - concatenated file contents
+
+    Raises:
+        FileNotFoundError: If directory doesn't exist
+        ValueError: If no valid files found or split is invalid
+
+    Example:
+        >>> train_text, val_text = load_documents_from_directory(
+        ...     directory_path="./training_data/",
+        ...     file_extension=".toml",
+        ...     train_val_split=0.9
+        ... )
+        >>> print(f"Train: {len(train_text)} chars, Val: {len(val_text)} chars")
+    """
+    try:
+        directory_path = Path(directory_path)
+
+        # =====================================================================
+        # SECTION 1: Validate Directory Exists
+        # =====================================================================
+
+        if not directory_path.exists():
+            error_message = f"Directory not found: {directory_path}"
+            raise FileNotFoundError(error_message)
+
+        if not directory_path.is_dir():
+            error_message = f"Path is not a directory: {directory_path}"
+            raise ValueError(error_message)
+
+        if verbose:
+            print(f"\n{'=' * 60}")
+            print(f"Loading documents from: {directory_path}")
+            print(f"{'=' * 60}")
+
+        # =====================================================================
+        # SECTION 2: Find All Matching Files
+        # =====================================================================
+
+        # Get all files with matching extension
+        all_files = sorted(directory_path.glob(f"*{file_extension}"))
+
+        if len(all_files) == 0:
+            error_message = (
+                f"No files found with extension '{file_extension}' in {directory_path}"
+            )
+            raise ValueError(error_message)
+
+        if verbose:
+            print(f"Found {len(all_files)} files with extension '{file_extension}'")
+
+        # =====================================================================
+        # SECTION 3: Shuffle Files (Optional but Recommended)
+        # =====================================================================
+
+        if shuffle_files:
+            # Use seeded random for reproducibility
+            rng = random.Random(random_seed)
+            all_files = list(all_files)  # Convert to list for shuffling
+            rng.shuffle(all_files)
+
+            if verbose:
+                print(f"Files shuffled with seed={random_seed}")
+
+        # =====================================================================
+        # SECTION 4: Split Files into Train/Val Sets
+        # =====================================================================
+
+        # Validate split ratio
+        if not (0.0 < train_val_split < 1.0):
+            error_message = (
+                f"train_val_split must be between 0 and 1, got {train_val_split}"
+            )
+            raise ValueError(error_message)
+
+        # Calculate split point
+        num_train_files = int(len(all_files) * train_val_split)
+
+        # Ensure at least one file in each set
+        if num_train_files == 0:
+            num_train_files = 1
+        elif num_train_files == len(all_files):
+            num_train_files = len(all_files) - 1
+
+        train_files = all_files[:num_train_files]
+        val_files = all_files[num_train_files:]
+
+        if verbose:
+            print(
+                f"\nSplit: {len(train_files)} train files, {len(val_files)} val files"
+            )
+            print(
+                f"Ratio: {len(train_files) / len(all_files):.1%} train, "
+                f"{len(val_files) / len(all_files):.1%} val"
+            )
+
+        # =====================================================================
+        # SECTION 5: Load and Concatenate File Contents
+        # =====================================================================
+
+        def load_and_concatenate_files(file_list, set_name):
+            """
+            Load all files in list and concatenate their contents.
+
+            Args:
+                file_list: List of Path objects to load
+                set_name: Name for logging ("train" or "val")
+
+            Returns:
+                str: Concatenated text from all files
+            """
+            concatenated_text = ""
+            total_bytes = 0
+
+            if verbose:
+                print(f"\nLoading {set_name} files:")
+
+            for file_index, file_path in enumerate(file_list):
+                try:
+                    # Try UTF-8 first, fall back to other encodings
+                    encodings_to_try = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
+                    file_content = None
+
+                    for encoding in encodings_to_try:
+                        try:
+                            with open(file_path, "r", encoding=encoding) as f:
+                                file_content = f.read()
+                            break  # Success - stop trying encodings
+                        except UnicodeDecodeError:
+                            continue  # Try next encoding
+
+                    if file_content is None:
+                        print(f"  ⚠ Could not decode: {file_path.name} (skipping)")
+                        continue
+
+                    # Add file content to concatenated text
+                    # Optionally add separator between files
+                    if concatenated_text:
+                        concatenated_text += "\n\n"  # Double newline separator
+
+                    concatenated_text += file_content
+
+                    file_size = len(file_content)
+                    total_bytes += file_size
+
+                    if verbose:
+                        print(
+                            f"  [{file_index + 1}/{len(file_list)}] "
+                            f"{file_path.name}: {file_size:,} bytes"
+                        )
+
+                except Exception as file_load_error:
+                    print(f"  ✗ Error loading {file_path.name}: {file_load_error}")
+                    # Continue with other files
+
+            if verbose:
+                print(
+                    f"\n{set_name.capitalize()} total: {total_bytes:,} bytes "
+                    f"({len(concatenated_text):,} characters)"
+                )
+
+            return concatenated_text
+
+        # Load train files
+        train_text = load_and_concatenate_files(train_files, "train")
+
+        # Load validation files
+        val_text = load_and_concatenate_files(val_files, "val")
+
+        # =====================================================================
+        # SECTION 6: Final Validation
+        # =====================================================================
+
+        if len(train_text) == 0:
+            raise ValueError(
+                "No training data loaded - all files may be empty or unreadable"
+            )
+
+        if len(val_text) == 0:
+            raise ValueError(
+                "No validation data loaded - all files may be empty or unreadable"
+            )
+
+        if verbose:
+            print(f"\n{'=' * 60}")
+            print("Loading complete!")
+            print(
+                f"  Train: {len(train_text):,} characters from {len(train_files)} files"
+            )
+            print(f"  Val: {len(val_text):,} characters from {len(val_files)} files")
+            print(f"{'=' * 60}\n")
+
+        return train_text, val_text
+
+    except Exception as unexpected_error:
+        print(f"Error loading documents from directory: {unexpected_error}")
+        traceback.print_exc()
+        raise
+
+
+def create_data_loaders_from_directory(
+    directory_path: str | Path,
+    tokenizer,
+    config,
+    train_ratio: float = 0.9,
+    file_extension: str = ".toml",
+    shuffle_files: bool = True,
+    random_seed: int = 42,
+):
+    """
+    Create training and validation data loaders from directory of pre-chunked files.
+
+    IMPORTANT PARADIGM: Each file IS a complete training chunk.
+    ==============================================================
+    This function treats files as pre-made training chunks, not as documents
+    to be chunked. If you have 500 .toml files, you have 500 training chunks.
+
+    The function:
+    1. Loads ALL files from the directory
+    2. Shuffles the FILE LIST (not content) for randomization
+    3. Splits files into train/val sets (e.g., 450 train, 50 val)
+    4. Concatenates train files into one big training text
+    5. Concatenates val files into one big validation text
+    6. Creates sliding windows WITHIN each concatenated text
+
+    Why file-level splitting?
+    -------------------------
+    - Prevents data leakage: validation never sees training file content
+    - Natural boundaries: each file is a complete problem/answer pair
+    - Easy management: add/remove files without code changes
+    - Reproducible: seeded shuffle gives same split every time
+
+    File Structure Example:
+    ----------------------
+    training_data/
+    ├── chunk_001.toml  ← One complete Q&A with |||answer|||
+    ├── chunk_002.toml  ← Another complete Q&A
+    ├── chunk_003.toml
+    ...
+    └── chunk_500.toml
+
+    With train_ratio=0.9:
+    - Files 1-450 → concatenated into train_text → train windows → train_loader
+    - Files 451-500 → concatenated into val_text → val windows → val_loader
+
+    Each .toml file format (example):
+    ---------------------------------
+    ```
+    ||expression section||
+
+    |English|
+    seven minus six
+
+    |symbolic|
+    7-6
+
+    ||evaluation section||
+
+    |answer|
+    |||1|||
+    ```
+
+    The |||1||| delimiter marks the answer for weighted validation loss.
+
+    Workflow Detail:
+    ---------------
+    1. Find all files matching file_extension in directory_path
+    2. Optionally shuffle file list (reproducibly with random_seed)
+    3. Split file list: first train_ratio% → train, rest → val
+    4. Load and concatenate all train files → train_text string
+    5. Load and concatenate all val files → val_text string
+    6. Create DocumentDataset from train_text (with overlapping windows)
+    7. Create DocumentDataset from val_text (no overlap)
+    8. Wrap datasets in DataLoader for batching
+
+    Args:
+        directory_path: Path to directory containing .toml training chunk files.
+                       Each file should be a complete training example with
+                       delimited answer (e.g., |||answer|||).
+
+        tokenizer: ByteTokenizer instance with encode/decode methods.
+                  Each byte becomes one token (1 byte = 1 token).
+
+        config: Training configuration dictionary containing:
+                - 'context_length': Max sequence length (e.g., 1024 or 2048 bytes)
+                - 'batch_size': Number of sequences per batch
+                - 'chunk_overlap': Fraction of overlap for training windows (0.0-0.5)
+
+        train_ratio: Fraction of FILES (not bytes) to use for training.
+                    Default 0.9 means 90% of files → train, 10% → validation.
+                    Example: 500 files × 0.9 = 450 train files, 50 val files.
+
+        file_extension: File extension to filter. Default ".toml".
+                       Only files matching this extension are loaded.
+                       Change to ".txt" if your chunks are .txt files.
+
+        shuffle_files: Whether to shuffle the file list before splitting.
+                      Default True (recommended for unbiased splits).
+                      Set False only if files are already randomly ordered.
+
+        random_seed: Random seed for reproducible file shuffling.
+                    Default 42. Same seed always gives same train/val split.
+                    Change seed to get different split of same files.
+
+    Returns:
+        tuple: (train_loader, val_loader)
+
+        train_loader: DataLoader yielding (input_ids, target_ids) batches
+                     from training file set. Shuffled=True for randomness.
+
+        val_loader: DataLoader yielding (input_ids, target_ids) batches
+                   from validation file set. Shuffled=False for consistency.
+
+    Raises:
+        FileNotFoundError: If directory_path doesn't exist
+        ValueError: If no files found with file_extension
+        ValueError: If train_ratio not in range (0.0, 1.0)
+
+    Example Usage:
+        >>> # You have 1000 .toml files, each 1.5KB (1500 bytes)
+        >>> config = {"context_length": 2048, "batch_size": 11, "chunk_overlap": 0.1}
+        >>>
+        >>> train_loader, val_loader = create_data_loaders_from_directory(
+        ...     directory_path="./my_training_chunks/",
+        ...     tokenizer=byte_tokenizer,
+        ...     config=config,
+        ...     train_ratio=0.9,              # 900 files train, 100 val
+        ...     file_extension=".toml",       # Only load .toml files
+        ...     shuffle_files=True,           # Randomize which files go to train/val
+        ...     random_seed=42                # Reproducible split
+        ... )
+        >>>
+        >>> print(len(train_loader))  # Number of training batches
+        >>> print(len(val_loader))    # Number of validation batches
+
+    Notes:
+        - File size should be ≤ context_length for optimal training
+        - If files are 1.5KB, use context_length=2048 (leaves room for padding)
+        - Byte tokenizer: 1 byte = 1 token, so 2048 tokens = 2048 bytes ≈ 2KB
+        - Files concatenated with "\\n\\n" separator between them
+        - Training windows have chunk_overlap, validation windows have none
+        - Empty or unreadable files are skipped with warning
+
+    See Also:
+        - load_documents_from_directory(): Does the file loading and concatenation
+        - DocumentDataset: Creates sliding windows from concatenated text
+        - calculate_weighted_loss_delimited_target(): Uses ||| delimiters for weighting
+    """
+    try:
+        print(f"\n{'=' * 60}")
+        print("Creating Data Loaders from Directory")
+        print(f"{'=' * 60}")
+
+        # Load documents with file-level train/val split
+        train_text, val_text = load_documents_from_directory(
+            directory_path=directory_path,
+            file_extension=file_extension,
+            train_val_split=train_ratio,
+            shuffle_files=shuffle_files,
+            random_seed=random_seed,
+            verbose=True,
+        )
+
+        # Calculate stride from overlap
+        stride = int(config["context_length"] * (1 - config["chunk_overlap"]))
+
+        print(f"\nCreating training dataset...")
+        # Create training dataset
+        train_dataset = DocumentDataset(
+            train_text, tokenizer, config["context_length"], stride, verbose=True
+        )
+
+        print(f"\nCreating validation dataset...")
+        # Create validation dataset (no overlap for validation)
+        val_dataset = DocumentDataset(
+            val_text,
+            tokenizer,
+            config["context_length"],
+            config["context_length"],  # No overlap for validation
+            verbose=True,
+        )
+
+        # Create data loaders
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=config["batch_size"],
+            shuffle=True,  # Shuffle windows within training set
+            drop_last=True,
+            num_workers=0,
+        )
+
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=config["batch_size"],
+            shuffle=False,  # Don't shuffle validation
+            drop_last=False,
+            num_workers=0,
+        )
+
+        print(f"\n{'=' * 60}")
+        print("Data Loader Summary")
+        print(f"{'=' * 60}")
+        print(f"Train batches: {len(train_loader):,}")
+        print(f"Val batches: {len(val_loader):,}")
+        print(f"Total train windows: {len(train_dataset):,}")
+        print(f"Total val windows: {len(val_dataset):,}")
+        print(f"{'=' * 60}\n")
+
+        return train_loader, val_loader
+
+    except Exception as loader_creation_error:
+        print(f"Error creating data loaders: {loader_creation_error}")
+        traceback.print_exc()
+        raise
 
 
 def setup_tokenizer():
@@ -2103,6 +2545,21 @@ def example_usage_demonstration():
     print("=" * 70 + "\n")
 
 
+# =============================================================================
+# This version ises a directory of chunk-toml-files, not one corpus .txt
+# =============================================================================
+
+
+# To:
+TRAINING_DATA_DIR = "/home/oops/code/gutenberg_babble/perseids/byte_perseid/pseudo_toml_maker_training_data/toml_production_output_500"  # Directory containing .txt files
+TRAINING_FILE_EXTENSION = ".toml"  # File extension to use
+SHUFFLE_FILES = True  # Shuffle files before train/val split
+DATA_RANDOM_SEED = 42  # Seed for reproducible file shuffling
+
+
+# In main() function, replace Step 1 and Step 3:
+
+
 def main():
     """
     Main training pipeline for Perseid document training.
@@ -2123,11 +2580,8 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.manual_seed(42)
 
-        # 1. Load document
-        print(f"\n{'=' * 40}")
-        print("Step 1: Loading Document")
-        print(f"{'=' * 40}")
-        document_text = load_document(DOCUMENT_PATH)
+        # REMOVED Step 1: Load single document
+        # document_text = load_document(DOCUMENT_PATH)
 
         # 2. Setup model and tokenizer
         print(f"\n{'=' * 40}")
@@ -2148,12 +2602,19 @@ def main():
             CHECKPOINT_PATH,
         )
 
-        # 3. Create data loaders
+        # MODIFIED Step 3: Prepare data from directory
         print(f"\n{'=' * 40}")
-        print("Step 3: Preparing Data")
+        print("Step 3: Preparing Data from Directory")
         print(f"{'=' * 40}")
-        train_loader, val_loader = create_data_loaders(
-            document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+
+        train_loader, val_loader = create_data_loaders_from_directory(
+            directory_path=TRAINING_DATA_DIR,
+            tokenizer=tokenizer,
+            config=TRAINING_CONFIG,
+            train_ratio=TRAIN_VAL_SPLIT,
+            file_extension=TRAINING_FILE_EXTENSION,
+            shuffle_files=SHUFFLE_FILES,
+            random_seed=DATA_RANDOM_SEED,
         )
 
         # 4. Train model
@@ -2168,7 +2629,7 @@ def main():
             DEVICE,
             output_dir,
             training_state,
-            tokenizer,  # NEW: Pass tokenizer to training loop
+            tokenizer,
         )
 
         # 5. Save results
@@ -2211,75 +2672,240 @@ def main():
         raise
 
 
+# def main():
+#     """
+#     Main training pipeline for Perseid document training.
+#     """
+#     try:
+#         print(f"\n{'=' * 60}")
+#         print("Perseid Document Training Pipeline")
+#         print(f"{'=' * 60}")
+#         print(f"Experiment: {EXPERIMENT_NAME}")
+#         print(f"Output directory: {OUTPUT_DIR}")
+
+#         # Create output directory
+#         output_dir = Path(OUTPUT_DIR)
+#         output_dir.mkdir(parents=True, exist_ok=True)
+
+#         # Set random seeds for reproducibility
+#         torch.manual_seed(42)
+#         if torch.cuda.is_available():
+#             torch.cuda.manual_seed(42)
+
+#         # 1. Load document
+#         print(f"\n{'=' * 40}")
+#         print("Step 1: Loading Document")
+#         print(f"{'=' * 40}")
+#         document_text = load_document(DOCUMENT_PATH)
+
+#         # 2. Setup model and tokenizer
+#         print(f"\n{'=' * 40}")
+#         print("Step 2: Setting Up Model")
+#         print(f"{'=' * 40}")
+
+#         # Setup ByteTokenizer
+#         tokenizer = setup_tokenizer()
+
+#         # Initialize model
+#         model, model_config, training_state = setup_model(
+#             MODEL_SIZE,
+#             MODEL_STRATEGY,
+#             TRAINING_CONFIG,
+#             DEVICE,
+#             OUTPUT_DIR,
+#             TRAINING_MODE,
+#             CHECKPOINT_PATH,
+#         )
+
+#         # 3. Create data loaders
+#         print(f"\n{'=' * 40}")
+#         print("Step 3: Preparing Data")
+#         print(f"{'=' * 40}")
+#         train_loader, val_loader = create_data_loaders(
+#             document_text, tokenizer, TRAINING_CONFIG, train_ratio=TRAIN_VAL_SPLIT
+#         )
+
+#         # 4. Train model
+#         print(f"\n{'=' * 40}")
+#         print("Step 4: Training Model")
+#         print(f"{'=' * 40}")
+#         history = train_model(
+#             model,
+#             train_loader,
+#             val_loader,
+#             TRAINING_CONFIG,
+#             DEVICE,
+#             output_dir,
+#             training_state,
+#             tokenizer,  # NEW: Pass tokenizer to training loop
+#         )
+
+#         # 5. Save results
+#         print(f"\n{'=' * 40}")
+#         print("Step 5: Saving Results")
+#         print(f"{'=' * 40}")
+#         save_training_results(model, model_config, history, output_dir)
+
+#         print(f"\n{'=' * 60}")
+#         print("Training Pipeline Complete!")
+
+#         # 5.5 Generate sample text with trained model
+#         print(f"\n{'=' * 40}")
+#         print("Step 5.5: Sample Generation")
+#         print(f"{'=' * 40}")
+
+#         test_prompts = [
+#             "Once upon a time",
+#             "The meaning of life is",
+#             "In the beginning",
+#         ]
+#         for prompt in test_prompts:
+#             output = generate_text_simple(
+#                 model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
+#             )
+#             print(f"Prompt: '{prompt}'")
+#             print(f"Output: {output}\n")
+
+#         print(f"{'=' * 60}")
+#         print(f"Model and results saved to: {output_dir}")
+
+#         return model, history
+
+#     except Exception as main_error:
+#         print(f"\n{'=' * 60}")
+#         print("Training Pipeline Failed")
+#         print(f"{'=' * 60}")
+#         print(f"Error: {main_error}")
+#         traceback.print_exc()
+#         raise
+
+
+# if __name__ == "__main__":
+#     # Add this line before the main training pipeline
+#     test_integration()
+
+#     # inspect
+#     print("Arguments passed to the script:")
+#     for i, arg in enumerate(sys.argv):
+#         print(f"\tArgument {i}: {arg}")
+
+#     # ============================================================================
+#     # USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
+#     # ============================================================================
+
+#     # preset/reset
+#     file_path = None
+
+#     # get path if supplied
+#     if len(sys.argv) != 2:
+#         print("Usage: python script.py <path>")
+
+#         # # Download sample text data
+#         # demo_file_path = "data/alice.txt"
+#         # os.makedirs("data", exist_ok=True)
+
+#         # if not os.path.exists(demo_file_path):
+#         #     url = "https://www.gutenberg.org/files/11/11-0.txt"
+#         #     print(f"Downloading training data from {url}")
+#         #     with urllib.request.urlopen(url) as response:
+#         #         text_data = response.read().decode("utf-8")
+#         #     with open(demo_file_path, "w", encoding="utf-8") as file:
+#         #         file.write(text_data)
+#         # else:
+#         #     print(f"Loading existing data from {demo_file_path}")
+#         #     with open(demo_file_path, "r", encoding="utf-8") as file:
+#         #         text_data = file.read()
+
+#         # Q&A
+#         user_path_or_demo_choice = input(
+#             "\nEnter path to directory of .toml training files.\n"
+#         )
+
+#         # # use demo if demo is selected
+#         # if user_path_or_demo_choice.lower().strip() == "demo":
+#         #     file_path = demo_file_path
+
+#         # use Q&A input path if selected
+#         else:
+#             training_files_dir_path = user_path_or_demo_choice
+
+#     # use argument input path if supplied by user
+#     elif len(sys.argv) == 2:
+#         training_files_dir_path = sys.argv[1]
+#         print(f"path argument found... {training_files_dir_path}")
+
+#     else:
+#         print("Edge case, defaulting to demo.")
+
+#     # Document input
+#     DOCUMENT_PATH = training_files_dir_path  # "./data/my_document.txt"  # Path to your text file
+
+#     # Output configuration
+#     OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{Path(DOCUMENT_PATH).stem}/"
+#     EXPERIMENT_NAME = (
+#         f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+#     )
+
+#     # Hardware settings
+#     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+#     USE_BFLOAT16 = torch.cuda.is_available()  # Use bfloat16 if on GPU
+
+#     # Run the training pipeline
+#     model, history = main()
+
+
 if __name__ == "__main__":
-    # Add this line before the main training pipeline
+    # Test integration
     test_integration()
 
-    # inspect
-    print("Arguments passed to the script:")
-    for i, arg in enumerate(sys.argv):
-        print(f"\tArgument {i}: {arg}")
+    print("\n" + "=" * 70)
+    print("TRAINING DATA INPUT CONFIGURATION")
+    print("=" * 70)
 
-    # ============================================================================
-    # USER CONFIGURATION SECTION - MODIFY THESE SETTINGS
-    # ============================================================================
-
-    # preset/reset
-    file_path = None
-
-    # get path if supplied
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <path>")
-
-        # Download sample text data
-        demo_file_path = "data/alice.txt"
-        os.makedirs("data", exist_ok=True)
-
-        if not os.path.exists(demo_file_path):
-            url = "https://www.gutenberg.org/files/11/11-0.txt"
-            print(f"Downloading training data from {url}")
-            with urllib.request.urlopen(url) as response:
-                text_data = response.read().decode("utf-8")
-            with open(demo_file_path, "w", encoding="utf-8") as file:
-                file.write(text_data)
-        else:
-            print(f"Loading existing data from {demo_file_path}")
-            with open(demo_file_path, "r", encoding="utf-8") as file:
-                text_data = file.read()
-
-        # Q&A
-        user_path_or_demo_choice = input(
-            "\nEnter a file path to a .txt file or for a demo say 'demo'\n"
-        )
-
-        # use demo if demo is selected
-        if user_path_or_demo_choice.lower().strip() == "demo":
-            file_path = demo_file_path
-
-        # use Q&A input path if selected
-        else:
-            file_path = user_path_or_demo_choice
-
-    # use argument input path if supplied by user
-    elif len(sys.argv) == 2:
-        file_path = sys.argv[1]
-        print(f"path argument found... {file_path}")
-
+    # Get directory path from command line or user input
+    if len(sys.argv) == 2:
+        directory_path = sys.argv[1]
+        print(f"✓ Using directory from command line argument: {directory_path}")
     else:
-        print("Edge case, defaulting to demo.")
+        print("Enter the path to your directory of .toml training files.")
+        print(
+            "Each .toml file should be one complete training chunk with |||answer||| delimiters."
+        )
+        print("\nExample directory structure:")
+        print("  training_data/")
+        print("  ├── chunk_001.toml")
+        print("  ├── chunk_002.toml")
+        print("  └── chunk_500.toml")
 
-    # Document input
-    DOCUMENT_PATH = file_path  # "./data/my_document.txt"  # Path to your text file
+        directory_path = input("\nDirectory path: ").strip()
 
-    # Output configuration
-    OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{Path(DOCUMENT_PATH).stem}/"
+    # Validate directory exists
+    directory_path = Path(directory_path)
+    if not directory_path.exists():
+        print(f"\n❌ ERROR: Directory not found: {directory_path}")
+        sys.exit(1)
+
+    if not directory_path.is_dir():
+        print(f"\n❌ ERROR: Path is not a directory: {directory_path}")
+        sys.exit(1)
+
+    # Update global configuration
+    TRAINING_DATA_DIR = directory_path
+
+    # Output configuration (based on directory name)
+    OUTPUT_DIR = f"./models/perseid_{MODEL_SIZE}m_{directory_path.stem}/"
     EXPERIMENT_NAME = (
         f"perseid_{MODEL_SIZE}m_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     )
 
     # Hardware settings
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    USE_BFLOAT16 = torch.cuda.is_available()  # Use bfloat16 if on GPU
+    USE_BFLOAT16 = torch.cuda.is_available()
+
+    print(f"\n✓ Training data directory: {TRAINING_DATA_DIR}")
+    print(f"✓ Output directory: {OUTPUT_DIR}")
+    print(f"✓ Device: {DEVICE}")
+    print("=" * 70 + "\n")
 
     # Run the training pipeline
     model, history = main()
