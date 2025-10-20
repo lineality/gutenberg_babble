@@ -1,0 +1,987 @@
+Variations in Validation Test Definitions and Training Input Formatting for Learning
+
+ALU-Type MVP for Task-Outcome Based Deep Learning
+with possible continuous learning experiments:
+
+Variations on Definitions of Training-Validation Assorted Applications
+
+2025.10.04-6,10.19 G.G.Ashbrook
+As a POC or related experiment for task-outcome based (and possibly continuous, not one-time pretraining) deep learning for tautological domain and deterministic synthetic-data, an ALU scope may be useful alongside larger minimal problem spaces such as the 'Who is coming to the party' project state and schedule problem-sets.
+
+## Overview
+The way that deep learning usually works is by mostly a one-time training called *'pre-training' that uses a process that I will describe as a two part process: 
+
+## Part 1: Random Experiment
+The random-experiment is a change of weights, perhaps involving token masking, drop-out or other ('bias' introducing) techniques. This new random set of weights is 'locally' tested on a training set (though the results of that test are maybe not clearly used or useful): Can this new set of weights do a better job of predicting the next token of input than the old weights? Part 2 is where that really gets tested.
+
+## Part 2: Pre-Condition Test for saving results
+Perhaps regardless of how well the results worked on the training set, the pre-condition for 'really' evaluating how the new weights are doing the a test on a second 'document's set of tokens. If this improves compared with past performance then "test passed," pre-condition met, success declared, and the experimental weight change is made real and kept by 'back-propagating' the changes through the whole model.
+
+Terminology note: The test results are often referred to in terms of 'loss': the training-loss is the first test and the 'validation-loss' is the second test. Lower loss is considered a better score. The term 'checkpoint' is used to refer to the saved weights after a successful random experiment (like saving the formula after a successful medical trial after randomly selecting and testing possible drug candidates). 
+
+The idea here is to explore variations in the technical rules for either
+Part-2 only (The Pre-Condition Test), or both the initial part 1 score (the training 'loss') and Part 2 (the validation 'loss'). The rest of the normal workflow is not being called into question, just the details of how the test is done and the score calculated. By introducing partially or entirely a task-outcomes result (as opposed to a token-prediction result), just like other 'bias,' introducing empirical performance task-goal outcome feedback may help the model to avoid 'local minima' and not overfit and so finding a deeper more 'global' minimum for their 'loss' score. We may be able to use Reinforcement Learning workflow as another source of overfitting avoidance within deep learning training. For example, the same original workflow can still be happening while also adding additional pre-condition tests (which can be designed as suites of tests) that if failed would represent a failure to generalize learning (that was perhaps not detected by the randomly chosen single validation-loss test). 
+
+One set of tests to run is if (aside from whether it works at all) this mode of training may allow for continued ongoing full model training beyond the one-time pre-training. 
+
+*"pre-training" is a misleading jargon term because supposedly you cannot continue deep training after that; 'pre' training is the final deep training and there is no option for continuous live training as with Reinforcement Learning. Superficial outer-layer fine-tuning can sometimes be done (but not always (see later Llama models)) or extra 'LORA' layers can be added, but 're-training' is a big no-no.
+
+Another aspect of this task-outcome workflow is the ability to define and ~deterministically verify and generate tests and solutions within defined tautological problem-spaces that aim to extend into project-logistic workflow problem-spaces. The micro-drosophila used here will be a very small deterministic problem space, to some extent for illustration purposes, though also interesting for experiments. Less minimal project-problem-spaces and generation-analysis tools exist, but those details are not brief and overshadow the main point of focus here which is supposed to be specific variations in the validation loss and checkpointing pre-condition rules (not the bouquet of the problem space). 
+
+One aim of benchmark-setting and comparative experiments can be to look into the question of whether some task-outcome training may be done effectively as continuous training rather than only as one-time pre-training, which may or may not be interpreted in terms of either granular defined task outcomes and or conversely suites of outcomes that when studied do not cause forgetting of past problem-space learning. 
+
+There are quite a few experiments along above lines that can be done, testing various variable aspects of this set of hybrid traditional deep learning pretraining and (possibly continuous) task-outcome based validation-loss and checkpointing preconditions (perhaps closer to reinforcement learning). This paper will trace out the start of a few of those branching paths.
+
+
+Note: Continuous training/learning is just one possible part of these studies, and it could easily not be achieved. The aim of these experiments is to provide more tools to empirically study these topics. Also, with a focus on deterministic synthetic data for tautological project problem spaces, that is very much not generally applicable to any and every ad-hoc pretraining based on kitchen sink inputs. 
+
+The goal of this report is to, as much as possible, focus only on the MVP experiments, so not all other references and steps will be fully explained. For example "NLP-augmentation" and mega-swamp areas like file/document text chunking and metadata pipelines, alpaca-jsonl formatting, etc.
+
+
+# ALU and ALU-problem generator: a tiny sandbox
+
+With a combination of a math expression generator that (seeded, pseudo randomly) generates both an English word version and a number and symbol version of N expressions, and a reliable calculator you can automatically generate and deterministically reproduce, and verify/validate/evaluate, *many random recombinant expressions that can be used to train/test outcome-based learning.
+
+This is effectively an unending firehose of novel training data. 
+
+(e.g. 'Calculator' is a Reverse Polish Notation (RPN), Stack-based Computational Model, Shunting Yard (SY) Arithmetic Logic Unit (ALU), ~RPNSSYALU, or 'Rapunzel')
+
+The two tools are:
+- alu_rpn_calculator_vN.py
+- math_expression_generator_vN.py
+
+Using an input of '10' for example,
+expression_generator_vN(10) produces ten expression: e.g.
+as list -> [('nine minus eight minus eight', '9 - 8 - 8'), ('four plus four', '4 + 4'), ('ten', '10'), ('five minus eight minus two plus one', '5 - 8 - 2 + 1'), ('three minus nine', '3 - 9'), ("Euler's number", 'e'), ('six plus six', '6 + 6'), ('three times seven', '3 * 7'), ('two minus nine', '2 - 9'), ('one minus seven', '1 - 7')]
+
+Using this math expression for example,
+alu_list_rpn_calculator('(7 - 3) - (5 - 10)') produces
+a tuple of: (
+input, 
+RPN solution steps, 
+std_err [Standard Error data] (if any), 
+solution,
+)
+
+e.g.
+Result: ('(7 - 3) - (5 - 10)', [('PUSH', 7.0), ('PUSH', 3.0), ('OPERATOR', '-'), ('PUSH', 5.0), ('PUSH', 10.0), ('OPERATOR', '-'), ('OPERATOR', '-')], None, 9.0)
+
+
+## Types of training:
+1. generative english-words to math-symbols conversion
+2. generative math-symbols to english-words conversion
+3. generative numeric solution for: math expression as english-words
+4. generative numeric solution for: math expression math-symbols
+5. boolean evaluations: boolean classification-friendly evaluations
+
+boolean classification-friendly evaluations: 
+1. evaluate english-words to math-symbols conversion
+2. evaluate math-symbols to english-words conversion
+3. evaluate numeric solution for: math expression as english-words
+4. evaluate numeric solution for: math expression math-symbols
+5. evaluate error/invalidity of expression (e.g. divide by zero, note: can add other invalid expressions e.g. various malformations)
+
+
+
+### Weight Update Question: Choosing a precondition
+
+Is it possible to update weights not (or not directly, or not for ~batch saved best weights) depending on next token prediction test results, but based instead (or in addition) on the outcome of performance on a task, defining lower loss as a more successful (not failed) outcome of a task (or suite of tasks) with a clearly defined goal.
+
+E.g. starting with the same [Part 1] empirical, or input training data, or other weight adjustments, and then a battery of tests or a task-benchmark (not a next-token-prediction of natural language benchmark),
+so that weight changes that lead to better task performance outcomes are kept, rather than rewarding incidental replication of a character text stream.
+
+For example, in a context of project-state-statefull problems, there is a variety of structured and unstructured language data that can be either standard generative/embedding/classification training material, as well as task-benchmark pass-fail results. 
+
+E.g. as N problem questions including problem-solutions, sub-tasks like structured-unstructured problem state data conversion,, and boolean evaluations of all these.
+
+(Also possibly stochastic weight modification, or is that already part of training? )
+
+Traditional pre-training System
+```python
+for epoch in epochs:
+    # Training phase
+    for batch in train_loader:
+        logits = model(input_ids)
+        loss = cross_entropy(logits, target_ids)  # ← Keep this as-is
+        loss.backward()
+        optimizer.step()
+    
+    # Checkpoint decision
+    val_loss = evaluate_on_validation_set()
+    if val_loss < best_val_loss:  # ← This is the criterion
+        save_checkpoint()
+```
+Proposed System
+```
+for epoch in epochs:
+    # Training phase (UNCHANGED)
+    for batch in train_loader:
+        logits = model(input_ids)
+        loss = cross_entropy(logits, target_ids)  # ← Same loss function
+        loss.backward()
+        optimizer.step()
+    
+    # Checkpoint decision (CHANGED)
+    outcome_accuracy = test_actual_task_performance()  # ← Test if answers are correct
+    if outcome_accuracy > best_outcome_accuracy:  # ← This is the new criterion
+        save_checkpoint()
+```
+
+
+# More Granular Tasks / Fully Granular Project-Defined Tasks/Goals/Signals
+
+In theory, if each part of the problem-project-space is broken down into separate tests (and maybe all-together tests as well), then (in theory) there can be continuous training for both classification and generation models (or heads of the same model), because the 'signal' of goal success has been disambiguated, and that this continued training may not disrupt or erase past training gains. 
+
+Each item calculation in the structured framework can be individually trained on, with or without intermediate steps that may attempt to (overly) micro-manage how the problem is solved. 
+
+Block of Tests: Possibly a set of questions could all be trained on such that no ~final update to weights is made if changes disrupt any (or many) of the results of all the project-state learning targets. This may be a proxy for a validation loss: you find weights that are better for N problems, you can see how those weights are better or worse (or not worse) for a validation set of problems.
+
+## Jump-starting:
+With or without pretraining, as in the classic reinforcement scenario of the physical or SHRDLU football/soccer player, there may be a first phase of random-walk learning where learning is slow and there isn't much 'validation' to do (or, maybe any improvement can be done with the same pipeline). 
+
+The evaluation of the task result may also be more empirical, e.g. detecting if the solution result existed in the generated output, given that by their nature generative models are verbose and it is an advanced skill to be terse. While only a three bytes may be looked for e.g. <1> or some format for an answer number, generative output is usually noisy around any correct output embedded in the noise (even for large well trained model, as in the case of json formatting output). For this study the insanity of json formatting nuance nightmares should be considered out of scope.
+
+
+## Continuous Deep Learning (worth experimenting to learn more)
+
+In theory, with fully decomposed/disambiguated ~deterministic goal task outcome feedback:
+classification models and generative models can be continuously trained (training embedding models... is a future question):
+
+- Unambiguous signal - Every task-goals is defined and has clear pass/fail
+- Not conflicting gradients - one correct answer may not contradict another correct answer
+- Stable objective - The rules defining correct goal/task completion do not shift
+- Granular credit assignment - every component part of the process has a known succeed/fail status
+
+In theory, this may allow for 'continuous learning' (i.e. without 'catastrophic forgetting') because:
+- New data/training do not contradict old (tautological domain)
+- Each update reinforces the same underlying rules
+- Feedback is consistent and deterministic
+
+Question for benchmark to test empirically:
+1. Does continuous deep learning work in practice for:
+- Classification head on same model
+- Generation head on same model
+- Classification alone
+- Generation alone
+x
+- pretrained model + 'continuous-reinforcement-deep-learning/training'
+- 'continuous-reinforcement-deep-learning/training' only
+
+2. Does a ~deterministic feedback stream breaking down into granular tests prevent common problems with 'catastrophic forgetting' that leads to the need for 'predominant single pre-training'?
+
+
+### Training(Loss) and Validation(Loss) for ~deterministic synthetic data
+
+Design questions:
+Are these needed?
+- batch
+- epoch
+- validation-split
+- validation-loss
+
+How to implement these in training loop:
+- replacing validation loss with task-outcome (correct or incorrect answer)
+
+Q: should there be re-tries (random weight changes?) to get the correct answer?
+might some amount of pretraining be needed/wanted to get to this point?
+
+note:
+boolean classification would be more terse output, possibly for pre-training?
+e.g. easier to get the answers correct by guess, vs. randomly generating a full solution not likely.
+
+
+It is not necessarily that traditional loss functions are not used at all, but since we know what the correct answer is on testing and validation problems, we are not confined to only use a traditional token-prediction loss function. 
+
+
+# Continuous Task-Outcome 'loss' measure data:
+Types of 'loss function' task-outcome ('Loss Function Architecture'?)
+
+Surface level Generation loss: Did you produce a valid solution?
+Classification losses: Any binary or know-class option type of question, such as binary evaluation questions.
+
+Whole solution and block of solutions and evaluations and conversions can be used, but more granular tasks with narrower outcomes can also be used individually, forming an overall suite of tasks and outcomes that come from one "single" expression. These do not all need to be used, but if 'more-date for training' = better, then these (and likely more) can/should be able to be used.
+
+Note: 
+If may be possible to make a granular conversion (from words (unstructured) to numbers (structured)  that can also be tested individually,
+e.g. where there is a conversion table, or two dictionaries one for each direction, where each item in each dictionary can be performance tested and evaluation-tested (and even evaluation of evaluation tested).
+
+### Solution Steps:
+There are also the reverse-polish-notation solution process that can be tested on and evaluated in various ways.
+
+Binary Evaluation of any of the below generated answers. 
+Task rewards: 
+
+Did the solution solve the problem ("evaluate the expression")? (correct outcome?)
+Are the solution steps equivalent to a valid solution? (here any equivalent set of steps is valid)
+
+conversion 1 to structured (task outcome (loss)): correct conversion
+conversion 2 to unstructured (task outcome (loss)): correct conversion
+
+(optional future item) granular conversion to unstructured
+(optional future item) granular conversion to structured
+(optional future item) whole conversion dictionary 1
+(optional future item) whole conversion dictionary 2
+(optional future item) granular each part of conversion dictionary 1
+(optional future item) granular  each part of conversion dictionary 2 
+
+exact match for generated whole solution output
+exact match for generated whole conversation blocks
+exact match for generated whole evaluation block
+(optional future item) exact match for generated: each section of conversion-block
+
+
+
+Maybe this:
+Traditional Pre-Training:
+python
+Copy
+# Standard supervised training
+logits = model(input_ids)  # Get predictions
+loss = cross_entropy(logits, target_ids)  # Compare to target tokens
+loss.backward()  # Update weights
+optimizer.step()
+proposed outcome-based training:
+python
+Copy
+# Still supervised, but different loss calculation
+logits = model(input_ids)  # Get predictions (same as before)
+loss = outcome_based_loss(logits, target_ids, correct_answer)  # Different loss
+loss.backward()  # Update weights (same as before)
+optimizer.step()
+
+
+
+
+A. While the overall idea of having data for each of / both train vs. validate, the formality of splitting finite data (that may not be comparable anyway) does not literally exist with synthetic data. With synthetic data there is as much data as you want for both, and you can more carefully pair (or not pair) comparable training and validating data. Either to make sure the validation isn't worse on something very different, or to see if the validation is actually better on something very equivalent.
+
+
+B. Full-Set Training:
+With the optional idea of full-set training, e.g. for validation, there could be a spectrum of all component tests to make sure performance (or net-performance) is not worse.
+
+
+# Generative Continuous Training
+1. Modifications to normal pre-train-only pipeline
+What different aspects would need to be modified?
+- pairing of train-train 'split' material.
+
+2. One area or multiple areas for training
+
+3. focusing on just generative or just classification or both/all for training
+
+
+
+# Classification and (Possibly Continuous) Training
+
+As per pragmatism, classification could be interpreted and implemented in various (and non-exclusive) ways.
+
+"Classification" may fairly refer to any task where the outcome of the task is organized into known classes, such as 'not hotdog' and 'hotdog.' 
+or
+"Classification" may fairly refer the use of a 'classification head' for given model, which may either refer to classification fine-tuning of a pretrained model and then used with a classification head as a non-generative model.
+or
+
+
+
+
+Q: validation on cross-section of past training...
+- Validation vs. Task Performance
+
+
+# The Cookie-Monster Effect
+Even if training is highly inefficient (when cookie monster 'eats' a cookie, 99.99% of the cookie does not stay in his mouth), when using synthetic data it may (or may not) be better to simply keep feeding in more synthetically generated data that are as varied as possible data rather than re-training on the same data. With limited real world data you need to use every augmentation and epoch trick you can squeeze out learning. But with deterministic synthetic data, you have the option to just make more data.
+
+# Epoch and Virtual 'epoch'
+While there may be an analogy to validation-loss in the form of a skill-cross-section validation test (e.g. that could compare results from previous and current weights), Epoch may or may not have a parallel. 
+
+epoch and NLP-augmentation are at least an area for testing
+e.g.
+comparing the results of general approaches:
+
+1. just new data (no epochs)
+2. moderately nlp-augmented data (" 'few' virtual augmentation-epochs")
+3. heavily nlp-augmented data  (" 'many' virtual augmentation-epochs")
+4. actual epochs (few)
+5. actual epochs (many)
+6. mixed real and virtual-nlp-augmentation epochs
+
+
+# Task outcomes, attention, and not predicting the arbitrary
+~ 'Masking The Variables'?
+Is there a way to not try to predict those parts of the content which are supposed to be
+variable?
+This may be somewhat unavoidable, but it makes zero sense to either reward or punish a model for it's prediction of an arbitrary element.
+
+e.g. for SOGISOIGSNG vs. RYRUEUGEUHEIGH, is age within the limit?
+It should learn to track whatever the name is in the project-object-database, but not to try to predict the name itself. 
+
+This may be an argument for using an outcome-measure based loss-function, and not a blanket token prediction measure. 
+
+
+
+
+
+
+
+Maybe:
+
+Traditional generative-training validation: 
+- Calculate cross-entropy on (test-trainsplit?) 
+- Lower perplexity = better 
+
+continuous task-outcome learning
+continuous-reinforcement-deep-learning validation: 
+- Generate solutions to N party problems 
+- Run your deterministic validator on all N problems/solutions 
+- Track: results...? % correct results (various types of tests)
+
+note: positive/negative validation, seeing if new weights for one correct solution help/hurt other solutions/problems.
+
+
+maybe no epochs
+- batches for attention?/compared/averaged generalized results?
+- sometime to study
+
+
+## test matrix:
+Model Type                  Training Approach
+Classification head         Pre-trained + continuous
+Classification head         Continuous only
+Generation head             Pre-trained + continuous
+Generation head             Continuous only
+Both heads (same model)     Pre-trained + continuous
+Both heads (same model)     Continuous only
+...
+maybe not entirely generative...
+maybe using some other embedding-process...
+
+
+
+...
+maybe: continuous 'online' ~reinforcement learning with with task-specific feedback and evaluation: for deep generative and classification-headed learning models:
+
+
+
+
+maybe:
+
+Checkpointing:
+- traditional generative model: Save best validation perplexity
+- continuous task-outcome learning: "best" test results
+e.g.
+Save checkpoint if:
+    (new_overall_score > best_overall) AND
+    (no_individual_task_degraded > 5%)
+
+
+Logging: tracking specific identifiable errors (or error types)
+
+
+
+# Suite of input blocks:
+"What is nine minus eight minus eight?","9-8-8"
+[('9-8-8',
+  [('PUSH', 9.0),
+   ('PUSH', 8.0),
+   ('OPERATOR', '-'),
+   ('PUSH', 8.0),
+   ('OPERATOR', '-')],
+  None,
+  -7.0)]
+
+
+Input: "# Task: evaluate expression, What is nine minus eight minus eight? Answer:" 
+Target: "-7"
+or
+Target: "```-7```"
+or
+Target: "Answer:```-7```"
+
+Input: "# Task: evaluate expression, 9-8-8= Answer:" 
+Target: "```-7```"
+
+Input: "# Task: Follow steps, [('PUSH', 9.0),('PUSH', 8.0),('OPERATOR', '-'),('PUSH', 8.0),('OPERATOR', '-')]"
+Target: "Answer:```-7```"
+
+Input: "# Task: Find Solution Steps, "What is nine minus eight minus eight? 
+Target: "Answer:```[('PUSH', 9.0),('PUSH', 8.0),('OPERATOR', '-'),('PUSH', 8.0),('OPERATOR', '-')]```"
+
+Input: "# Task: Find Solution Steps, 9-8-8=" 
+Target: "Answer:```[('PUSH', 9.0),('PUSH', 8.0),('OPERATOR', '-'),('PUSH', 8.0),('OPERATOR', '-')]```"
+
+Input: "Task: Convert to Structured, "9-8-8="
+Target: Answer:```What is nine minus eight minus eight?```"
+
+Input: "Task: Convert to Unstructured, "What is nine minus eight minus eight?"
+Target: Answer:```9-8-8=```"
+
+Input: "Task: Evaluate conversion to structured, 
+Input: "Task: Evaluate conversion to unstructured, 
+Input: "Task: Evaluate evaluation of expression, 
+Input: "Task: Evaluate finding steps, 
+Input: "Task: Evaluate following steps, 
+Input: "Task: Evaluate conversion table steps, 
+
+
+
+# Validation Suite:
+A suite or cross section of questions can be asked to see whether a given weight change (such as might be helpful to solve one problem) does not cause 'forgetting' how to solve a variety of problems.
+
+note: this could deliberately include semantically similar problems.
+
+This can include generation questions and binary evaluations (generation or classification). Note: a classification-head might be switched in for classification output, though...for a model trained to output solution numbers this might not be directly relevant. It may be optional whether the goal of a given version of this project is a single task (narrower scope) or a more extensive coverage of the minimal problem-space. 
+
+It may be wise to start (if not also end) with a narrow scope of 'expression evaluation' (a.k.a. "solve the math problem") solution output, though that may not be the simplest route in the end, e.g. if steps or other training is part and parcel.
+
+Even for such as narrow scope there are many, many, approaches:
+
+### possible validation_suite
+validation_suite = {
+    'basic_arithmetic': [...],  # Simple single-op problems
+    'multi_step': [...],         # Multiple operations
+    'negative_numbers': [...],   # Results < 0
+    'conversion_to_symbols': [...],
+    'conversion_to_words': [...],
+    'solution_steps': [...],   # Generate solution steps
+}
+
+
+
+# Baseline & Comparisons:
+A traditional way to train may be simply to show the model a large number of examples, and that might be still useful or needed to bootstrap or pre-train the model. Probably for this no 'new' pipeline is needed, just make a huge corpus of examples and train. 
+This may also serve as a baseline with which to compare outcome-based reinforcement deep learning. 
+
+
+# A spectrum of Stuff and Things
+This RPN-ALU example represents a minimal example. The 'Who comes to the party', 'social story puzzle' and 'pointless puzzle' generation systems represent other deterministic project-state datasets and problem spaces. Beyond this, code challenges in general that have unit-test testable outcomes can be outcome-measure trained and benchmarked. It is somewhat perplexing that models for coding are 'benchmarked' on token prediction but not coding task outcomes (see: "Let's Test Models" article and github). unstructured to structured data querying can likewise be outcome benchmarked and trained.
+
+
+# Model Examination
+An extremely simple version of this model, if this crazy idea works at all, may be interesting for examination of the vector space, where by analogy such as a simple ~brain in such a simple world might be more fruitfully prodded with electric probes and pruned to see the results... mildly morbid. 
+
+
+
+Various comparisons and alternate route to explore model training effectiveness:
+
+- model dimension changes: 288 is tiny, can go bigger.
+
+- tokenizer changes
+
+- Any combination of just 1, 2, or 3 or all/any 1,2 & 3.
+1. continuous RL outcome training
+2. supervised classification (traditional type)
+3. unsupervised test-generation pre-training (traditional type)
+e.g. pretrain first, then try blah blah blah.
+
+classification for anything that can be turned into a known-class such as boolean, or single digits 0-9, or specific operators. 
+
+
+
+The space of computation may also be a notable variable.
+e.g.
+
+if the only operators are single digits 0-9, and the only operator is +,
+that might raise some topics about problem-space size and "overfitting." One aspect of a tautological problem space is that some aspects are simply areas to memorize, whereas others should be flexible.
+
+Is there such a thing as a problem space that is too small (to learn about) because there is not enough variable data about it to 'learn' from, or does 'memorization by overfitting' parsimoniously solve that problem? 
+
+As such this experiment may lack a variable element, but it still may be worth experimenting whether the model can learn, over-fitting or not, the problem-space.
+
+An example of adding a variable might be extending algebraic variables which can be any string into the problem space.
+
+A strange way to do this might be simply call the resulting answer a random string variable name (or a randomly generated word-like-thing).
+
+E.g. 
+```
+2 + 2 = Thappel
+Thapple is? 
+
+2 + 2 = glorp
+glorp is? 
+
+2 + 2 = plombet
+plombet is? 
+
+(etc. (obviously changing the numbers too))
+```
+
+While on one level this does not change the problem space, it might be an interesting micros-step to see if the model can learn the concept of a place-holder-variable (any string). 
+
+In general we (most likely) know that a massive model trained on traditionally can (most likely) somehow effectively act this way. 
+
+Or in a sense this might simply be another form of "augmentation" of the original problem. For example, another form of augmentation is changing the number of spaces randomly, which does not change the meaning or the math.  "2+2=" is the same as any number of spaces between the symbols. Both the spaces and the variable name (GLORP!!) are 'learned to be ignored' and the other data are learned to be found around the dead space. Or maybe something like that.
+
+Doing more manipulative algebra problems: 2 + Frabble = 4, what is Frabble? Might be a natural next step... but it would require a different tech stack to generate and validate those data.
+
+
+Another interestingly persnickety factor might be what delimiter characters if any are used to identify a solution (a 'expression evaluation'), and with what flexibility solution innards are found sloshing around in the monstrosity of generated output, e.g. how much generated output? 10-1000 tokens? More? Less?
+
+
+
+
+# Task Loss 'calculation':
+
+```pips
+Q: How exactly would you compute outcome_based_loss from:
+
+- logits (the model's predictions)
+- target_ids (the correct token sequence)
+- correct_answer (the numerical answer, like 8)
+```
+
+As I understand it, here is a detour back into the traditional way to calculate the 'loss score.'
+
+A loss-penalty (measuring and assigning more bad-score-ness for more-wronger-predictions) is assigned with the standard calculation -log [negative log]. This negative log is applied to the guess: -log of what the model said was the probability of what really should have been the correct answer. If the right answer was sunflower, then the model should have said: 1, 100% chance of being sunflower! The guess should always have been '1' (or probability = 1), or 100% chance that that token was the correct choice. -log measures distance from 1. So, applying -log to the guess that model gave tells you how wrong the guess was (how far from -1 the guess was) and that is the "loss" score for guessing that token.
+
+In a given model 'step,' or however often calculations are done, there are N (however many) tokens being predicted. 
+
+The overall loss score (for all the individual tokens that all have their own individual badness score) is calculated in various ways, there is no one timeless agreed upon way to do it:
+ 
+pytorch defaults to using the very basic mean average: add them up, divide by how many you added up. 
+```
+step_loss = sum(all_token_losses) / number_of_tokens
+```
+
+Alternatively "all" can mean "all non-padding tokens," all "real" tokens.
+```
+step_loss = sum(all_real_token_losses) / number_of_real_tokens
+```
+
+Sometimes... the calculation is a sum (which is even more basic).
+```
+step_loss = sum(all_token_losses)
+```
+
+Note: '-log' [negative log] is dramatically called "Cross Entropy Calculation!" and "Comparing Probability Distributions!" which is a very colorful way of saying: "Should have been 1, was it?" Technically yes, 1 is the 'probability distribution' of what the answer should have been: the answer has a 100% chance of being what the answer is. And technically "comparing two probability distributions" can be measured with "cross entropy calculation". In reality: the loss score is -log. 
+
+There is also a weighted mean option, e.g. where the solution could have a higher weight (perhaps). 
+
+So for our purposes...this may not need to change, 
+
+
+#### last N (e.g. 3-9) tokens weighted (pseudo/draft)
+
+```python
+import torch
+import torch.nn as nn
+
+def weighted_cross_entropy_last_n(logits, labels, n=3, pad_token=0):
+    """
+    Weight the last N real (non-padding) tokens more heavily
+    """
+    batch_size, seq_len, vocab_size = logits.shape
+    
+    # Flatten
+    logits_flat = logits.view(-1, vocab_size)
+    labels_flat = labels.view(-1)
+    
+    # Get individual losses
+    loss_fn = nn.CrossEntropyLoss(reduction='none')
+    losses = loss_fn(logits_flat, labels_flat)  # [batch_size * seq_len]
+    losses = losses.view(batch_size, seq_len)   # [batch_size, seq_len]
+    
+    # Create mask for real tokens
+    mask = (labels != pad_token).float()
+    
+    # Create position weights
+    weights = torch.ones_like(mask)
+    
+    # For each sequence in batch, weight last N real tokens
+    for i in range(batch_size):
+        real_token_count = mask[i].sum().int()
+        if real_token_count > 0:
+            start_pos = max(0, real_token_count - n)
+            weights[i, start_pos:real_token_count] = 2.0  # 2x weight
+    
+    # Apply weights and mask
+    final_weights = weights * mask
+    weighted_losses = losses * final_weights
+    
+    # Average
+    loss = weighted_losses.sum() / final_weights.sum()
+    
+    return loss
+
+# Usage:
+logits = model(input_ids)  # [batch_size, seq_len, vocab_size]
+labels = target_ids        # [batch_size, seq_len]
+
+loss = weighted_cross_entropy_last_n(logits, labels, n=3)
+loss.backward()
+```
+
+#### Modular Version (pseudo/draft)
+```python
+
+def weighted_cross_entropy_last_n(logits, labels, n=3, weight_multiplier=2.0, pad_token=0):
+    """
+    Weight the last N real (non-padding) tokens more heavily
+    
+    Args:
+        n: Number of last tokens to weight (default: 3)
+        weight_multiplier: How much more to weight them (default: 2.0)
+    """
+    batch_size, seq_len, vocab_size = logits.shape
+    
+    logits_flat = logits.view(-1, vocab_size)
+    labels_flat = labels.view(-1)
+    
+    loss_fn = nn.CrossEntropyLoss(reduction='none')
+    losses = loss_fn(logits_flat, labels_flat)
+    losses = losses.view(batch_size, seq_len)
+    
+    mask = (labels != pad_token).float()
+    weights = torch.ones_like(mask)
+    
+    for i in range(batch_size):
+        real_token_count = mask[i].sum().int()
+        if real_token_count > 0:
+            start_pos = max(0, real_token_count - n)
+            weights[i, start_pos:real_token_count] = weight_multiplier
+    
+    final_weights = weights * mask
+    weighted_losses = losses * final_weights
+    
+    return weighted_losses.sum() / final_weights.sum()
+
+# Use with different values:
+loss = weighted_cross_entropy_last_n(logits, labels, n=5)        # last 5 tokens
+loss = weighted_cross_entropy_last_n(logits, labels, n=1)        # only last token
+loss = weighted_cross_entropy_last_n(logits, labels, n=10, weight_multiplier=3.0)  # last 10, 3x weight
+```
+
+# Concepts and Analogies
+Fractional reserve banking & The Derrida Problem
+
+In addition to a mysterious ending conversation about Mandelbrot's models of markets, there was a flurry of disucssion about the question of fractional reserves following the 'lehman-shock' finacial oopsies of 2006-2009, a preventable series of events that may have significalntly contributes to the subsequent re-emergence of international-scale populist extreamism that had been sufficiently dormant since the end of the second too big war that people had so believed extrewamest radicaliation in the OECD had gone forever that there was (and still is, somehow) a notable retisense in acknowlaging that this problem once as solved as polio is now back: perhaps we should remember the pleas of Cornealus Fudge: "He can't be back. He just can't be."
+
+The problem of not being connected to reality will probably never go away, nut that does not mean that we can't learn to recognize it. 
+
+# Background
+I recalled, or thought I recalled, 
+
+# Implementation Notes
+
+Note: Somewhat for the purposes of keeping this document a brief as possible, the illustration input described here is deliberately extremely minimal, being revised for the purpose of creating a most-minimal dummy proof of concept [POC] illustration for this paper. The original 'party-legistics' project-space problem produced so much variation (currently the technical outline is...about 70 pages long) that trying to explain all the data structures drowns out the focus of this experiment. And also the expression and RNP-ALU code can produce more variety than 1+1=2. There is recombinant variation in the world to be had. These experiments are not limited to single digit addition problems, which is likely a problematically small problem-space (as discussed), though perhaps interesting for studying overfit tiny data areas...and the boundaries of 'smallness'? 
+
+
+## MVP 1: Narrow Pre-Training Test
+
+Try to train a single task, single test, model based on task outcome generative correctness rather than token prediction correctness, even though the difference in this case may be a negligible formality. 
+
+
+### 1.1 Task Outcome by Weight
+
+This is still 'pedantic token regurgitation' but the 'outcome tokens' are weighted significantly higher. 
+
+The downside of this is that if the answer-content was correct but frame-shifted by just one space, the 'pedantic token regurgitation' test incorrectly marks this as task-outcome fail. 
+
+Description:
+
+Weighted loss target by one of two options:
+A. last N non-padding tokens
+B. delimitor string surrounding target
+
+## A. last N non-padding tokens
+Backweighted validation-loss for specific training chunks is designed
+to give the last ~8-16 non-padding tokens (bytes, using a byte-tokenizer) more weight,
+as a foot in the door or text-proxy for having the 'outcome' of a 'task'
+be focused on above misc token-regurgitation for all tokens uniformly.
+
+Find last N real (non-padding) tokens and weight those
+Probably 16 is a safe first N, since six are delimitors,
+and the answer flag will be there if the answer itself is short
+
+e.g. this is 16 bytes, which showing the shortest answer
+filling that weight span.
+# answer\n```1```
+
+Here the format of the training/validation data is designed so that the answer to the question
+is at the end (before the padding tokens).
+
+1.1.2
+## B. delimitor string surrounding target
+The delimted target uses a string only used around the target answer.
+"|||" tripple pipe will be used by default, because that is unlikely to collide
+even with math notation.
+
+
+(Using the "|||123|||" delimiter might be easier, e.g. it avoids padding-token detection?)
+
+
+
+### 1.2 Task Outcome by extracted specific outcome. 
+This is much closer to a real world scenario, where 'pedantic token regurgitation' is not relevant or 'validated' but correct-outcome must be somewhere in the output but it does not matter where. 
+
+note:
+Probably some combination of 1.1. and 1.2 and other forms of training/learning are likely optimal in some case-by-case admixture. 
+
+
+
+variation:
+1.n.2 add nlp-augmentation into only validation set
+
+First the only task is 'evaluating the expression' otherwise known as solving the math problem. The only test is whether the solution is correct.
+
+(This can later be modified to modified or expanded to be or include other inputs and tests, which might also be a good survey of tests of how both traditional training and task-outcome contingent/prerequisite loss functions work on different types of material and volumes of training material, various tokenizers, etc.  
+
+For example:
+Instead of 'predicting' that '```7```' is the next token set,
+inspect that '```7```' is the token-set generated.
+This may be a foot in the door for bridging from token prediction to task.
+
+The loss function can be weighted for the last N tokens, which can either be adjusted for the size of the output number or kludged to cover most of the range. 
+
+
+While the test is minimal, one less-superficial difference between straight token prediction and task outcome is that straight token prediction is more strict. The take outcome model (can) involve actively looking for the correct answer in a larger set of tokens. For example, let's say the question is 2+2=, and the answer should be '''4''', but the model predictably stutters, and says:
+```
+2+2=2+2=2+2='''4''''2+2'''4'''
+```
+
+Normal unweighted literal token prediction would want to reward the model for earlier predicting '2+2=' if the model did, which is not the goal at all, and give the model no reward for a correct answer that is not in a literally mimicked token. If the model gets one digit of the regurgitation wrong, and that's the answer, this normally would be given the same score as getting the answer write but not regurgitating the question correctly. (One might be tempted to see in this an echo of biological human diatheses to form gangs that force other people to mindlessly echo pedantic fragments of the past.)
+
+
+
+
+note: heavy or extreme weighting of the loss function in some cases might be a kind of cheap shortcut or other grey area, and altering the traditional system less. If the answer is all that is weighted...that might be a kind of task outcome based test.
+
+
+
+## MVP 2: Test Continual Learning
+
+The template for this experiment is a slightly odd traditional training pipeline that can (if not advisedly) be used over and over to (if not well) ~continually train a text. 
+
+For example, if the normal version of this odd pipeline causes forgetting, but the task-outcome causes less forgetting, that might be interesting. Either way it is worth looking at. 
+
+Baseline: Use a baseline that 'retrains but forgets' (should not be hard to find, most likely the simple docs trainer does this)
+
+Test to see if any aspect of this alternative system, which could also be the nature of the skills, is less forgotten.
+
+Note: this does not need to be 'new' tasks,
+simply the ability to do continued training with less forgetting may be useful, as many production-systems are single purpose systems that do need to continually trained but don't need to be 'repurposed to new tasks.' 
+
+Another aspect of this may be what kind of forgetting. Models that can have specific learning forgotten and updated with updated information is also needed. 
+
+If these tools can help to plan and manage, or navigate, or even just generate novel experiments and outcomes about how the resulting vector spaces work, that may have value. 
+
+
+## MVP 3: Half Tea
+
+Baseline: 
+Part 1: Train a normal generative model to use as a baseline for comparison.
+
+
+Part 2: Using a generative training pipeline (no classification head):
+Fifty % (or some %) of the time: add one of a suite of task-outcome tests, which, if not passed, is weighted to raise the loss function significantly. While not a direct analogy, using periodic tests as period token-masking or periodic dropouts are used to prevent overfitting, might at least be an interesting supplement to analyze. 
+
+
+
+If you represent old skills in a suite or pre-condition tests, can you teach a new skill with continued training, since (maybe) it will only save that learning if performance on the old skills does not diminish.
+Can having validation-loss-suites change the requirement of what content is represented in ~batches and sessions of training? 
+
+
+## MVP 4: Have you tried Selective Amnesia?
+
+Could there be a reverse-effect validation-loss-suite where it does require that something specific IS forgotten while other specific things are not forgotten?
+
+Not being a direct -log, the validation suite is inherently a hack-mangle with layers where one thing is looked for and then based on something else, some other 'derivative result' is scored back. 
+
+
+
+# Future
+
+Part 1:
+Try to try a straight traditional deep learning classification model.
+
+Part 2:
+Try to train a straight generative output classification model
+
+
+If some kind of weighted-answer or test-question answer found outcome training is effective for pretraining or continuous training, one research area maybe looking for other nlp-augmentation and 'answer-weighting' type techniques that might be applied more broadly with automated methods to unstructured texts (if there are any such). 
+
+
+other experiments:
+
+comparing 
+A. epochs of the same data
+B. nlp augmentation
+C. cookie-monster style no repetition of data
+
+
+With normal generation and outcome based loss functions,
+test by deliberately omitting some numbers from some portions of the system to see if it can generalize.
+
+e.g. no 'five's in the starting operand, can the model generalize to be able to handle fives?
+
+if a model can do 2,3 operant expressions, can it do 4?
+
+Or reverse, if it can do 2,4,5, can it do 3?
+
+if it is taught how to use negative numbers only for subtraction et al, can it apply that to addition?
+
+
+Maybe off script and out of scope: What if a traditional pretrain validation set is an npl-augmented form of the training set? On the one hand that could easily be a bad idea and not work...but if it does work...that could be interesting.
+
+
+Note: 
+Another significant area of distinctions is fine-tuning mature models vs. training from scratch. Due to costs and legal restrictions, the focus here is on training very small models from scratch (which need not be the focus everywhere forever). 
+
+
+# Toml-ish Formatted Chunks
+
+1. Format metadata into the chunk in a (sort of) toml format such as:
+
+[source]
+[source media type]
+[created at]
+[type of data]
+[tag 1]
+[tag 2]
+[data]
+
+2. Multi Toml Chunks
+
+include two short toml-things in one training chunk,
+including one previously trained on text,
+the experimental goal being: is there an improvement in not forgetting the old learning when attempting the new learning?
+e.g. validation loss can be weighted and rigged so that any significant forgetting of the old material is automatically not passed (e.g. not starting from a loss of ~5-10 again for relative improvement) 
+
+3. updating and forgetting
+try to modify a specific piece of information by retraining on an updated toml
+
+4. multi/cross data/media/ types such as mnist bytes in one field and text in another. [If everyone knows and uses the term 'multi-media' why say 'multimodal'?]
+
+
+
+## Simple (modified)Toml style chunk for mvp1 solution ("evaluation") task
+Note: this is 172 bytes (& 172 characters)
+
+[[expression section]]
+
+[English]
+seven minus six
+
+[symbolic]
+7-6
+
+
+[[evaluation section]]
+
+[rpn_steps]
+[('PUSH', 7.0), ('PUSH', 6.0), ('OPERATOR', '-')]
+
+[answer]
+|||1|||
+
+
+
+
+Options:
+A. pregenerate chunks for train and validate (more likely?)
+B. generate chunks during pretraining
+
+
+weight last 16 bytes most highly for learning
+(this includes even a larger solution value and also may include the answer tag, which is at least worth testing.)
+
+
+Options:
+C. keep expression structure simple-ish while still leaving room for enough variations.
+D. try overtraining a very narrow space
+
+
+
+1. Try normal training.
+2. Try first training on one math-skill, then try re-training on another math skill but using a two-toml validation test including both the first and second skill, such that forgetting the first skill is not allowed. (note: for testing this might even work on an overtrained small space, maybe?)
+
+
+
+
+Note:
+
+add tool to
+
+1. generate what format for training set?
+
+2. scan and filter out any duplicates
+(or add...hash check to generator?)
+
+...
+
+modify...loss function
+
+...
+adversarial gan?
+
+...
+game machine studio
+
+tic tac toe
+checkers
+connect four
+
+
+
+toml
+
+
+
+2025 10 13: augmenting only the validation set... so concepts are further removed from formatting
+
+low hanging fruit
+
+spaces
+newlines
+spaces after , and . 
+space(s) at the beginning of the chunk..
+
+maybe the least disruptive.
+' The cat ate the hat."
+'The cat ate the hat."
+
+
+
+Augmented-Data Validation Loss
+Task-Outcome Validation Loss
+Hybrid Validation Losses
+Pipeline Validation Losses
+
+
+...
+
+Where ~toml formatting refers to flags on preceeding lines generally
+
+Note: the Toml formatting itself may alone be a significant form of augmentation for unstructured data.
+
+There are two related puzzles for Toml formatting?
+1. Which one ~toml formatting should be used.
+2. Should only one toml formatting be used?
+
+
+For a small, unsophisticated do-one-thing-well model, it makes sense to keep the toml formatting regular.
+But for a general foundation model is makes sense to leverage variations in formatting of the ~toml labels to augment the training data and to train the model more generally on data annotation.
+
+
+
+...
+
+ToDo:
+
+Basic Validation Test variations
+1. back weighted
+
+2. spot answer in output
+
+3. ~toml formatted input
+
+4. performance baselines, benchmarks, comparison, evaluation
+
+5. simple game data generation...
+- tictactoe
+- checkers
+- chess?
+
+
+...
+notes on chunk size
+
+
+
