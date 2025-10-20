@@ -1,0 +1,16 @@
+[[expression section]]
+
+[English]
+one plus one
+
+[symbolic]
+1+1
+
+
+[[evaluation section]]
+
+[rpn_steps]
+[('PUSH', 1), ('PUSH', 1), ('OPERATOR', '+')]
+
+[answer]
+|||2|||

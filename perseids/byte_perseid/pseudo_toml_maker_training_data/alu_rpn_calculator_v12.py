@@ -17,7 +17,7 @@ This module provides functionality to:
 import logging
 import traceback
 from math import sin, cos, tan, radians, sqrt, pi, e
-from collections.abc import Sequence
+# from collections.abc import Sequence
 
 # Configure logging
 logging.basicConfig(

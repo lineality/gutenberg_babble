@@ -17,11 +17,11 @@ Author: Generated Assistant
 Date: 2024
 """
 
-import os
+# import os
 import traceback
 from pathlib import Path
 from datetime import datetime
-from collections.abc import Iterator
+# from collections.abc import Iterator
 
 
 def create_versioned_directory(base_dir_name: str) -> Path:
@@ -426,7 +426,7 @@ def generate_toml_dataset(
             )
 
             stats["total_expressions_generated"] += batch_size
-            print(f"Generated {len(expression_batch)} expressions")
+            # print(f"Generated {len(expression_batch)} expressions")
 
         except Exception as generation_error:
             stats["generation_errors"] += 1
@@ -484,16 +484,17 @@ def generate_toml_dataset(
 
                 # Progress update every 10 files
                 if stats["files_created"] % 10 == 0:
-                    print(
-                        f"  Progress: {stats['files_created']}/{n_required} files created"
-                    )
+                    # print(
+                    #     f"  Progress: {stats['files_created']}/{n_required} files created"
+                    # )
+                    pass
             else:
                 stats["write_errors"] += 1
 
-        print(
-            f"Batch {batch_number} complete: {expressions_processed_in_batch} valid files added"
-        )
-        print(f"Total progress: {stats['files_created']}/{n_required} files created")
+        # print(
+        #     f"Batch {batch_number} complete: {expressions_processed_in_batch} valid files added"
+        # )
+        # print(f"Total progress: {stats['files_created']}/{n_required} files created")
 
         batch_number += 1
 
@@ -542,12 +543,35 @@ def main(make_n_files=10) -> None:
         print("TOML Mathematical Expression Dataset Generator")
         print("=" * 80)
 
+        set_generatorkwargs = {
+            "positive_value_range": 99,  # 999999,
+            "negative_value_range": -99,  # -999999,
+            "allow_negative_values": True,
+            "always_include_random_word_variations": True,
+            "max_decimal_places_in_input": 1,
+            "include_addition": True,
+            "include_subtraction": True,
+            "include_multiplication": True,
+            "include_division": True,
+            "valid_expressions_only_mode": True,
+            "allow_divide_by_zero": False,
+            "max_nesting_depth": 4,
+            "max_number_of_operators": 6,  # 100,
+            "include_sqrt": False,
+            "include_trig": False,
+            "include_parentheses": True,
+            "include_abs": False,
+            "include_exponentiation": False,
+            "include_constants": False,
+            "allow_decimals": True,
+        }
+
         stats = generate_toml_dataset(
             n_required=n_files,
             base_output_dir_name=f"toml_production_output_{n_files}",
             batch_buffer=50,
             random_seed=None,  # Set to integer for reproducibility
-            generator_kwargs=None,  # Uses generator defaults
+            generator_kwargs=set_generatorkwargs,  # Uses generator defaults
         )
 
         print(stats)
@@ -569,6 +593,7 @@ def main(make_n_files=10) -> None:
 import argparse
 
 if __name__ == "__main__":
+    # user specifies N: how many to make
     parser = argparse.ArgumentParser(description="Process an integer input.")
     parser.add_argument("value", type=int, help="An integer value to be processed")
     args = parser.parse_args()

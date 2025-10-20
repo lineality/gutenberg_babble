@@ -217,17 +217,17 @@ TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 
 TRAINING_CONFIG = {
     "context_length": 1024,
-    "batch_size": 11,
+    "batch_size": 10,
     "gradient_accumulation_steps": 4,
     "learning_rate": 5e-4,
     "num_epochs": 2,  # 7
     "weight_decay": 0.01,
     "warmup_steps": 100,
-    "eval_every": 2,
+    "eval_every": 10,
     "eval_batches": 10,
-    "save_every": 500,  # 100
+    "save_every": 50,  # 100
     "chunk_overlap": 0.1,
-    # NEW: Weighted validation loss parameters
+    # Weighted validation loss parameters
     "use_weighted_validation": True,  # Enable/disable weighted validation
     "target_delimiter_string": "|||",  # Delimiter surrounding answers
     "answer_weight_multiplier": 10.0,  # Weight multiplier for answer tokens
@@ -2647,13 +2647,73 @@ def main():
         print(f"{'=' * 40}")
 
         test_prompts = [
-            "Once upon a time",
-            "The meaning of life is",
-            "In the beginning",
+            """
+[[expression section]]
+
+[English]
+one plus one
+
+[symbolic]
+1+1
+
+[[evaluation section]]
+
+[rpn_steps]
+[('PUSH', 1), ('PUSH', 1), ('OPERATOR', '+')]
+
+[answer]
+|||
+""",
+            """
+[[expression section]]
+
+[English]
+two times two
+
+[symbolic]
+10*2
+
+[[evaluation section]]
+
+[rpn_steps]
+[('PUSH', 10), ('PUSH', 2), ('OPERATOR', '*')]
+
+[answer]
+|||
+""",
+            """
+[[expression section]]
+
+[English]
+two times two
+
+[symbolic]
+2*2
+
+[[evaluation section]]
+
+[rpn_steps]
+[('PUSH', 2), ('PUSH', 2), ('OPERATOR', '*')]
+
+[answer]
+|||
+""",
+            #             """
+            # [[expression section]]
+            # [English]
+            # one plus one
+            # [symbolic]
+            # 1+1
+            # [[evaluation section]]
+            # [rpn_steps]
+            # [('PUSH', 1), ('PUSH', 1), ('OPERATOR', '+')]
+            # [answer]
+            # |||2|||
+            # """,
         ]
         for prompt in test_prompts:
             output = generate_text_simple(
-                model, tokenizer, prompt, max_new_tokens=50, device=DEVICE
+                model, tokenizer, prompt, max_new_tokens=500, device=DEVICE
             )
             print(f"Prompt: '{prompt}'")
             print(f"Output: {output}\n")
