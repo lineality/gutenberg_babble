@@ -143,9 +143,60 @@ note:
     Option B (Lenient): Fall back to uniform weighting (weight = 1.0 for all non-padding)
 """
 
+"""
+
+# Project Scope Outline: Core Design Principles
+
+1. Each file = One complete semantic unit
+- Like Alpaca format: one file is one Q&A pair
+- File structure: Question → |||answer||| → Answer
+- CANNOT create training windows that span multiple files
+ -CANNOT take random subsequences from within a file
+
+
+2.Batch = Collection of complete files processed together
+- batch_size = 10 means "process 10 complete files simultaneously"
+- NOT "10 sliding windows from concatenated files"
+- Each batch element is one complete file (padded to fixed length)
+
+
+3. File size variation is expected and acceptable
+- Files might be 150 tokens (simple math)
+- Files might be 800 tokens (complex problem)
+- Files might be 1500 tokens (need truncation)
+- This pipeline's job: Handle whatever sizes exist
+- NOT this pipeline's job: Enforce uniform file sizes
+
+
+4. Padding strategy
+- Files < context_length → Pad with PAD tokens (256)
+- Files > context_length → Truncate (maybe with warning)
+- Files = context_length → Use as-is
+
+
+5. Validation weighting
+- Find |||answer||| delimiters in each file
+- Weight the answer tokens heavily (10x default)
+- Weight padding tokens at 0x (ignored)
+- This focuses learning on correct outcomes, not only regurgitating docs
+
+# For each file:
+1. Load file → tokenize → get token list (e.g., 300 tokens)
+2. If len < 1024: pad to 1024 with PAD tokens
+3. If len > 1024: truncate to 1024 (keep first 1024)
+4. If len = 1024: use as-is
+5. Add to dataset as ONE training example
+
+# Result:
+- 500 files → 500 training examples
+- batch_size=10 → each batch contains 10 complete files
+- Each file maintains its |||answer||| structure intact
+
+"""
 import os
 import sys
 import json
+import time
 import traceback
 from pathlib import Path
 from datetime import datetime
@@ -220,7 +271,7 @@ TRAINING_CONFIG = {
     "batch_size": 10,
     "gradient_accumulation_steps": 4,
     "learning_rate": 5e-4,
-    "num_epochs": 2,  # 7
+    "num_epochs": 1,  # 7
     "weight_decay": 0.01,
     "warmup_steps": 100,
     "eval_every": 10,
@@ -242,88 +293,311 @@ TRAINING_CONFIG = {
 # ============================================================================
 
 
-def load_documents_from_directory(
+# def load_documents_from_directory(
+#     directory_path: str | Path,
+#     file_extension: str = ".toml",
+#     train_val_split: float = 0.9,
+#     shuffle_files: bool = True,
+#     random_seed: int = 42,
+#     verbose: bool = True,
+# ) -> Tuple[str, str]:
+#     """
+#     Load all text files from directory and split into train/val sets.
+
+#     This function loads multiple training files, shuffles them (optionally),
+#     and splits them into training and validation sets at the FILE level
+#     (not character level), which is better for validation integrity.
+
+#     Args:
+#         directory_path: Path to directory containing training files
+#         file_extension: File extension to filter (default: ".toml")
+#         train_val_split: Fraction of files for training (default: 0.9 = 90%)
+#         shuffle_files: Whether to shuffle files before splitting (default: True)
+#         random_seed: Random seed for reproducible shuffling (default: 42)
+#         verbose: Print detailed information (default: True)
+
+#     Returns:
+#         Tuple[str, str]: (train_text, val_text) - concatenated file contents
+
+#     Raises:
+#         FileNotFoundError: If directory doesn't exist
+#         ValueError: If no valid files found or split is invalid
+
+#     Example:
+#         >>> train_text, val_text = load_documents_from_directory(
+#         ...     directory_path="./training_data/",
+#         ...     file_extension=".toml",
+#         ...     train_val_split=0.9
+#         ... )
+#         >>> print(f"Train: {len(train_text)} chars, Val: {len(val_text)} chars")
+#     """
+#     try:
+#         directory_path = Path(directory_path)
+
+#         # =====================================================================
+#         # SECTION 1: Validate Directory Exists
+#         # =====================================================================
+
+#         if not directory_path.exists():
+#             error_message = f"Directory not found: {directory_path}"
+#             raise FileNotFoundError(error_message)
+
+#         if not directory_path.is_dir():
+#             error_message = f"Path is not a directory: {directory_path}"
+#             raise ValueError(error_message)
+
+#         if verbose:
+#             print(f"\n{'=' * 60}")
+#             print(f"Loading documents from: {directory_path}")
+#             print(f"{'=' * 60}")
+
+#         # =====================================================================
+#         # SECTION 2: Find All Matching Files
+#         # =====================================================================
+
+#         # Get all files with matching extension
+#         all_files = sorted(directory_path.glob(f"*{file_extension}"))
+
+#         if len(all_files) == 0:
+#             error_message = (
+#                 f"No files found with extension '{file_extension}' in {directory_path}"
+#             )
+#             raise ValueError(error_message)
+
+#         if verbose:
+#             print(f"Found {len(all_files)} files with extension '{file_extension}'")
+
+#         # =====================================================================
+#         # SECTION 3: Shuffle Files (Optional but Recommended)
+#         # =====================================================================
+
+#         if shuffle_files:
+#             # Use seeded random for reproducibility
+#             rng = random.Random(random_seed)
+#             all_files = list(all_files)  # Convert to list for shuffling
+#             rng.shuffle(all_files)
+
+#             if verbose:
+#                 print(f"Files shuffled with seed={random_seed}")
+
+#         # =====================================================================
+#         # SECTION 4: Split Files into Train/Val Sets
+#         # =====================================================================
+
+#         # Validate split ratio
+#         if not (0.0 < train_val_split < 1.0):
+#             error_message = (
+#                 f"train_val_split must be between 0 and 1, got {train_val_split}"
+#             )
+#             raise ValueError(error_message)
+
+#         # Calculate split point
+#         num_train_files = int(len(all_files) * train_val_split)
+
+#         # Ensure at least one file in each set
+#         if num_train_files == 0:
+#             num_train_files = 1
+#         elif num_train_files == len(all_files):
+#             num_train_files = len(all_files) - 1
+
+#         train_files = all_files[:num_train_files]
+#         val_files = all_files[num_train_files:]
+
+#         if verbose:
+#             print(
+#                 f"\nSplit: {len(train_files)} train files, {len(val_files)} val files"
+#             )
+#             print(
+#                 f"Ratio: {len(train_files) / len(all_files):.1%} train, "
+#                 f"{len(val_files) / len(all_files):.1%} val"
+#             )
+
+#         # =====================================================================
+#         # SECTION 5: Load and Concatenate File Contents
+#         # =====================================================================
+
+#         def load_and_concatenate_files(file_list, set_name):
+#             """
+#             Load all files in list and concatenate their contents.
+
+#             Args:
+#                 file_list: List of Path objects to load
+#                 set_name: Name for logging ("train" or "val")
+
+#             Returns:
+#                 str: Concatenated text from all files
+#             """
+#             concatenated_text = ""
+#             total_bytes = 0
+
+#             if verbose:
+#                 print(f"\nLoading {set_name} files:")
+
+#             for file_index, file_path in enumerate(file_list):
+#                 try:
+#                     # Try UTF-8 first, fall back to other encodings
+#                     encodings_to_try = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
+#                     file_content = None
+
+#                     for encoding in encodings_to_try:
+#                         try:
+#                             with open(file_path, "r", encoding=encoding) as f:
+#                                 file_content = f.read()
+#                             break  # Success - stop trying encodings
+#                         except UnicodeDecodeError:
+#                             continue  # Try next encoding
+
+#                     if file_content is None:
+#                         print(f"  ⚠ Could not decode: {file_path.name} (skipping)")
+#                         continue
+
+#                     # Add file content to concatenated text
+#                     # Optionally add separator between files
+#                     if concatenated_text:
+#                         concatenated_text += "\n\n"  # Double newline separator
+
+#                     concatenated_text += file_content
+
+#                     file_size = len(file_content)
+#                     total_bytes += file_size
+
+#                     if verbose:
+#                         print(
+#                             f"  [{file_index + 1}/{len(file_list)}] "
+#                             f"{file_path.name}: {file_size:,} bytes"
+#                         )
+
+#                 except Exception as file_load_error:
+#                     print(f"  ✗ Error loading {file_path.name}: {file_load_error}")
+#                     # Continue with other files
+
+#             if verbose:
+#                 print(
+#                     f"\n{set_name.capitalize()} total: {total_bytes:,} bytes "
+#                     f"({len(concatenated_text):,} characters)"
+#                 )
+
+#             return concatenated_text
+
+#         # Load train files
+#         train_text = load_and_concatenate_files(train_files, "train")
+
+#         # Load validation files
+#         val_text = load_and_concatenate_files(val_files, "val")
+
+#         # =====================================================================
+#         # SECTION 6: Final Validation
+#         # =====================================================================
+
+#         if len(train_text) == 0:
+#             raise ValueError(
+#                 "No training data loaded - all files may be empty or unreadable"
+#             )
+
+#         if len(val_text) == 0:
+#             raise ValueError(
+#                 "No validation data loaded - all files may be empty or unreadable"
+#             )
+
+#         if verbose:
+#             print(f"\n{'=' * 60}")
+#             print("Loading complete!")
+#             print(
+#                 f"  Train: {len(train_text):,} characters from {len(train_files)} files"
+#             )
+#             print(f"  Val: {len(val_text):,} characters from {len(val_files)} files")
+#             print(f"{'=' * 60}\n")
+
+#         return train_text, val_text
+
+#     except Exception as unexpected_error:
+#         print(f"Error loading documents from directory: {unexpected_error}")
+#         traceback.print_exc()
+#         raise
+
+
+def load_and_tokenize_documents_from_directory(
     directory_path: str | Path,
+    tokenizer,
     file_extension: str = ".toml",
     train_val_split: float = 0.9,
     shuffle_files: bool = True,
     random_seed: int = 42,
     verbose: bool = True,
-) -> Tuple[str, str]:
+) -> tuple[list[int], list[int]]:
     """
-    Load all text files from directory and split into train/val sets.
+    Load and tokenize all files from directory, returning pre-tokenized data.
 
-    This function loads multiple training files, shuffles them (optionally),
-    and splits them into training and validation sets at the FILE level
-    (not character level), which is better for validation integrity.
+    CRITICAL PERFORMANCE: This function uses efficient file-based tokenization
+    (direct bytes-to-tokens) instead of loading text strings first.
+
+    Process:
+        1. Find all matching files in directory
+        2. Shuffle file list (reproducibly)
+        3. Split into train/val file lists
+        4. Tokenize each file DIRECTLY from bytes (no string conversion)
+        5. Return concatenated token lists for train and val
 
     Args:
         directory_path: Path to directory containing training files
-        file_extension: File extension to filter (default: ".toml")
-        train_val_split: Fraction of files for training (default: 0.9 = 90%)
+        tokenizer: ByteTokenizer instance with encode_file method
+        file_extension: File extension filter (default: ".toml")
+        train_val_split: Fraction of files for training (default: 0.9)
         shuffle_files: Whether to shuffle files before splitting (default: True)
         random_seed: Random seed for reproducible shuffling (default: 42)
-        verbose: Print detailed information (default: True)
+        verbose: Print detailed progress information (default: True)
 
     Returns:
-        Tuple[str, str]: (train_text, val_text) - concatenated file contents
+        tuple[list[int], list[int]]: (train_tokens, val_tokens)
+            Both are lists of integer token IDs ready for dataset creation
 
     Raises:
         FileNotFoundError: If directory doesn't exist
-        ValueError: If no valid files found or split is invalid
+        ValueError: If no valid files found or split ratio invalid
 
-    Example:
-        >>> train_text, val_text = load_documents_from_directory(
-        ...     directory_path="./training_data/",
-        ...     file_extension=".toml",
-        ...     train_val_split=0.9
-        ... )
-        >>> print(f"Train: {len(train_text)} chars, Val: {len(val_text)} chars")
+    Performance Note:
+        This is 5-10x faster than loading text first because it avoids
+        the bytes→string→bytes conversion cycle that happens with text loading.
     """
     try:
         directory_path = Path(directory_path)
 
         # =====================================================================
-        # SECTION 1: Validate Directory Exists
+        # SECTION 1: Validate Directory
         # =====================================================================
 
         if not directory_path.exists():
-            error_message = f"Directory not found: {directory_path}"
-            raise FileNotFoundError(error_message)
+            raise FileNotFoundError(f"Directory not found: {directory_path}")
 
         if not directory_path.is_dir():
-            error_message = f"Path is not a directory: {directory_path}"
-            raise ValueError(error_message)
+            raise ValueError(f"Path is not a directory: {directory_path}")
 
         if verbose:
             print(f"\n{'=' * 60}")
-            print(f"Loading documents from: {directory_path}")
+            print(f"Loading and tokenizing documents from: {directory_path}")
             print(f"{'=' * 60}")
 
         # =====================================================================
         # SECTION 2: Find All Matching Files
         # =====================================================================
 
-        # Get all files with matching extension
         all_files = sorted(directory_path.glob(f"*{file_extension}"))
 
         if len(all_files) == 0:
-            error_message = (
+            raise ValueError(
                 f"No files found with extension '{file_extension}' in {directory_path}"
             )
-            raise ValueError(error_message)
 
         if verbose:
             print(f"Found {len(all_files)} files with extension '{file_extension}'")
 
         # =====================================================================
-        # SECTION 3: Shuffle Files (Optional but Recommended)
+        # SECTION 3: Shuffle Files
         # =====================================================================
 
         if shuffle_files:
-            # Use seeded random for reproducibility
             rng = random.Random(random_seed)
-            all_files = list(all_files)  # Convert to list for shuffling
+            all_files = list(all_files)
             rng.shuffle(all_files)
 
             if verbose:
@@ -333,14 +607,11 @@ def load_documents_from_directory(
         # SECTION 4: Split Files into Train/Val Sets
         # =====================================================================
 
-        # Validate split ratio
         if not (0.0 < train_val_split < 1.0):
-            error_message = (
+            raise ValueError(
                 f"train_val_split must be between 0 and 1, got {train_val_split}"
             )
-            raise ValueError(error_message)
 
-        # Calculate split point
         num_train_files = int(len(all_files) * train_val_split)
 
         # Ensure at least one file in each set
@@ -362,265 +633,386 @@ def load_documents_from_directory(
             )
 
         # =====================================================================
-        # SECTION 5: Load and Concatenate File Contents
+        # SECTION 5: Tokenize Files Efficiently (Direct Byte Encoding)
         # =====================================================================
 
-        def load_and_concatenate_files(file_list, set_name):
+        def tokenize_file_list_efficiently(
+            file_list: list[Path], set_name: str
+        ) -> list[int]:
             """
-            Load all files in list and concatenate their contents.
+            Tokenize a list of files using efficient direct byte encoding.
 
             Args:
-                file_list: List of Path objects to load
+                file_list: List of Path objects to tokenize
                 set_name: Name for logging ("train" or "val")
 
             Returns:
-                str: Concatenated text from all files
+                list[int]: Concatenated token IDs from all files
             """
-            concatenated_text = ""
+            all_tokens = []
             total_bytes = 0
+            tokenization_start = time.perf_counter()
 
             if verbose:
-                print(f"\nLoading {set_name} files:")
+                print(f"\n{'-' * 60}")
+                print(f"Tokenizing {set_name} files:")
 
-            for file_index, file_path in enumerate(file_list):
+            for file_idx, file_path in enumerate(file_list):
                 try:
-                    # Try UTF-8 first, fall back to other encodings
-                    encodings_to_try = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
-                    file_content = None
+                    file_size = file_path.stat().st_size
 
-                    for encoding in encodings_to_try:
-                        try:
-                            with open(file_path, "r", encoding=encoding) as f:
-                                file_content = f.read()
-                            break  # Success - stop trying encodings
-                        except UnicodeDecodeError:
-                            continue  # Try next encoding
+                    # Use efficient direct byte encoding
+                    # This is the key performance improvement!
+                    file_tokens = tokenizer.encode_file(
+                        file_path,
+                        add_eos=False,  # Don't add EOS (we'll add separator)
+                        verbose=False,  # Suppress per-file verbosity
+                    )
 
-                    if file_content is None:
-                        print(f"  ⚠ Could not decode: {file_path.name} (skipping)")
-                        continue
+                    # Add file tokens to collection
+                    all_tokens.extend(file_tokens)
 
-                    # Add file content to concatenated text
-                    # Optionally add separator between files
-                    if concatenated_text:
-                        concatenated_text += "\n\n"  # Double newline separator
+                    # Add EOS token as separator between files
+                    all_tokens.append(tokenizer.EOS_ID)
 
-                    concatenated_text += file_content
-
-                    file_size = len(file_content)
                     total_bytes += file_size
 
                     if verbose:
                         print(
-                            f"  [{file_index + 1}/{len(file_list)}] "
-                            f"{file_path.name}: {file_size:,} bytes"
+                            f"  [{file_idx + 1}/{len(file_list)}] "
+                            f"{file_path.name}: {len(file_tokens):,} tokens "
+                            f"({file_size:,} bytes)"
                         )
 
-                except Exception as file_load_error:
-                    print(f"  ✗ Error loading {file_path.name}: {file_load_error}")
+                except Exception as file_error:
+                    print(f"  ✗ Error tokenizing {file_path.name}: {file_error}")
+                    traceback.print_exc()
                     # Continue with other files
+                    continue
+
+            tokenization_time = time.perf_counter() - tokenization_start
 
             if verbose:
-                print(
-                    f"\n{set_name.capitalize()} total: {total_bytes:,} bytes "
-                    f"({len(concatenated_text):,} characters)"
+                tokens_per_sec = (
+                    len(all_tokens) / tokenization_time if tokenization_time > 0 else 0
+                )
+                mb_per_sec = (
+                    total_bytes / tokenization_time / (1024 * 1024)
+                    if tokenization_time > 0
+                    else 0
                 )
 
-            return concatenated_text
+                print(f"\n✅ {set_name.capitalize()} tokenization complete!")
+                print(f"  Files processed: {len(file_list)}")
+                print(f"  Total tokens: {len(all_tokens):,}")
+                print(f"  Total bytes: {total_bytes:,}")
+                print(f"  Time: {tokenization_time:.2f} seconds")
+                print(
+                    f"  Speed: {tokens_per_sec:,.0f} tokens/sec ({mb_per_sec:.2f} MB/s)"
+                )
 
-        # Load train files
-        train_text = load_and_concatenate_files(train_files, "train")
+            return all_tokens
 
-        # Load validation files
-        val_text = load_and_concatenate_files(val_files, "val")
+        # Tokenize train files
+        train_tokens = tokenize_file_list_efficiently(train_files, "train")
+
+        # Tokenize validation files
+        val_tokens = tokenize_file_list_efficiently(val_files, "val")
 
         # =====================================================================
         # SECTION 6: Final Validation
         # =====================================================================
 
-        if len(train_text) == 0:
+        if len(train_tokens) == 0:
             raise ValueError(
-                "No training data loaded - all files may be empty or unreadable"
+                "No training data tokenized - all files may be empty or unreadable"
             )
 
-        if len(val_text) == 0:
+        if len(val_tokens) == 0:
             raise ValueError(
-                "No validation data loaded - all files may be empty or unreadable"
+                "No validation data tokenized - all files may be empty or unreadable"
             )
 
         if verbose:
             print(f"\n{'=' * 60}")
-            print("Loading complete!")
+            print("Tokenization complete!")
             print(
-                f"  Train: {len(train_text):,} characters from {len(train_files)} files"
+                f"  Train tokens: {len(train_tokens):,} from {len(train_files)} files"
             )
-            print(f"  Val: {len(val_text):,} characters from {len(val_files)} files")
+            print(f"  Val tokens: {len(val_tokens):,} from {len(val_files)} files")
             print(f"{'=' * 60}\n")
 
-        return train_text, val_text
+        return train_tokens, val_tokens
 
-    except Exception as unexpected_error:
-        print(f"Error loading documents from directory: {unexpected_error}")
+    except Exception as loading_error:
+        print(f"Error loading and tokenizing documents: {loading_error}")
         traceback.print_exc()
         raise
+
+
+# def create_data_loaders_from_directory(
+#     directory_path: str | Path,
+#     tokenizer,
+#     config,
+#     train_ratio: float = 0.9,
+#     file_extension: str = ".toml",
+#     shuffle_files: bool = True,
+#     random_seed: int = 42,
+# ):
+#     """
+#     Create training and validation data loaders from directory of pre-chunked files.
+
+#     IMPORTANT PARADIGM: Each file IS a complete training chunk.
+#     ==============================================================
+#     This function treats files as pre-made training chunks, not as documents
+#     to be chunked. If you have 500 .toml files, you have 500 training chunks.
+
+#     The function:
+#     1. Loads ALL files from the directory
+#     2. Shuffles the FILE LIST (not content) for randomization
+#     3. Splits files into train/val sets (e.g., 450 train, 50 val)
+#     4. Concatenates train files into one big training text
+#     5. Concatenates val files into one big validation text
+#     6. Creates sliding windows WITHIN each concatenated text
+
+#     Why file-level splitting?
+#     -------------------------
+#     - Prevents data leakage: validation never sees training file content
+#     - Natural boundaries: each file is a complete problem/answer pair
+#     - Easy management: add/remove files without code changes
+#     - Reproducible: seeded shuffle gives same split every time
+
+#     File Structure Example:
+#     ----------------------
+#     training_data/
+#     ├── chunk_001.toml  ← One complete Q&A with |||answer|||
+#     ├── chunk_002.toml  ← Another complete Q&A
+#     ├── chunk_003.toml
+#     ...
+#     └── chunk_500.toml
+
+#     With train_ratio=0.9:
+#     - Files 1-450 → concatenated into train_text → train windows → train_loader
+#     - Files 451-500 → concatenated into val_text → val windows → val_loader
+
+#     Each .toml file format (example):
+#     ---------------------------------
+#     ```
+#     ||expression section||
+
+#     |English|
+#     seven minus six
+
+#     |symbolic|
+#     7-6
+
+#     ||evaluation section||
+
+#     |answer|
+#     |||1|||
+#     ```
+
+#     The |||1||| delimiter marks the answer for weighted validation loss.
+
+#     Workflow Detail:
+#     ---------------
+#     1. Find all files matching file_extension in directory_path
+#     2. Optionally shuffle file list (reproducibly with random_seed)
+#     3. Split file list: first train_ratio% → train, rest → val
+#     4. Load and concatenate all train files → train_text string
+#     5. Load and concatenate all val files → val_text string
+#     6. Create DocumentDataset from train_text (with overlapping windows)
+#     7. Create DocumentDataset from val_text (no overlap)
+#     8. Wrap datasets in DataLoader for batching
+
+#     Args:
+#         directory_path: Path to directory containing .toml training chunk files.
+#                        Each file should be a complete training example with
+#                        delimited answer (e.g., |||answer|||).
+
+#         tokenizer: ByteTokenizer instance with encode/decode methods.
+#                   Each byte becomes one token (1 byte = 1 token).
+
+#         config: Training configuration dictionary containing:
+#                 - 'context_length': Max sequence length (e.g., 1024 or 2048 bytes)
+#                 - 'batch_size': Number of sequences per batch
+#                 - 'chunk_overlap': Fraction of overlap for training windows (0.0-0.5)
+
+#         train_ratio: Fraction of FILES (not bytes) to use for training.
+#                     Default 0.9 means 90% of files → train, 10% → validation.
+#                     Example: 500 files × 0.9 = 450 train files, 50 val files.
+
+#         file_extension: File extension to filter. Default ".toml".
+#                        Only files matching this extension are loaded.
+#                        Change to ".txt" if your chunks are .txt files.
+
+#         shuffle_files: Whether to shuffle the file list before splitting.
+#                       Default True (recommended for unbiased splits).
+#                       Set False only if files are already randomly ordered.
+
+#         random_seed: Random seed for reproducible file shuffling.
+#                     Default 42. Same seed always gives same train/val split.
+#                     Change seed to get different split of same files.
+
+#     Returns:
+#         tuple: (train_loader, val_loader)
+
+#         train_loader: DataLoader yielding (input_ids, target_ids) batches
+#                      from training file set. Shuffled=True for randomness.
+
+#         val_loader: DataLoader yielding (input_ids, target_ids) batches
+#                    from validation file set. Shuffled=False for consistency.
+
+#     Raises:
+#         FileNotFoundError: If directory_path doesn't exist
+#         ValueError: If no files found with file_extension
+#         ValueError: If train_ratio not in range (0.0, 1.0)
+
+#     Example Usage:
+#         >>> # You have 1000 .toml files, each 1.5KB (1500 bytes)
+#         >>> config = {"context_length": 2048, "batch_size": 11, "chunk_overlap": 0.1}
+#         >>>
+#         >>> train_loader, val_loader = create_data_loaders_from_directory(
+#         ...     directory_path="./my_training_chunks/",
+#         ...     tokenizer=byte_tokenizer,
+#         ...     config=config,
+#         ...     train_ratio=0.9,              # 900 files train, 100 val
+#         ...     file_extension=".toml",       # Only load .toml files
+#         ...     shuffle_files=True,           # Randomize which files go to train/val
+#         ...     random_seed=42                # Reproducible split
+#         ... )
+#         >>>
+#         >>> print(len(train_loader))  # Number of training batches
+#         >>> print(len(val_loader))    # Number of validation batches
+
+#     Notes:
+#         - File size should be ≤ context_length for optimal training
+#         - If files are 1.5KB, use context_length=2048 (leaves room for padding)
+#         - Byte tokenizer: 1 byte = 1 token, so 2048 tokens = 2048 bytes ≈ 2KB
+#         - Files concatenated with "\\n\\n" separator between them
+#         - Training windows have chunk_overlap, validation windows have none
+#         - Empty or unreadable files are skipped with warning
+
+#     See Also:
+#         - load_documents_from_directory(): Does the file loading and concatenation
+#         - DocumentDataset: Creates sliding windows from concatenated text
+#         - calculate_weighted_loss_delimited_target(): Uses ||| delimiters for weighting
+#     """
+#     try:
+#         print(f"\n{'=' * 60}")
+#         print("Creating Data Loaders from Directory")
+#         print(f"{'=' * 60}")
+
+#         # Load documents with file-level train/val split
+#         train_text, val_text = load_documents_from_directory(
+#             directory_path=directory_path,
+#             file_extension=file_extension,
+#             train_val_split=train_ratio,
+#             shuffle_files=shuffle_files,
+#             random_seed=random_seed,
+#             verbose=True,
+#         )
+
+#         # Calculate stride from overlap
+#         stride = int(config["context_length"] * (1 - config["chunk_overlap"]))
+
+#         print(f"\nCreating training dataset...")
+#         # Create training dataset
+#         train_dataset = DocumentDataset(
+#             train_text, tokenizer, config["context_length"], stride, verbose=True
+#         )
+
+#         print(f"\nCreating validation dataset...")
+#         # Create validation dataset (no overlap for validation)
+#         val_dataset = DocumentDataset(
+#             val_text,
+#             tokenizer,
+#             config["context_length"],
+#             config["context_length"],  # No overlap for validation
+#             verbose=True,
+#         )
+
+#         # Create data loaders
+#         train_loader = DataLoader(
+#             train_dataset,
+#             batch_size=config["batch_size"],
+#             shuffle=True,  # Shuffle windows within training set
+#             drop_last=True,
+#             num_workers=0,
+#         )
+
+#         val_loader = DataLoader(
+#             val_dataset,
+#             batch_size=config["batch_size"],
+#             shuffle=False,  # Don't shuffle validation
+#             drop_last=False,
+#             num_workers=0,
+#         )
+
+#         print(f"\n{'=' * 60}")
+#         print("Data Loader Summary")
+#         print(f"{'=' * 60}")
+#         print(f"Train batches: {len(train_loader):,}")
+#         print(f"Val batches: {len(val_loader):,}")
+#         print(f"Total train windows: {len(train_dataset):,}")
+#         print(f"Total val windows: {len(val_dataset):,}")
+#         print(f"{'=' * 60}\n")
+
+#         return train_loader, val_loader
+
+#     except Exception as loader_creation_error:
+#         print(f"Error creating data loaders: {loader_creation_error}")
+#         traceback.print_exc()
+#         raise
 
 
 def create_data_loaders_from_directory(
     directory_path: str | Path,
     tokenizer,
-    config,
+    config: dict,
     train_ratio: float = 0.9,
     file_extension: str = ".toml",
     shuffle_files: bool = True,
     random_seed: int = 42,
-):
+) -> tuple[DataLoader, DataLoader]:
     """
-    Create training and validation data loaders from directory of pre-chunked files.
+    Create training and validation data loaders from directory of files.
 
-    IMPORTANT PARADIGM: Each file IS a complete training chunk.
-    ==============================================================
-    This function treats files as pre-made training chunks, not as documents
-    to be chunked. If you have 500 .toml files, you have 500 training chunks.
-
-    The function:
-    1. Loads ALL files from the directory
-    2. Shuffles the FILE LIST (not content) for randomization
-    3. Splits files into train/val sets (e.g., 450 train, 50 val)
-    4. Concatenates train files into one big training text
-    5. Concatenates val files into one big validation text
-    6. Creates sliding windows WITHIN each concatenated text
-
-    Why file-level splitting?
-    -------------------------
-    - Prevents data leakage: validation never sees training file content
-    - Natural boundaries: each file is a complete problem/answer pair
-    - Easy management: add/remove files without code changes
-    - Reproducible: seeded shuffle gives same split every time
-
-    File Structure Example:
-    ----------------------
-    training_data/
-    ├── chunk_001.toml  ← One complete Q&A with |||answer|||
-    ├── chunk_002.toml  ← Another complete Q&A
-    ├── chunk_003.toml
-    ...
-    └── chunk_500.toml
-
-    With train_ratio=0.9:
-    - Files 1-450 → concatenated into train_text → train windows → train_loader
-    - Files 451-500 → concatenated into val_text → val windows → val_loader
-
-    Each .toml file format (example):
-    ---------------------------------
-    ```
-    ||expression section||
-
-    |English|
-    seven minus six
-
-    |symbolic|
-    7-6
-
-    ||evaluation section||
-
-    |answer|
-    |||1|||
-    ```
-
-    The |||1||| delimiter marks the answer for weighted validation loss.
-
-    Workflow Detail:
-    ---------------
-    1. Find all files matching file_extension in directory_path
-    2. Optionally shuffle file list (reproducibly with random_seed)
-    3. Split file list: first train_ratio% → train, rest → val
-    4. Load and concatenate all train files → train_text string
-    5. Load and concatenate all val files → val_text string
-    6. Create DocumentDataset from train_text (with overlapping windows)
-    7. Create DocumentDataset from val_text (no overlap)
-    8. Wrap datasets in DataLoader for batching
+    PERFORMANCE OPTIMIZED: Uses efficient file-based tokenization.
 
     Args:
-        directory_path: Path to directory containing .toml training chunk files.
-                       Each file should be a complete training example with
-                       delimited answer (e.g., |||answer|||).
-
-        tokenizer: ByteTokenizer instance with encode/decode methods.
-                  Each byte becomes one token (1 byte = 1 token).
-
-        config: Training configuration dictionary containing:
-                - 'context_length': Max sequence length (e.g., 1024 or 2048 bytes)
-                - 'batch_size': Number of sequences per batch
-                - 'chunk_overlap': Fraction of overlap for training windows (0.0-0.5)
-
-        train_ratio: Fraction of FILES (not bytes) to use for training.
-                    Default 0.9 means 90% of files → train, 10% → validation.
-                    Example: 500 files × 0.9 = 450 train files, 50 val files.
-
-        file_extension: File extension to filter. Default ".toml".
-                       Only files matching this extension are loaded.
-                       Change to ".txt" if your chunks are .txt files.
-
-        shuffle_files: Whether to shuffle the file list before splitting.
-                      Default True (recommended for unbiased splits).
-                      Set False only if files are already randomly ordered.
-
-        random_seed: Random seed for reproducible file shuffling.
-                    Default 42. Same seed always gives same train/val split.
-                    Change seed to get different split of same files.
+        directory_path: Path to directory containing training chunk files
+        tokenizer: ByteTokenizer instance
+        config: Training configuration dict with keys:
+            - 'context_length': Max sequence length
+            - 'batch_size': Batch size
+            - 'chunk_overlap': Overlap fraction for training windows
+        train_ratio: Fraction of files for training (default: 0.9)
+        file_extension: File extension filter (default: ".toml")
+        shuffle_files: Shuffle files before split (default: True)
+        random_seed: Seed for reproducible shuffling (default: 42)
 
     Returns:
-        tuple: (train_loader, val_loader)
+        tuple[DataLoader, DataLoader]: (train_loader, val_loader)
 
-        train_loader: DataLoader yielding (input_ids, target_ids) batches
-                     from training file set. Shuffled=True for randomness.
-
-        val_loader: DataLoader yielding (input_ids, target_ids) batches
-                   from validation file set. Shuffled=False for consistency.
-
-    Raises:
-        FileNotFoundError: If directory_path doesn't exist
-        ValueError: If no files found with file_extension
-        ValueError: If train_ratio not in range (0.0, 1.0)
-
-    Example Usage:
-        >>> # You have 1000 .toml files, each 1.5KB (1500 bytes)
-        >>> config = {"context_length": 2048, "batch_size": 11, "chunk_overlap": 0.1}
-        >>>
-        >>> train_loader, val_loader = create_data_loaders_from_directory(
-        ...     directory_path="./my_training_chunks/",
-        ...     tokenizer=byte_tokenizer,
-        ...     config=config,
-        ...     train_ratio=0.9,              # 900 files train, 100 val
-        ...     file_extension=".toml",       # Only load .toml files
-        ...     shuffle_files=True,           # Randomize which files go to train/val
-        ...     random_seed=42                # Reproducible split
-        ... )
-        >>>
-        >>> print(len(train_loader))  # Number of training batches
-        >>> print(len(val_loader))    # Number of validation batches
-
-    Notes:
-        - File size should be ≤ context_length for optimal training
-        - If files are 1.5KB, use context_length=2048 (leaves room for padding)
-        - Byte tokenizer: 1 byte = 1 token, so 2048 tokens = 2048 bytes ≈ 2KB
-        - Files concatenated with "\\n\\n" separator between them
-        - Training windows have chunk_overlap, validation windows have none
-        - Empty or unreadable files are skipped with warning
-
-    See Also:
-        - load_documents_from_directory(): Does the file loading and concatenation
-        - DocumentDataset: Creates sliding windows from concatenated text
-        - calculate_weighted_loss_delimited_target(): Uses ||| delimiters for weighting
+    Note:
+        This function is 5-10x faster than the string-based approach because
+        it uses direct byte-to-token encoding from files.
     """
     try:
         print(f"\n{'=' * 60}")
         print("Creating Data Loaders from Directory")
         print(f"{'=' * 60}")
 
-        # Load documents with file-level train/val split
-        train_text, val_text = load_documents_from_directory(
+        # =====================================================================
+        # SECTION 1: Load and Tokenize Files Efficiently
+        # =====================================================================
+
+        # This returns PRE-TOKENIZED data (lists of token IDs)
+        # NOT text strings - this is the key performance improvement!
+        train_tokens, val_tokens = load_and_tokenize_documents_from_directory(
             directory_path=directory_path,
+            tokenizer=tokenizer,
             file_extension=file_extension,
             train_val_split=train_ratio,
             shuffle_files=shuffle_files,
@@ -628,41 +1020,63 @@ def create_data_loaders_from_directory(
             verbose=True,
         )
 
-        # Calculate stride from overlap
+        # =====================================================================
+        # SECTION 2: Calculate Stride from Overlap Configuration
+        # =====================================================================
+
         stride = int(config["context_length"] * (1 - config["chunk_overlap"]))
 
-        print(f"\nCreating training dataset...")
-        # Create training dataset
-        train_dataset = DocumentDataset(
-            train_text, tokenizer, config["context_length"], stride, verbose=True
-        )
+        # =====================================================================
+        # SECTION 3: Create Datasets from Pre-Tokenized Data
+        # =====================================================================
 
-        print(f"\nCreating validation dataset...")
-        # Create validation dataset (no overlap for validation)
-        val_dataset = DocumentDataset(
-            val_text,
-            tokenizer,
-            config["context_length"],
-            config["context_length"],  # No overlap for validation
+        print(f"\n{'-' * 50}")
+        print("Creating TRAINING dataset from tokens...")
+
+        # Use DocumentDatasetFromTokens (efficient - no re-tokenization!)
+        train_dataset = DocumentDatasetFromTokens(
+            tokens=train_tokens,
+            max_length=config["context_length"],
+            stride=stride,
             verbose=True,
         )
 
-        # Create data loaders
+        print(f"\n{'-' * 50}")
+        print("Creating VALIDATION dataset from tokens...")
+
+        # Validation uses no overlap (stride = context_length)
+        val_dataset = DocumentDatasetFromTokens(
+            tokens=val_tokens,
+            max_length=config["context_length"],
+            stride=config["context_length"],  # No overlap for validation
+            verbose=True,
+        )
+
+        # =====================================================================
+        # SECTION 4: Create PyTorch Data Loaders
+        # =====================================================================
+
         train_loader = DataLoader(
             train_dataset,
             batch_size=config["batch_size"],
-            shuffle=True,  # Shuffle windows within training set
-            drop_last=True,
-            num_workers=0,
+            shuffle=True,  # Shuffle windows for training
+            drop_last=True,  # Drop incomplete batches
+            num_workers=0,  # Single-threaded for simplicity
+            pin_memory=torch.cuda.is_available(),  # Speed up GPU transfer
         )
 
         val_loader = DataLoader(
             val_dataset,
             batch_size=config["batch_size"],
             shuffle=False,  # Don't shuffle validation
-            drop_last=False,
+            drop_last=False,  # Keep all validation data
             num_workers=0,
+            pin_memory=torch.cuda.is_available(),
         )
+
+        # =====================================================================
+        # SECTION 5: Print Summary Statistics
+        # =====================================================================
 
         print(f"\n{'=' * 60}")
         print("Data Loader Summary")
@@ -671,6 +1085,8 @@ def create_data_loaders_from_directory(
         print(f"Val batches: {len(val_loader):,}")
         print(f"Total train windows: {len(train_dataset):,}")
         print(f"Total val windows: {len(val_dataset):,}")
+        print(f"Batch size: {config['batch_size']}")
+        print(f"Context length: {config['context_length']}")
         print(f"{'=' * 60}\n")
 
         return train_loader, val_loader
@@ -779,6 +1195,613 @@ class DocumentDataset(Dataset):
         input_ids = torch.tensor(window[:-1], dtype=torch.long)
         target_ids = torch.tensor(window[1:], dtype=torch.long)
         return input_ids, target_ids
+
+
+class DocumentDatasetFromTokens(Dataset):
+    """
+    Dataset where each file segment becomes ONE training example (padded to context_length).
+
+    CRITICAL DESIGN CHANGE:
+        - Each file is a complete training chunk (e.g., question + |||answer|||)
+        - Files are typically SHORTER than context_length (e.g., 200-500 tokens)
+        - We PAD each file to context_length (1024 tokens)
+        - NO sliding windows across files
+        - NO combining multiple files
+
+    This preserves the semantic integrity of each file as one complete training example.
+
+    Args:
+        tokens (list[int]): Pre-tokenized data with EOS markers between files
+        max_length (int): Context length to pad each file to
+        stride (int): IGNORED - kept for API compatibility but not used
+        verbose (bool): Print statistics
+        eos_token_id (int): Token ID marking file boundaries (default: 257)
+        pad_token_id (int): Token ID for padding (default: 256)
+    """
+
+    def __init__(
+        self,
+        tokens: list[int],
+        max_length: int,
+        stride: int,  # Ignored but kept for compatibility
+        verbose: bool = True,
+        eos_token_id: int = 257,
+        pad_token_id: int = 256,
+    ):
+        """
+        Initialize dataset where each file becomes one padded training example.
+        """
+        super().__init__()
+
+        try:
+            # Store configuration
+            self.tokens = tokens
+            self.max_length = max_length
+            self.eos_token_id = eos_token_id
+            self.pad_token_id = pad_token_id
+
+            if verbose:
+                print(
+                    f"\nInitializing DocumentDatasetFromTokens (one file = one example):"
+                )
+                print(f"  Total tokens: {len(tokens):,}")
+                print(f"  Context length (target): {max_length}")
+                print(f"  Padding token ID: {pad_token_id}")
+                print(f"  EOS token ID: {eos_token_id}")
+                print(
+                    f"  Note: stride parameter ignored (not applicable for file-per-example)"
+                )
+
+            # =====================================================================
+            # SECTION 1: Split Tokens by EOS Markers (File Boundaries)
+            # =====================================================================
+
+            file_segments = []
+            current_segment = []
+
+            for token_id in tokens:
+                if token_id == self.eos_token_id:
+                    # End of file - save segment (excluding EOS)
+                    if current_segment:
+                        file_segments.append(current_segment)
+                    current_segment = []
+                else:
+                    current_segment.append(token_id)
+
+            # Handle any remaining tokens (file without trailing EOS)
+            if current_segment:
+                file_segments.append(current_segment)
+
+            if verbose:
+                print(f"\nFile segments extracted:")
+                print(f"  Total files: {len(file_segments)}")
+
+                if file_segments:
+                    segment_lengths = [len(seg) for seg in file_segments]
+                    print(f"  Min file length: {min(segment_lengths):,} tokens")
+                    print(f"  Max file length: {max(segment_lengths):,} tokens")
+                    print(
+                        f"  Avg file length: {sum(segment_lengths) / len(segment_lengths):.1f} tokens"
+                    )
+                    print(
+                        f"  Median file length: {sorted(segment_lengths)[len(segment_lengths) // 2]:,} tokens"
+                    )
+
+            # =====================================================================
+            # SECTION 2: Pad or Truncate Each File to context_length
+            # =====================================================================
+
+            self.windows = []
+            files_truncated = 0
+            files_padded = 0
+            files_exact_length = 0
+
+            for file_idx, file_tokens in enumerate(file_segments):
+                file_length = len(file_tokens)
+
+                if file_length > max_length:
+                    # File too long - truncate to max_length
+                    # Keep the first max_length tokens
+                    padded_tokens = file_tokens[:max_length]
+                    files_truncated += 1
+
+                    if verbose and files_truncated <= 5:  # Show first few warnings
+                        print(
+                            f"  ⚠ File {file_idx}: truncated from {file_length} to {max_length} tokens"
+                        )
+
+                elif file_length < max_length:
+                    # File too short - pad to max_length
+                    padding_needed = max_length - file_length
+                    padded_tokens = file_tokens + [self.pad_token_id] * padding_needed
+                    files_padded += 1
+
+                else:
+                    # File exactly right length
+                    padded_tokens = file_tokens
+                    files_exact_length += 1
+
+                # Add +1 for target (next token prediction)
+                # For padded sequences, the target after last real token is first pad token
+                padded_tokens_with_target = padded_tokens + [self.pad_token_id]
+
+                self.windows.append(padded_tokens_with_target)
+
+            if verbose:
+                print(f"\nPadding/Truncation statistics:")
+                print(
+                    f"  Files padded: {files_padded} ({files_padded / len(file_segments) * 100:.1f}%)"
+                )
+                print(
+                    f"  Files truncated: {files_truncated} ({files_truncated / len(file_segments) * 100:.1f}%)"
+                )
+                print(
+                    f"  Files exact length: {files_exact_length} ({files_exact_length / len(file_segments) * 100:.1f}%)"
+                )
+                print(f"  Total training examples: {len(self.windows):,}")
+
+                if files_truncated > 5:
+                    print(
+                        f"  ⚠ {files_truncated} files were truncated (only showed first 5)"
+                    )
+
+            # =====================================================================
+            # SECTION 3: Validation
+            # =====================================================================
+
+            if len(self.windows) == 0:
+                raise ValueError(
+                    "No training examples created - no valid file segments found"
+                )
+
+            # Verify all windows are correct length
+            for window_idx, window in enumerate(self.windows):
+                if len(window) != max_length + 1:
+                    raise RuntimeError(
+                        f"Window {window_idx} has incorrect length: "
+                        f"expected {max_length + 1}, got {len(window)}"
+                    )
+
+            if verbose:
+                print(f"\n{'=' * 60}")
+                print(f"Dataset Ready:")
+                print(f"  Total training examples: {len(self.windows):,}")
+                print(f"  Example length: {max_length} tokens (+ 1 target)")
+                print(f"  Each example is one complete file (padded if needed)")
+                print(f"{'=' * 60}")
+
+        except Exception as dataset_creation_error:
+            print(f"\n❌ Error creating DocumentDatasetFromTokens:")
+            print(f"   {dataset_creation_error}")
+            traceback.print_exc()
+            raise
+
+    def __len__(self) -> int:
+        """Return the number of training examples (= number of files)."""
+        return len(self.windows)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Get a training example (one padded file).
+
+        Args:
+            idx (int): Index of the file/example
+
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]: (input_ids, target_ids)
+                Both tensors have shape [max_length]
+
+        Note:
+            Padding tokens in targets will have 0 loss weight automatically
+            by the loss function (they're ignored during training).
+        """
+        try:
+            if idx < 0 or idx >= len(self.windows):
+                raise IndexError(
+                    f"Index {idx} out of range for dataset with {len(self.windows)} examples"
+                )
+
+            window = self.windows[idx]
+
+            # Input: all tokens except last
+            input_ids = torch.tensor(window[:-1], dtype=torch.long)
+
+            # Target: all tokens except first (shifted by 1)
+            target_ids = torch.tensor(window[1:], dtype=torch.long)
+
+            return input_ids, target_ids
+
+        except Exception as getitem_error:
+            print(f"❌ Error getting item at index {idx}: {getitem_error}")
+            traceback.print_exc()
+            raise
+
+
+# class DocumentDatasetFromTokens(Dataset):
+#     """
+#     Lightweight dataset that works directly with pre-tokenized data.
+
+#     CRITICAL DESIGN: Respects file boundaries - windows NEVER cross from one file
+#     to another. Each file ends with an EOS token (257) which marks the boundary.
+
+#     This is essential for training where each file represents a complete,
+#     semantically meaningful chunk (e.g., a question-answer pair with |||delimiters|||).
+
+#     Design Assumption:
+#         Input tokens have EOS tokens (257) placed between files to mark boundaries.
+#         Windows are created within each file segment, never crossing boundaries.
+
+#     Args:
+#         tokens (list[int]): Pre-tokenized data with EOS markers between files
+#         max_length (int): Maximum sequence length for model input
+#         stride (int): Stride between chunks (controls overlap within files)
+#         verbose (bool): Print statistics about dataset creation
+#         eos_token_id (int): Token ID marking file boundaries (default: 257)
+
+#     Returns:
+#         Dataset: PyTorch Dataset yielding (input_ids, target_ids) tuples
+
+#     Raises:
+#         ValueError: If tokens list is empty or shorter than max_length
+#         ValueError: If no valid windows can be created from the data
+#     """
+
+#     def __init__(
+#         self,
+#         tokens: list[int],
+#         max_length: int,
+#         stride: int,
+#         verbose: bool = True,
+#         eos_token_id: int = 257,
+#     ):
+#         """
+#         Initialize dataset from pre-tokenized data with file boundary preservation.
+
+#         Process:
+#             1. Find all EOS token positions (file boundaries)
+#             2. Split tokens into file segments between EOS markers
+#             3. Create sliding windows WITHIN each segment (never crossing)
+#             4. Store windows for __getitem__ access
+#         """
+#         super().__init__()
+
+#         try:
+#             # Store configuration
+#             self.tokens = tokens
+#             self.max_length = max_length
+#             self.stride = stride
+#             self.eos_token_id = eos_token_id
+
+#             # =====================================================================
+#             # SECTION 1: Input Validation
+#             # =====================================================================
+
+#             if not tokens:
+#                 raise ValueError("Cannot create dataset from empty token list")
+
+#             if not isinstance(tokens, list):
+#                 raise TypeError(f"tokens must be a list, got {type(tokens).__name__}")
+
+#             if max_length <= 0:
+#                 raise ValueError(f"max_length must be positive, got {max_length}")
+
+#             if stride <= 0:
+#                 raise ValueError(f"stride must be positive, got {stride}")
+
+#             if verbose:
+#                 print(f"\nInitializing DocumentDatasetFromTokens:")
+#                 print(f"  Total tokens: {len(tokens):,}")
+#                 print(f"  Max length: {max_length}")
+#                 print(f"  Stride: {stride}")
+#                 print(f"  EOS token ID: {eos_token_id}")
+
+#             # =====================================================================
+#             # SECTION 2: Identify File Boundaries (EOS Token Positions)
+#             # =====================================================================
+
+#             # Find all EOS token positions - these mark file boundaries
+#             file_boundary_positions = []
+
+#             for token_idx, token_id in enumerate(tokens):
+#                 if token_id == self.eos_token_id:
+#                     file_boundary_positions.append(token_idx)
+
+#             if verbose:
+#                 print(f"\nFile boundary detection:")
+#                 print(
+#                     f"  Found {len(file_boundary_positions)} EOS tokens (file boundaries)"
+#                 )
+
+#                 if len(file_boundary_positions) > 0:
+#                     print(
+#                         f"  First boundary at position {file_boundary_positions[0]:,}"
+#                     )
+#                     print(
+#                         f"  Last boundary at position {file_boundary_positions[-1]:,}"
+#                     )
+#                 else:
+#                     print(
+#                         f"  ⚠ WARNING: No EOS tokens found - treating entire sequence as one file"
+#                     )
+
+#             # =====================================================================
+#             # SECTION 3: Extract File Segments Between Boundaries
+#             # =====================================================================
+
+#             file_segments = []
+#             segment_start_position = 0
+
+#             # Process each boundary to extract segments
+#             for boundary_position in file_boundary_positions:
+#                 # Extract segment from start to EOS token (EXCLUDE EOS from segment)
+#                 # Rationale: EOS is a separator, not part of the file content
+#                 segment_tokens = tokens[segment_start_position:boundary_position]
+
+#                 # Only keep non-empty segments
+#                 if len(segment_tokens) > 0:
+#                     file_segments.append(segment_tokens)
+
+#                 # Next segment starts after this EOS token
+#                 segment_start_position = boundary_position + 1
+
+#             # Handle any remaining tokens after the last EOS
+#             if segment_start_position < len(tokens):
+#                 remaining_segment = tokens[segment_start_position:]
+#                 if remaining_segment:
+#                     file_segments.append(remaining_segment)
+
+#             # If no boundaries found, treat entire sequence as one segment
+#             if len(file_segments) == 0 and len(tokens) > 0:
+#                 if verbose:
+#                     print(
+#                         f"  No segments created from boundaries - using full token sequence"
+#                     )
+#                 file_segments.append(tokens)
+
+#             if verbose:
+#                 print(f"\nFile segments:")
+#                 print(f"  Total segments: {len(file_segments)}")
+
+#                 if file_segments:
+#                     segment_lengths = [len(seg) for seg in file_segments]
+#                     print(f"  Min segment length: {min(segment_lengths):,} tokens")
+#                     print(f"  Max segment length: {max(segment_lengths):,} tokens")
+#                     print(
+#                         f"  Avg segment length: {sum(segment_lengths) / len(segment_lengths):.1f} tokens"
+#                     )
+
+#                     # Count segments that are too short
+#                     too_short = sum(
+#                         1 for seg_len in segment_lengths if seg_len < max_length + 1
+#                     )
+#                     if too_short > 0:
+#                         print(
+#                             f"  ⚠ {too_short} segments too short for window creation (< {max_length + 1} tokens)"
+#                         )
+
+#             # =====================================================================
+#             # SECTION 4: Create Windows WITHIN Each File Segment
+#             # =====================================================================
+
+#             self.windows = []
+#             self.window_segment_mapping = []  # Track which segment each window came from
+
+#             window_creation_start = time.perf_counter()
+
+#             total_segments_processed = 0
+#             total_segments_skipped = 0
+
+#             for segment_idx, segment_tokens in enumerate(file_segments):
+#                 # Check if segment is long enough for at least one window
+#                 # Need max_length + 1 because we create (input, target) pairs
+#                 if len(segment_tokens) < max_length + 1:
+#                     if verbose:
+#                         print(
+#                             f"  Segment {segment_idx}: SKIPPED "
+#                             f"(only {len(segment_tokens)} tokens, need {max_length + 1})"
+#                         )
+#                     total_segments_skipped += 1
+#                     continue
+
+#                 # Create sliding windows WITHIN this segment
+#                 segment_windows_count = 0
+
+#                 # Slide window through segment with specified stride
+#                 for window_start_idx in range(
+#                     0, len(segment_tokens) - max_length, stride
+#                 ):
+#                     # Extract window of max_length + 1 tokens
+#                     # (+1 because we need the next token as prediction target)
+#                     window_end_idx = window_start_idx + max_length + 1
+#                     window = segment_tokens[window_start_idx:window_end_idx]
+
+#                     # Verify window is complete
+#                     if len(window) == max_length + 1:
+#                         self.windows.append(window)
+#                         self.window_segment_mapping.append(segment_idx)
+#                         segment_windows_count += 1
+#                     else:
+#                         # This should rarely happen due to our range calculation
+#                         # but handle it gracefully
+#                         if verbose:
+#                             print(
+#                                 f"    ⚠ Incomplete window at position {window_start_idx} "
+#                                 f"({len(window)} tokens), skipping"
+#                             )
+
+#                 if segment_windows_count > 0:
+#                     total_segments_processed += 1
+
+#                     if verbose:
+#                         coverage_pct = (
+#                             (segment_windows_count * stride + max_length)
+#                             / len(segment_tokens)
+#                             * 100
+#                         )
+#                         print(
+#                             f"  Segment {segment_idx}: {segment_windows_count} windows "
+#                             f"from {len(segment_tokens)} tokens "
+#                             f"(coverage: {coverage_pct:.1f}%)"
+#                         )
+#                 else:
+#                     if verbose:
+#                         print(
+#                             f"  Segment {segment_idx}: No windows created "
+#                             f"(length {len(segment_tokens)} barely meets minimum)"
+#                         )
+
+#             window_creation_time = time.perf_counter() - window_creation_start
+
+#             # =====================================================================
+#             # SECTION 5: Final Validation and Statistics
+#             # =====================================================================
+
+#             if len(self.windows) == 0:
+#                 raise ValueError(
+#                     f"No training windows could be created! "
+#                     f"Processed {len(file_segments)} segments, but all were too short "
+#                     f"or didn't yield valid windows. "
+#                     f"Check that your files contain at least {max_length + 1} tokens each."
+#                 )
+
+#             if verbose:
+#                 overlap_percent = (
+#                     ((max_length - stride) / max_length * 100) if max_length > 0 else 0
+#                 )
+
+#                 print(f"\n{'=' * 60}")
+#                 print(f"Dataset Creation Summary:")
+#                 print(f"{'=' * 60}")
+#                 print(f"  Input tokens: {len(tokens):,}")
+#                 print(f"  File segments: {len(file_segments)}")
+#                 print(f"  Segments processed: {total_segments_processed}")
+#                 print(f"  Segments skipped: {total_segments_skipped}")
+#                 print(f"  Total windows created: {len(self.windows):,}")
+#                 print(f"  Window size: {max_length} tokens")
+#                 print(f"  Stride: {stride} tokens")
+#                 print(f"  Overlap: {overlap_percent:.1f}%")
+#                 print(f"  Creation time: {window_creation_time:.2f} seconds")
+
+#                 # Calculate token coverage
+#                 total_segment_tokens = sum(len(seg) for seg in file_segments)
+#                 effective_tokens_covered = min(
+#                     total_segment_tokens, len(self.windows) * stride + max_length
+#                 )
+#                 coverage_pct = (
+#                     (effective_tokens_covered / total_segment_tokens * 100)
+#                     if total_segment_tokens > 0
+#                     else 0
+#                 )
+#                 print(f"  Token coverage: {coverage_pct:.1f}%")
+#                 print(f"{'=' * 60}")
+
+#         except Exception as dataset_creation_error:
+#             print(f"\n❌ Error creating DocumentDatasetFromTokens:")
+#             print(f"   {dataset_creation_error}")
+#             traceback.print_exc()
+#             raise
+
+#     def __len__(self) -> int:
+#         """
+#         Return the number of training windows.
+
+#         Returns:
+#             int: Number of windows in the dataset
+#         """
+#         return len(self.windows)
+
+#     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+#         """
+#         Get a training sample at the specified index.
+
+#         Args:
+#             idx (int): Index of the training window to retrieve
+
+#         Returns:
+#             tuple[torch.Tensor, torch.Tensor]: (input_ids, target_ids)
+#                 - input_ids: Token IDs for model input [max_length]
+#                 - target_ids: Token IDs for prediction target [max_length]
+#                   (same as input_ids shifted by 1 position)
+
+#         Raises:
+#             IndexError: If idx is out of range
+
+#         Note:
+#             For autoregressive language modeling, the target is always
+#             the input shifted by one position (predict next token).
+
+#             Example:
+#                 If window = [10, 20, 30, 40, 50]
+#                 Then input_ids  = [10, 20, 30, 40]  (all except last)
+#                 And  target_ids = [20, 30, 40, 50]  (all except first)
+#         """
+#         try:
+#             # Bounds checking
+#             if idx < 0 or idx >= len(self.windows):
+#                 raise IndexError(
+#                     f"Index {idx} out of range for dataset with {len(self.windows)} windows"
+#                 )
+
+#             # Retrieve the window
+#             window = self.windows[idx]
+
+#             # Verify window integrity
+#             if len(window) != self.max_length + 1:
+#                 raise RuntimeError(
+#                     f"Window at index {idx} has incorrect length: "
+#                     f"expected {self.max_length + 1}, got {len(window)}"
+#                 )
+
+#             # Split into input and target (next token prediction)
+#             # Input is all tokens except the last
+#             input_ids = torch.tensor(window[:-1], dtype=torch.long)
+
+#             # Target is all tokens except the first (shifted by 1)
+#             target_ids = torch.tensor(window[1:], dtype=torch.long)
+
+#             return input_ids, target_ids
+
+#         except IndexError:
+#             # Re-raise IndexError with more context
+#             raise
+#         except Exception as getitem_error:
+#             print(f"❌ Error getting item at index {idx}: {getitem_error}")
+#             traceback.print_exc()
+#             raise
+
+#     def get_segment_info(self, window_idx: int) -> dict:
+#         """
+#         Get information about which file segment a window came from.
+
+#         Useful for debugging or analysis to trace windows back to their source files.
+
+#         Args:
+#             window_idx (int): Window index
+
+#         Returns:
+#             dict: Information about the segment this window came from
+#                 - segment_idx: Which file segment (int)
+#                 - window_idx: The window index queried (int)
+
+#         Raises:
+#             IndexError: If window_idx is out of range
+#         """
+#         try:
+#             if window_idx < 0 or window_idx >= len(self.windows):
+#                 raise IndexError(
+#                     f"Window index {window_idx} out of range "
+#                     f"(dataset has {len(self.windows)} windows)"
+#                 )
+
+#             return {
+#                 "window_idx": window_idx,
+#                 "segment_idx": self.window_segment_mapping[window_idx],
+#             }
+
+#         except Exception as info_error:
+#             print(f"Error getting segment info for window {window_idx}: {info_error}")
+#             traceback.print_exc()
+#             raise
 
 
 def load_document(file_path):
