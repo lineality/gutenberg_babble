@@ -62,11 +62,13 @@ TRAINING_CONFIG = {
     "num_epochs": 1,  # Number of training epochs, default 3
     "weight_decay": 0.01,  # Weight decay for AdamW
     "warmup_steps": 100,  # Warmup steps for learning rate
-    "eval_every": 200,  # Evaluate every N steps NOTE purely for human-readable console output during training
+    "eval_every": 10,  # Evaluate every N steps NOTE purely for human-readable console output during training
     "eval_batches": 10,  # Number of batches for evaluation
     "save_every": 500,  # Save checkpoint every N steps
     "chunk_overlap": 0.1,  # Overlap between text chunks (0.0 to 0.5)
 }
+# Data split
+TRAIN_VAL_SPLIT = 0.5  # 0.9 = 90% train, 10% validation (modify as needed)
 
 
 # Model configuration
@@ -82,8 +84,6 @@ TRAINING_MODE = "continue"  # "continue"  # Options: "new", "continue", "force_r
 CHECKPOINT_PATH = None  # Set to specific checkpoint file, or None to auto-find
 # If None, looks for: {OUTPUT_DIR}/checkpoint_best.pth
 
-# Data split
-TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 
 """
 Aim of Checkpoint Management and Training Continuation System
@@ -1570,7 +1570,9 @@ def train_model(
                                 tokens_seen=tokens_seen,
                                 windows_processed=windows_processed,
                             )
-                            print(f"  → Saved best model (val_loss: {val_loss:.4f})")
+                            print(
+                                f"\n    🌐📉 → Saved new-best model (val_loss: {val_loss:.4f})\n"
+                            )
 
                     # Periodic checkpoint with window tracking
                     if global_step % config["save_every"] == 0:

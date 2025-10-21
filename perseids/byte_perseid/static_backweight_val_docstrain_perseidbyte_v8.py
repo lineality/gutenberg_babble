@@ -1,6 +1,14 @@
 """
 backweight_val_docstrain_perseidbyte.py
 
+Todo:
+- maybe try just addition subtraction...?
+- why is this starting at epoch 2?
+- because there are more data:
+try more diverse validation data: 50 or more %?
+- update...delete old checkpoint - timestamp not number...
+
+
 This is a simpler trainer that allows re-training / continued pre-training.
 Possibly should track/log what last-best validation loss was...
 
@@ -247,8 +255,8 @@ TRAINING_MODE = "continue"  # Options: "new", "continue", "force_restart"
 CHECKPOINT_PATH = None  # Set to specific checkpoint file, or None to auto-find
 # If None, looks for: {OUTPUT_DIR}/checkpoint_best.pth
 
-# Data split
-TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
+# Data split - Test train split, train validation split
+TRAIN_VAL_SPLIT = 0.5  # 0.9 is 90% train, 10% validation (modify as needed)
 
 # # Training settings
 # TRAINING_CONFIG = {
@@ -271,10 +279,10 @@ TRAINING_CONFIG = {
     "batch_size": 10,
     "gradient_accumulation_steps": 4,
     "learning_rate": 5e-4,
-    "num_epochs": 1,  # 7
+    "num_epochs": 2,  # 7
     "weight_decay": 0.01,
     "warmup_steps": 100,
-    "eval_every": 10,
+    "eval_every": 50,
     "eval_batches": 10,
     "save_every": 50,  # 100
     "chunk_overlap": 0.1,
@@ -283,7 +291,7 @@ TRAINING_CONFIG = {
     "target_delimiter_string": "|||",  # Delimiter surrounding answers
     "answer_weight_multiplier": 10.0,  # Weight multiplier for answer tokens
     "pct_validations_weighted": 100,  # Percentage of validations to weight (0-100)
-    "steps_grace_period_before_weighting": 200,  # Grace period steps before weighting starts
+    "steps_grace_period_before_weighting": 4000,  # Grace period steps before weighting starts
     "validation_random_seed": 42,  # Seed for reproducible stochastic weighting
 }
 
@@ -2406,6 +2414,8 @@ def train_model(
                         # Print with indicator if weighted validation was used
                         weighted_indicator = "⚡" if use_weighted_val else "📊"
 
+                        # 📉Chart Decreasing\U0001F4C9
+
                         print(
                             f"{weighted_indicator} Step {global_step:5d} | "
                             f"Train Loss: {train_loss:.4f} | "
@@ -2428,7 +2438,9 @@ def train_model(
                                 epoch,  # Add epoch parameter
                                 tokens_seen,  # Add tokens_seen parameter
                             )
-                            print(f"  → Saved best model (val_loss: {val_loss:.4f})")
+                            print(
+                                f"  🌐📉 → Saved best model (val_loss: {val_loss:.4f})"
+                            )
 
                     # Periodic checkpoint
                     if global_step % config["save_every"] == 0:

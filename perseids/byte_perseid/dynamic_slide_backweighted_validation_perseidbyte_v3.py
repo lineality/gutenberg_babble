@@ -299,14 +299,14 @@ TRAIN_VAL_SPLIT = 0.9  # 90% train, 10% validation (modify as needed)
 
 
 TRAINING_CONFIG = {
-    "context_length": 512,  # 1024,  (see: sliding_window size in model file)
+    "context_length": 1024,  # 1024,  (see: sliding_window size in model file)
     "batch_size": 10,  # (number of docs/chunks trained on at one time)
     "gradient_accumulation_steps": 4,
     "learning_rate": 5e-4,
     "num_epochs": 1,  # 7 (one for no repeat training)
     "weight_decay": 0.01,
     "warmup_steps": 100,
-    "eval_every": 100,
+    "eval_every": 500,
     "eval_batches": 10,
     "save_every": 50,  # 100
     "chunk_overlap": 0.1,
@@ -315,7 +315,7 @@ TRAINING_CONFIG = {
     "target_delimiter_string": "|||",  # Delimiter surrounding answers
     "answer_weight_multiplier": 10.0,  # Weight multiplier for answer tokens
     "pct_validations_weighted": 100,  # Percentage of validations to weight (0-100)
-    "steps_grace_period_before_weighting": 600,  # Grace period steps before weighting starts
+    "steps_grace_period_before_weighting": 900,  # Grace period steps before weighting starts
     "validation_random_seed": 42,  # Seed for reproducible stochastic weighting
     # Sliding window behavior
     "use_sliding_windows": True,  # Enable multi-window per file
